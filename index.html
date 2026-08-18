@@ -74,10 +74,20 @@
   }
 
   .pricing { padding: 34px 0; border-top: 1px solid var(--line); }
-  .pricing .card { max-width: 420px; }
+  .pricing .grid { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); align-items: stretch; }
   .pricing .price { font-size: 30px; font-weight: 700; }
   .pricing .price small { font-size: 13px; color: var(--muted); font-weight: 400; }
   .pricing ul { margin: 12px 0 0 18px; font-size: 13px; color: var(--muted); }
+  .pricing li { margin-bottom: 4px; }
+  .card.featured { border-color: var(--signal); position: relative; }
+  .card.featured::before {
+    content: "ONE-TIME";
+    position: absolute; top: -9px; right: 14px;
+    background: var(--signal); color: #12131a;
+    font-size: 9px; font-weight: 700; letter-spacing: 0.12em;
+    padding: 3px 8px; border-radius: 4px;
+  }
+  .pricing .note { margin-top: 14px; font-size: 12px; color: var(--muted); }
 
   footer {
     padding: 30px 0 44px; border-top: 1px solid var(--line);
@@ -138,14 +148,28 @@
 
   <section class="pricing">
     <h2>Pricing</h2>
-    <div class="card">
-      <div class="price">Free <small>core features, forever</small></div>
-      <ul>
-        <li>All cleanup features and notes are free</li>
-        <li>Pro (sub playlists and themes) is a single one-time payment inside the extension</li>
-        <li>Payments are processed by Stripe via ExtensionPay</li>
-      </ul>
+    <div class="grid">
+      <div class="card">
+        <div class="price">Free <small>forever</small></div>
+        <ul>
+          <li>Hide Shorts and Playables</li>
+          <li>Playlists open as lists</li>
+          <li>Hide end screen cards</li>
+          <li>Notes on any video, with export</li>
+        </ul>
+      </div>
+      <div class="card featured">
+        <div class="price">$6.99 <small>once, yours forever</small></div>
+        <ul>
+          <li>Everything in Free</li>
+          <li>Sub playlists with one-click Auto group</li>
+          <li>Custom accent color and font</li>
+          <li>Full background image with readability dim</li>
+          <li>Works on every computer you log in on</li>
+        </ul>
+      </div>
     </div>
+    <p class="note">The Pro upgrade is purchased inside the extension. No subscription, no account required, payment processed by Stripe via ExtensionPay.</p>
   </section>
 
   <footer>
