@@ -1,0 +1,1404 @@
+<title>Used GPU Check</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@700&family=IBM+Plex+Mono:wght@400&family=Public+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Layout concept: a spec sheet for one listing. Questions run down the left, in the order you would ask them. A read on the listing (risk level, meter, price check, reasons) sits in a card that follows you on a wide screen, and on a phone the level, score and price check stay pinned to the bottom edge while you answer. */
+:root {
+  --bg: #E8EAF4;
+  --surface: #FFFFFF;
+  --inset: #EFF0F8;
+  --ink: #14162B;
+  --muted: #565A78;
+  --line: #CFD2E4;
+  --line-strong: #7C82A8;
+  --accent: #4338CA;
+  --on-accent: #FFFFFF;
+  --accent-soft: #E0E2FA;
+  --good: #17703F;
+  --warn: #7F5200;
+  --warn-soft: #FBEBC8;
+  --bad: #B3261E;
+  --bad-soft: #FADAD7;
+  --lv-low: #14683A;
+  --lv-low-soft: #DDF3E5;
+  --lv-med: #7A4E00;
+  --lv-med-soft: #FBEDC9;
+  --lv-high: #A63D06;
+  --lv-high-soft: #FCE3D3;
+  --lv-walk: #A8201A;
+  --lv-walk-soft: #FADCD9;
+  --z1: #2F9E5F;
+  --z2: #C98600;
+  --z3: #D9601A;
+  --z4: #D3372E;
+  --shadow-up: 0 -6px 20px rgb(20 22 43 / 0.10);
+  --shadow-pop: 0 8px 24px rgb(20 22 43 / 0.22);
+  --font-display: 'Chakra Petch', 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  --font-body: 'Public Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0C0E1E;
+    --surface: #141731;
+    --inset: #101227;
+    --ink: #E6E8F7;
+    --muted: #9A9EC4;
+    --line: #262A4F;
+    --line-strong: #6870B0;
+    --accent: #8B9CFF;
+    --on-accent: #0B0D24;
+    --accent-soft: #1E2250;
+    --good: #66D08F;
+    --warn: #F2BC4B;
+    --warn-soft: #3F2F0B;
+    --bad: #FF8F86;
+    --bad-soft: #451B18;
+    --lv-low: #62D08B;
+    --lv-low-soft: #10321F;
+    --lv-med: #F2BC4B;
+    --lv-med-soft: #3A2B08;
+    --lv-high: #FF9A5C;
+    --lv-high-soft: #431F0C;
+    --lv-walk: #FF8F86;
+    --lv-walk-soft: #451B18;
+    --z1: #45B877;
+    --z2: #E0A82E;
+    --z3: #F0803F;
+    --z4: #F0655B;
+    --shadow-up: 0 -1px 0 rgb(0 0 0 / 0.35);
+    --shadow-pop: 0 8px 24px rgb(0 0 0 / 0.5);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0C0E1E;
+  --surface: #141731;
+  --inset: #101227;
+  --ink: #E6E8F7;
+  --muted: #9A9EC4;
+  --line: #262A4F;
+  --line-strong: #6870B0;
+  --accent: #8B9CFF;
+  --on-accent: #0B0D24;
+  --accent-soft: #1E2250;
+  --good: #66D08F;
+  --warn: #F2BC4B;
+  --warn-soft: #3F2F0B;
+  --bad: #FF8F86;
+  --bad-soft: #451B18;
+  --lv-low: #62D08B;
+  --lv-low-soft: #10321F;
+  --lv-med: #F2BC4B;
+  --lv-med-soft: #3A2B08;
+  --lv-high: #FF9A5C;
+  --lv-high-soft: #431F0C;
+  --lv-walk: #FF8F86;
+  --lv-walk-soft: #451B18;
+  --z1: #45B877;
+  --z2: #E0A82E;
+  --z3: #F0803F;
+  --z4: #F0655B;
+  --shadow-up: 0 -1px 0 rgb(0 0 0 / 0.35);
+  --shadow-pop: 0 8px 24px rgb(0 0 0 / 0.5);
+  color-scheme: dark;
+}
+
+/* Risk level and price check colors, usable on any element that carries the attribute */
+[data-level="none"] { --lv: var(--muted); --lv-soft: var(--inset); }
+[data-level="low"] { --lv: var(--lv-low); --lv-soft: var(--lv-low-soft); }
+[data-level="med"] { --lv: var(--lv-med); --lv-soft: var(--lv-med-soft); }
+[data-level="high"] { --lv: var(--lv-high); --lv-soft: var(--lv-high-soft); }
+[data-level="walk"] { --lv: var(--lv-walk); --lv-soft: var(--lv-walk-soft); }
+[data-tone="none"] { --tn: var(--muted); --tn-soft: var(--inset); }
+[data-tone="neutral"] { --tn: var(--accent); --tn-soft: var(--accent-soft); }
+[data-tone="good"] { --tn: var(--lv-low); --tn-soft: var(--lv-low-soft); }
+[data-tone="warn"] { --tn: var(--warn); --tn-soft: var(--warn-soft); }
+[data-tone="bad"] { --tn: var(--bad); --tn-soft: var(--bad-soft); }
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font: 400 16px/1.45 var(--font-body);
+  padding-inline: 16px;
+  padding-block: 16px 116px;
+  -webkit-font-smoothing: antialiased;
+}
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: not-allowed; opacity: 0.45; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+h1, h2, h3, p, ul, ol, dl { margin: 0; }
+
+.app { max-width: 1040px; margin-inline: auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+.layout {
+  display: grid; gap: 16px; min-width: 0;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "inputs" "results" "more";
+}
+.inputs { grid-area: inputs; }
+.results { grid-area: results; }
+.more { grid-area: more; }
+.inputs, .more, .results { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; min-width: 0; align-content: start; }
+
+/* Masthead */
+.head { display: grid; gap: 8px; }
+.masthead { display: flex; align-items: center; gap: 12px; }
+.mark { width: 42px; height: 42px; flex: none; }
+.mark .body { fill: var(--accent); }
+.mark .fan { fill: none; stroke: var(--on-accent); stroke-width: 2; }
+.mark .hub { fill: var(--on-accent); }
+.masthead h1 { flex: 1; min-width: 0; font: 700 26px/1.05 var(--font-display); letter-spacing: 0.04em; text-transform: uppercase; text-wrap: balance; }
+.tagline { color: var(--muted); font-size: 14px; text-wrap: balance; max-width: 62ch; }
+
+/* Sections */
+.sec { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; min-width: 0; }
+.sec-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 2px 12px; }
+.sec-head h2, .h2 { font: 700 18px/1.15 var(--font-display); letter-spacing: 0.07em; text-transform: uppercase; text-wrap: balance; }
+.h3 { font: 700 14px/1.2 var(--font-display); letter-spacing: 0.07em; text-transform: uppercase; }
+.hint { color: var(--muted); font-size: 13px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; min-width: 0; }
+.fine { color: var(--muted); font-size: 13px; }
+.fine a, .panel a.txt { color: var(--ink); font-weight: 600; text-underline-offset: 3px; }
+.foot { color: var(--muted); font-size: 13px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; max-width: 64ch; }
+.foot a { color: var(--ink); font-weight: 600; text-underline-offset: 3px; }
+.mail { overflow-wrap: anywhere; user-select: all; -webkit-user-select: all; color: var(--ink); font-weight: 600; }
+.linkish { background: none; border: 0; padding: 0; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; text-align: left; min-height: 32px; }
+.empty { padding: 18px 14px; border: 1.5px dashed var(--line-strong); border-radius: 12px; color: var(--muted); text-align: center; font-size: 14px; }
+
+/* Controls */
+.lab { display: block; font: 600 12px/1.1 var(--font-body); letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); }
+.qlab { display: block; font: 600 15px/1.3 var(--font-body); color: var(--ink); }
+.field { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; min-width: 0; align-content: start; }
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.ctl { width: 100%; min-width: 0; height: 48px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--inset); color: var(--ink); }
+.ctl::placeholder { color: var(--muted); opacity: 0.85; }
+.affix { display: flex; align-items: center; height: 48px; min-width: 0; border: 1px solid var(--line); border-radius: 8px; background: var(--inset); overflow: hidden; }
+.affix:focus-within { outline: 2px solid var(--accent); outline-offset: 1px; }
+.affix input { flex: 1; min-width: 0; width: 100%; height: 100%; border: 0; background: transparent; padding: 0 8px 0 4px; outline: 0; font-variant-numeric: tabular-nums; }
+.affix input::placeholder { color: var(--muted); opacity: 0.85; }
+.affix .pre { padding-left: 12px; color: var(--muted); font-size: 14px; white-space: nowrap; }
+
+/* Questions */
+.q { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; min-width: 0; }
+.q + .q { padding-top: 16px; border-top: 1px solid var(--line); }
+.opts { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; min-width: 0; }
+.opts.c2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.opts.c3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.opt { position: relative; display: block; min-width: 0; }
+.opt input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.opt span { position: relative; display: flex; align-items: center; gap: 10px; min-height: 48px; height: 100%; padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--inset); font-size: 15px; line-height: 1.25; font-weight: 500; overflow-wrap: anywhere; }
+.opt span::before { content: ""; flex: none; width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--line-strong); background: var(--surface); }
+.opt input[type="checkbox"] + span::before { border-radius: 5px; }
+.opt input:checked + span { background: var(--accent-soft); border-color: var(--accent); font-weight: 600; }
+.opt input[type="radio"]:checked + span::before { border-color: var(--accent); background: var(--accent); box-shadow: inset 0 0 0 3px var(--surface); }
+.opt input[type="checkbox"]:checked + span::before { border-color: var(--accent); background: var(--accent); }
+.opt input[type="checkbox"] + span::after { content: ""; position: absolute; left: 19px; top: 50%; width: 5px; height: 10px; border: solid var(--on-accent); border-width: 0 2px 2px 0; transform: translateY(-62%) rotate(45deg); opacity: 0; }
+.opt input[type="checkbox"]:checked + span::after { opacity: 1; }
+.opt input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+.opts.c2 .opt span, .opts.c3 .opt span { padding-inline: 10px; gap: 8px; }
+.opts.c3 .opt span { justify-content: flex-start; }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 52px; padding: 0 20px; border-radius: 10px; border: 1px solid transparent; background: var(--accent); color: var(--on-accent); font-weight: 700; font-size: 16px; letter-spacing: 0.01em; text-decoration: none; }
+.btn:hover:not(:disabled) { filter: brightness(1.07); }
+.btn:active:not(:disabled) { transform: translateY(1px); }
+.btn.ghost { background: transparent; border-color: var(--line-strong); color: var(--ink); }
+.btn.sm { min-height: 44px; padding: 0 14px; font-size: 14px; }
+.btn-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.btn-row .btn { padding: 0 12px; }
+.code-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; }
+.seg { display: inline-flex; flex: none; padding: 3px; gap: 3px; border-radius: 10px; border: 1px solid var(--line); background: var(--inset); }
+.seg button { min-width: 48px; height: 40px; padding: 0 12px; border: 0; border-radius: 7px; background: transparent; color: var(--muted); font-weight: 700; font-size: 14px; }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); }
+
+/* Alerts */
+.alert { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; justify-items: start; padding: 12px 14px; border-radius: 10px; border: 1px solid transparent; font-size: 14px; line-height: 1.4; }
+.alert.info { background: var(--accent-soft); }
+.alert.warn { background: var(--warn-soft); border-color: var(--warn); }
+.alert.bad { background: var(--bad-soft); border-color: var(--bad); }
+
+/* The read */
+.read-card { gap: 14px; }
+.risk { display: grid; gap: 12px; padding: 14px; border-radius: 10px; border: 1px solid var(--lv); background: var(--lv-soft); min-width: 0; }
+.risk-top { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.lvicon { flex: none; width: 34px; height: 34px; color: var(--lv); }
+.lvicon svg { display: none; width: 100%; height: 100%; }
+[data-level="none"] .ic-none, [data-level="low"] .ic-low, [data-level="med"] .ic-med, [data-level="high"] .ic-high, [data-level="walk"] .ic-walk { display: block; }
+.lvtxt { flex: 1; min-width: 0; display: grid; gap: 3px; }
+.lvname { font: 700 clamp(24px, 7.4vw, 30px)/1.05 var(--font-display); letter-spacing: 0.03em; text-transform: uppercase; color: var(--lv); overflow-wrap: anywhere; }
+.lvsub { font-size: 13px; color: var(--muted); line-height: 1.3; }
+.score { flex: none; text-align: right; font: 700 38px/1 var(--font-display); font-variant-numeric: tabular-nums; color: var(--ink); }
+.score small { font: 600 13px/1 var(--font-body); color: var(--muted); margin-left: 2px; }
+.meter { position: relative; display: flex; height: 12px; border-radius: 6px; }
+.meter .z { display: block; height: 100%; }
+.z1 { flex: 25 1 0; background: var(--z1); border-radius: 6px 0 0 6px; }
+.z2 { flex: 20 1 0; background: var(--z2); }
+.z3 { flex: 25 1 0; background: var(--z3); }
+.z4 { flex: 30 1 0; background: var(--z4); border-radius: 0 6px 6px 0; }
+.ptr { position: absolute; top: -5px; width: 4px; height: 22px; margin-left: -2px; border-radius: 2px; background: var(--ink); box-shadow: 0 0 0 2px var(--surface); }
+.ticks { position: relative; height: 14px; font: 400 11px/1 var(--font-mono); color: var(--muted); }
+.ticks span { position: absolute; top: 0; transform: translateX(-50%); }
+.ticks span:first-child { transform: none; }
+.ticks span:last-child { transform: translateX(-100%); }
+.advice { font-size: 14px; line-height: 1.45; }
+.deal { display: grid; gap: 8px; }
+.deal-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; }
+.pill { display: inline-flex; align-items: center; min-height: 30px; padding: 4px 12px; border-radius: 999px; border: 1px solid var(--tn); background: var(--tn-soft); color: var(--tn); font-size: 14px; font-weight: 700; line-height: 1.2; }
+.why { display: grid; gap: 10px; padding-top: 14px; border-top: 1px solid var(--line); }
+.reasons, .goods { list-style: none; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+.reasons li { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 10px; align-items: start; font-size: 14px; line-height: 1.4; }
+.reasons .pts { display: block; padding: 2px 0; border-radius: 6px; background: var(--warn-soft); color: var(--warn); font-weight: 700; font-size: 13px; text-align: center; font-variant-numeric: tabular-nums; }
+.goods li { position: relative; padding-left: 26px; font-size: 14px; line-height: 1.4; }
+.goods li::before { content: ""; position: absolute; left: 5px; top: 3px; width: 6px; height: 11px; border: solid var(--good); border-width: 0 2.5px 2.5px 0; transform: rotate(45deg); }
+.sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0; }
+.safety-line { color: var(--warn); font-size: 13px; font-weight: 600; line-height: 1.35; }
+.save-form { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+
+/* Lists, message, links */
+.bullets { list-style: none; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+.bullets li { position: relative; padding-left: 20px; font-size: 15px; line-height: 1.4; }
+.bullets li::before { content: ""; position: absolute; left: 0; top: 0.5em; width: 8px; height: 8px; background: var(--accent); border-radius: 2px; }
+.bullets.warnish li::before { background: var(--warn); }
+.steps { list-style: none; padding: 0; counter-reset: step; display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+.steps li { counter-increment: step; position: relative; padding-left: 36px; font-size: 15px; line-height: 1.45; }
+.steps li::before { content: counter(step); position: absolute; left: 0; top: 0; width: 26px; height: 26px; border-radius: 8px; background: var(--accent-soft); color: var(--ink); font: 700 14px/26px var(--font-display); text-align: center; }
+.msg { padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--inset); font-size: 15px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
+.links { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.links a { display: flex; align-items: center; min-height: 48px; padding: 6px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--inset); color: var(--ink); font-size: 14px; font-weight: 600; line-height: 1.25; text-decoration: none; overflow-wrap: anywhere; }
+.links a:hover { border-color: var(--accent); }
+.links li.sold { grid-column: 1 / -1; }
+.links a.sold { background: var(--accent-soft); border-color: var(--accent); }
+.panel.safety { background: var(--warn-soft); border-color: var(--warn); }
+.sources { list-style: none; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+.sources li { display: grid; gap: 2px; font-size: 14px; line-height: 1.4; }
+.sources a { color: var(--ink); font-weight: 600; text-underline-offset: 3px; overflow-wrap: anywhere; }
+
+/* Saved listings */
+.saved-list { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+.saved { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--inset); min-width: 0; }
+.sv-name { overflow-wrap: anywhere; }
+.sv-sum { font-size: 14px; overflow-wrap: anywhere; }
+.sv-risk { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font-size: 13px; color: var(--muted); }
+.lvchip { display: inline-flex; align-items: center; min-height: 26px; padding: 2px 10px; border-radius: 999px; border: 1px solid var(--lv); background: var(--lv-soft); color: var(--lv); font-size: 13px; font-weight: 700; }
+.row-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.sort-row { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+.sort-row .seg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); width: 100%; }
+.sort-row .seg button { min-width: 0; height: auto; min-height: 44px; padding: 4px 6px; line-height: 1.15; font-size: 14px; }
+
+/* Details blocks and FAQ */
+details.rates { display: block; }
+.rates summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; cursor: pointer; list-style: none; }
+.rates summary::-webkit-details-marker { display: none; }
+.rates summary .hint { display: flex; align-items: center; gap: 8px; }
+.rates summary .hint::after { content: ""; width: 8px; height: 8px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: translateY(-2px) rotate(45deg); }
+.rates[open] summary .hint::after { transform: translateY(2px) rotate(-135deg); }
+.rates-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; margin-top: 12px; padding-top: 14px; border-top: 1px solid var(--line); }
+.faq { gap: 0; padding-block: 6px; }
+.faq details { border-top: 1px solid var(--line); }
+.faq details:first-child { border-top: 0; }
+.faq summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; padding: 6px 0; font-weight: 600; line-height: 1.3; cursor: pointer; list-style: none; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: ""; flex: none; width: 8px; height: 8px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: translateY(-2px) rotate(45deg); }
+.faq details[open] summary::after { transform: translateY(2px) rotate(-135deg); }
+.faq p { font-size: 15px; line-height: 1.5; padding: 0 0 14px; max-width: 62ch; }
+
+/* Score rules table */
+.chart-wrap { overflow-x: auto; }
+.chart { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.chart th { font: 600 12px/1.1 var(--font-body); letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); text-align: right; padding: 0 8px 8px; white-space: nowrap; }
+.chart th:first-child { text-align: left; }
+.chart td { padding: 8px; border-top: 1px solid var(--line); text-align: right; font-size: 14px; line-height: 1.3; }
+.chart td:first-child { text-align: left; padding-left: 0; }
+.chart tr.grp th { padding: 14px 0 6px; text-align: left; border-top: 1px solid var(--line-strong); color: var(--ink); font-size: 13px; letter-spacing: 0.03em; text-transform: none; white-space: normal; }
+.chart tbody tr.grp:first-child th { border-top: 0; padding-top: 0; }
+
+/* Pinned read for phones, copy sheet and toast */
+.bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.5fr) minmax(0, 1fr); gap: 6px; padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px)); background: var(--surface); border-top: 1px solid var(--line-strong); box-shadow: var(--shadow-up); }
+.b-cell { min-width: 0; display: grid; gap: 3px; }
+.b-lab { display: block; font-size: 11px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.b-amt { font: 700 clamp(16px, 5.3vw, 24px)/1.1 var(--font-display); font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-transform: uppercase; letter-spacing: 0.01em; }
+.b-amt.lv { color: var(--lv); }
+.b-amt.tn { color: var(--tn); }
+.sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; max-width: 640px; margin-inline: auto; padding: 16px 16px calc(16px + env(safe-area-inset-bottom, 0px)); background: var(--surface); border-top: 1px solid var(--line-strong); box-shadow: var(--shadow-up); }
+textarea.ctl { height: auto; padding: 12px; font: 400 16px/1.45 var(--font-mono); resize: vertical; }
+.toast { position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 50; max-width: calc(100% - 32px); padding: 10px 16px; border-radius: 999px; background: var(--ink); color: var(--surface); font-size: 14px; font-weight: 600; text-align: center; box-shadow: var(--shadow-pop); }
+
+@media (min-width: 900px) {
+  body { padding-block: 24px 40px; }
+  .layout { grid-template-columns: minmax(0, 1fr) 410px; grid-template-areas: "inputs results" "more results"; column-gap: 28px; align-items: start; }
+  .results { position: sticky; top: 16px; max-height: calc(100vh - 32px); overflow-y: auto; padding-bottom: 8px; }
+  .bar { display: none; }
+  .toast { bottom: 24px; }
+  .masthead h1 { font-size: 30px; }
+}
+@media (min-width: 560px) and (max-width: 899px) {
+  .links { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 350px) {
+  .masthead h1 { font-size: 22px; }
+  .b-lab { font-size: 10px; letter-spacing: 0.04em; }
+  .score { font-size: 32px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .btn, .opt span, .seg button { transition: background-color 0.12s, border-color 0.12s, filter 0.12s; }
+}
+</style>
+
+<div class="app">
+  <div class="head">
+    <header class="masthead">
+      <svg class="mark" viewBox="0 0 40 40" aria-hidden="true" focusable="false">
+        <rect class="body" x="4.5" y="9" width="33" height="19" rx="3.5"/>
+        <rect class="body" x="1.5" y="8" width="3.5" height="21" rx="1.2"/>
+        <rect class="body" x="11" y="28.5" width="17" height="3" rx="0.8"/>
+        <circle class="fan" cx="16" cy="18.5" r="5.2"/>
+        <circle class="fan" cx="29" cy="18.5" r="5.2"/>
+        <circle class="hub" cx="16" cy="18.5" r="1.5"/>
+        <circle class="hub" cx="29" cy="18.5" r="1.5"/>
+      </svg>
+      <h1>Used GPU Check</h1>
+    </header>
+    <p class="tagline">Answer a few questions about a used graphics card listing to get a risk read and a price check before you pay.</p>
+  </div>
+
+  <div class="layout">
+    <div class="inputs">
+      <section class="sec" aria-labelledby="h-card">
+        <div class="sec-head"><h2 id="h-card">The card and the price</h2><span class="hint">Unlocks the price check</span></div>
+        <div class="panel">
+          <div class="field">
+            <label class="lab" for="card">Card</label>
+            <input class="ctl" id="card" type="text" maxlength="60" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="For example: RX 9070 XT">
+          </div>
+          <div class="grid2">
+            <div class="field"><label class="lab" for="ask">Asking price</label><div class="affix"><span class="pre">$</span><input id="ask" type="text" inputmode="decimal" autocomplete="off" placeholder="0"></div></div>
+            <div class="field"><label class="lab" for="typ">Typical sold price</label><div class="affix"><span class="pre">$</span><input id="typ" type="text" inputmode="decimal" autocomplete="off" placeholder="0"></div></div>
+          </div>
+          <p class="fine" id="typHelp"></p>
+        </div>
+      </section>
+
+      <section class="sec" aria-labelledby="h-listing">
+        <div class="sec-head"><h2 id="h-listing">The listing</h2><span class="hint">Where and how you would pay</span></div>
+        <div class="panel" id="qs-listing"></div>
+      </section>
+
+      <section class="sec" id="secSite" aria-labelledby="h-site" hidden>
+        <div class="sec-head"><h2 id="h-site">The website</h2><span class="hint">Only for websites</span></div>
+        <div class="panel" id="qs-site"></div>
+      </section>
+
+      <section class="sec" aria-labelledby="h-seller">
+        <div class="sec-head"><h2 id="h-seller">The seller</h2><span class="hint">Who you are dealing with</span></div>
+        <div class="panel" id="qs-seller"></div>
+      </section>
+
+      <section class="sec" aria-labelledby="h-item">
+        <div class="sec-head"><h2 id="h-item">The card itself</h2><span class="hint">What you would get</span></div>
+        <div class="panel" id="qs-card"></div>
+      </section>
+
+      <button type="button" class="btn ghost sm" id="resetBtn">Start over</button>
+    </div>
+
+    <aside class="results" aria-labelledby="h-read">
+      <div class="sr-only" id="srRead" role="status" aria-live="polite" aria-atomic="true"></div>
+      <div class="panel read-card" id="riskCard" data-level="none" data-score="" data-answered="0" data-needed="10">
+        <div class="sec-head"><h2 id="h-read">Your read</h2><span class="hint" id="readSub"></span></div>
+        <div class="alert" id="riskAlert" role="status" hidden></div>
+        <div class="risk">
+          <div class="risk-top">
+            <span class="lvicon" aria-hidden="true">
+              <svg class="ic-none" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="14" cy="14" r="12"/><path d="M9 14h10"/></svg>
+              <svg class="ic-low" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="14" cy="14" r="12"/><path d="M8.5 14.5l3.8 3.8 7.4-8"/></svg>
+              <svg class="ic-med" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3.5L25.5 23.5H2.5Z"/><path d="M14 10.5v6.2"/><circle cx="14" cy="20.2" r="1.3" fill="currentColor" stroke="none"/></svg>
+              <svg class="ic-high" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2.5L25.5 14L14 25.5L2.5 14Z"/><path d="M14 8.5v6.5"/><circle cx="14" cy="18.6" r="1.3" fill="currentColor" stroke="none"/></svg>
+              <svg class="ic-walk" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9.2 2.5h9.6l6.7 6.7v9.6l-6.7 6.7H9.2l-6.7-6.7V9.2Z"/><path d="M10 10l8 8M18 10l-8 8"/></svg>
+            </span>
+            <div class="lvtxt"><span class="lvname" id="riskLevel">No read yet</span><span class="lvsub" id="riskProg">0 of 10 answered</span></div>
+            <div class="score"><span id="riskScore">-</span><small>/100</small></div>
+          </div>
+          <div class="meter" id="riskMeter" role="img" aria-label="Risk meter, waiting for answers">
+            <span class="z z1"></span><span class="z z2"></span><span class="z z3"></span><span class="z z4"></span>
+            <span class="ptr" id="riskPtr" hidden></span>
+          </div>
+          <div class="ticks" aria-hidden="true"><span style="left:0%">0</span><span style="left:25%">25</span><span style="left:45%">45</span><span style="left:70%">70</span><span style="left:100%">100</span></div>
+          <p class="advice" id="riskAdvice"></p>
+        </div>
+        <div class="deal">
+          <div class="deal-top"><span class="lab">Price check</span><span class="pill" id="dealPill" data-tone="none">No price check yet</span></div>
+          <p class="fine" id="dealLine"></p>
+        </div>
+        <div class="why" id="whyBox" hidden>
+          <h3 class="h3">Why this score</h3>
+          <ul class="reasons" id="reasons"></ul>
+          <p class="fine" id="noReasons" hidden>No warning signs in what you have entered so far.</p>
+          <button type="button" class="btn ghost sm" id="reasonsMore" hidden></button>
+        </div>
+        <div class="why" id="goodBox" hidden>
+          <h3 class="h3">Good signs</h3>
+          <ul class="goods" id="goods"></ul>
+        </div>
+        <div class="btn-row">
+          <button type="button" class="btn" id="copyBtn">Copy summary</button>
+          <button type="button" class="btn ghost" id="saveBtn">Save listing</button>
+        </div>
+        <form class="save-form" id="saveForm" hidden>
+          <label class="lab" for="saveName">Name this listing</label>
+          <div class="code-form">
+            <input class="ctl" id="saveName" type="text" maxlength="60" autocomplete="off" placeholder="For example: Mike on Marketplace">
+            <button type="submit" class="btn">Save</button>
+          </div>
+        </form>
+        <p class="safety-line">A score is a checklist result, not proof. A low score does not make a listing safe. Never send money you cannot afford to lose.</p>
+      </div>
+    </aside>
+
+    <div class="more">
+      <section class="sec" aria-labelledby="h-todo">
+        <div class="sec-head"><h2 id="h-todo">Before you pay</h2><span class="hint">Based on your answers</span></div>
+        <div class="panel">
+          <ul class="bullets" id="todoList"></ul>
+        </div>
+      </section>
+
+      <section class="sec" aria-labelledby="h-msg">
+        <div class="sec-head"><h2 id="h-msg">Message to the seller</h2><span class="hint">Copy, paste, send</span></div>
+        <div class="panel">
+          <div class="msg" id="msgText"></div>
+          <button type="button" class="btn" id="msgCopy">Copy message</button>
+          <p class="fine">It changes with your answers. Edit it however you like before you send it.</p>
+        </div>
+      </section>
+
+      <section class="sec" aria-labelledby="h-find">
+        <div class="sec-head"><h2 id="h-find">Find listings</h2><span class="hint">Opens in a new tab</span></div>
+        <div class="panel">
+          <ul class="links" id="links"></ul>
+          <p class="empty" id="linksEmpty" hidden>Type the card name above to get one tap searches for it.</p>
+          <p class="fine">These open searches on each site. Used GPU Check does not read the results, so you compare listings yourself, then check the ones you like here.</p>
+        </div>
+      </section>
+
+      <section class="sec" aria-labelledby="h-saved">
+        <div class="sec-head"><h2 id="h-saved">Saved listings</h2><span class="hint">Kept on this device</span></div>
+        <div class="panel">
+          <div class="sort-row" id="sortRow" hidden>
+            <span class="lab">Sort by</span>
+            <div class="seg" role="group" aria-label="Sort saved listings">
+              <button type="button" id="sortNew" data-sort="new" aria-pressed="true">Newest</button>
+              <button type="button" id="sortRisk" data-sort="risk" aria-pressed="false">Lowest risk</button>
+              <button type="button" id="sortPrice" data-sort="price" aria-pressed="false">Lowest price</button>
+            </div>
+          </div>
+          <div class="saved-list" id="savedList"></div>
+        </div>
+      </section>
+
+      <section class="sec" aria-labelledby="h-test">
+        <div class="sec-head"><h2 id="h-test">Test it before you pay</h2></div>
+        <div class="panel">
+          <ol class="steps">
+            <li><strong>Match the card to the listing.</strong> Compare the model name on the card and the box, the ports and the power connectors with the maker's spec page. Some fakes are old cards with a new looking cooler, so a VGA port or an SLI connector on a modern model is a red flag.</li>
+            <li><strong>Run GPU-Z.</strong> It shows the GPU name, memory type and size and the release date. Compare them with the real specs for the model. It can flag some fake cards.</li>
+            <li><strong>Stress it for 15 to 20 minutes</strong> with FurMark or a 3DMark test. Watch for crashes, colored blocks or lines on screen and very high temperatures.</li>
+            <li><strong>Check the video memory</strong> with the OCCT video memory test, and watch temperatures and power draw with HWiNFO.</li>
+            <li><strong>Look it over.</strong> Rattling fans, bent fins, a yellowed board near the chip, missing screws or peeled stickers all deserve a question.</li>
+            <li><strong>Ask about the warranty.</strong> Ask for the box, the receipt and the serial number, and ask the maker whether the warranty passes to a new owner. Some do not.</li>
+          </ol>
+          <p class="fine">If you cannot test where you meet, ask for a live video of the card running first, and think hard before you pay without a test.</p>
+        </div>
+      </section>
+
+      <details class="panel rates" id="rulesBox">
+        <summary><span class="h2">How the score works</span><span class="hint">Tap to open</span></summary>
+        <div class="rates-body">
+          <p class="fine">Each answer adds warning points. The points add up to a score that stops at 100. Answers that do not appear here add nothing. Unanswered questions add nothing yet, so the read gets fuller as you answer more.</p>
+          <p class="fine" id="levelRules"></p>
+          <div class="chart-wrap">
+            <table class="chart" id="rulesTable">
+              <thead><tr><th scope="col">Answer</th><th scope="col">Points</th></tr></thead>
+              <tbody id="rulesBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </details>
+
+      <section class="sec" aria-labelledby="h-faq">
+        <div class="sec-head"><h2 id="h-faq">Common questions</h2></div>
+        <div class="panel faq" id="faq">
+          <details>
+            <summary>Does it scan the marketplaces for me?</summary>
+            <p>No. It does not pull in listings. It opens searches for your card on the big marketplaces, you pick the listings you like, and then this page checks each one for warning signs and compares its price with what the card sold for.</p>
+          </details>
+          <details>
+            <summary>Does a low score mean the listing is safe?</summary>
+            <p>No. It only means you found fewer warning signs in the answers you gave. Scammers can fake reviews, photos and friendly messages, so always test the card and pay in a way that protects you.</p>
+          </details>
+          <details>
+            <summary>How do I find the typical sold price?</summary>
+            <p>Open the eBay sold listings link, look at cards that really sold instead of asking prices, and take the middle price of the last ten or so. Skip boxes, coolers and parts.</p>
+          </details>
+          <details>
+            <summary>Why does the way I pay count for so much?</summary>
+            <p>Money sent by wire, crypto, gift card or a payment app to a stranger is very hard to get back. Card and checkout payments usually give you a way to dispute the charge, which is why they add few or no points.</p>
+          </details>
+          <details>
+            <summary>Can it tell me if a card is fake?</summary>
+            <p>Not from a listing alone. It points you to the checks that can: the ports and connectors, the details GPU-Z shows and a stress test. See the test guide above.</p>
+          </details>
+          <details>
+            <summary>Is anything I type sent anywhere?</summary>
+            <p>No. It all stays in your browser on this device, including the listings you save.</p>
+          </details>
+        </div>
+      </section>
+
+      <section class="sec" aria-labelledby="h-src">
+        <div class="sec-head"><h2 id="h-src">Sources</h2></div>
+        <div class="panel">
+          <ul class="sources">
+            <li><a href="https://consumer.ftc.gov/articles/how-avoid-scam" target="_blank" rel="noopener noreferrer">FTC: How To Avoid a Scam</a><span class="fine">Payment methods scammers ask for, and why honest sellers give you time.</span></li>
+            <li><a href="https://www.ebay.com/help/policies/ebay-money-back-guarantee-policy/ebay-money-back-guarantee-policy?id=4210" target="_blank" rel="noopener noreferrer">eBay Money Back Guarantee policy</a><span class="fine">Payments made outside eBay checkout are not covered, and the reporting deadline.</span></li>
+            <li><a href="https://www.paypal.com/us/cshelp/article/whats-the-difference-between-friends-and-family-or-goods-and-services-payments-help277" target="_blank" rel="noopener noreferrer">PayPal: Friends and Family vs Goods and Services</a><span class="fine">Personal payments are not covered by PayPal Purchase Protection.</span></li>
+            <li><a href="https://venmo.com/legal/purchase-protection-eligibility" target="_blank" rel="noopener noreferrer">Venmo Purchase Protection eligibility</a><span class="fine">Protection has to be turned on per purchase, and items collected in person are mostly excluded.</span></li>
+            <li><a href="https://pcgamesn.com/nvidia-gtx-1060-3gb-fake-graphics-card-ebay" target="_blank" rel="noopener noreferrer">PCGamesN: fake GTX 1060 cards on eBay</a><span class="fine">How fakes were made, and the VGA and SLI connector giveaway.</span></li>
+            <li><a href="https://evezone.evetech.co.za/ez/spot-fake-gpu-south-africa-2025" target="_blank" rel="noopener noreferrer">Evetech: how to spot a fake GPU</a><span class="fine">Physical checks, GPU-Z checks and stress test advice.</span></li>
+          </ul>
+        </div>
+      </section>
+
+      <div class="foot">
+        <p>Used GPU Check runs in your browser. What you type and the listings you save stay on this device.</p>
+        <p>A checklist is not a guarantee, and this is not legal or financial advice. eBay, Amazon, Newegg, Facebook, OfferUp, Reddit, PayPal, Venmo and Zelle belong to their owners, and this page is not connected to any of them.</p>
+        <p>More free tools from <a href="https://sanjixysti-creator.github.io/">Xysti Software</a>.</p>
+        <p>Spotted a mistake, or want something added? Email <span class="mail"></span> <button type="button" class="linkish mail-copy">Copy</button></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="bar" id="bar" data-level="none" data-tone="none" aria-hidden="true">
+  <div class="b-cell"><span class="b-lab" id="bLabRisk">Risk</span><span class="b-amt lv" id="bLevel">-</span></div>
+  <div class="b-cell"><span class="b-lab">Score</span><span class="b-amt" id="bScore">-</span></div>
+  <div class="b-cell"><span class="b-lab">Price</span><span class="b-amt tn" id="bDeal">-</span></div>
+</div>
+<div class="sheet" id="sheet" role="dialog" aria-label="Copy text" hidden>
+  <p class="fine">Your browser blocked the copy button. Press and hold the text, then choose Copy.</p>
+  <textarea class="ctl" id="sheetText" rows="7" readonly aria-label="Text to copy"></textarea>
+  <button type="button" class="btn ghost sm" id="sheetClose">Done</button>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+(function () {
+  'use strict';
+
+  var STORE_KEY = 'gpu-check-v1';
+  /* Shown to people who spot a mistake. */
+  var SUPPORT = 'fireseabrook2566@gmail.com';
+
+  var MAX_SAVED = 30;
+  var MAX_PRICE = 1000000;
+  var MAX_CARD = 60;
+  var MAX_REASONS = 5;
+  var MAX_GOODS = 5;
+
+  /* Score bands. A score at or above a band's minimum is in that band, and the score stops at 100. */
+  var LEVELS = [
+    { key: 'low', min: 0, label: 'Low risk', short: 'Low',
+      advice: 'No big warning signs in what you entered. Still test the card before you pay, and keep the listing and the messages.' },
+    { key: 'med', min: 25, label: 'Medium risk', short: 'Medium',
+      advice: 'Some warning signs. Ask the seller the questions below, and only go ahead if the answers are good.' },
+    { key: 'high', min: 45, label: 'High risk', short: 'High',
+      advice: 'Several warning signs. Only go on if you can fix the biggest ones, like paying with protection and seeing the card run first.' },
+    { key: 'walk', min: 70, label: 'Walk away', short: 'Walk away',
+      advice: 'Too many warning signs to trust this listing. Do not send money.' }
+  ];
+  var MAX_SCORE = 100;
+
+  /* Asking price divided by typical sold price picks a band. A price is in the first band whose max is above it. */
+  var DEAL = [
+    { max: 0.5, key: 'toogood', label: 'Too good to be true', short: 'Too good', tone: 'bad', pts: 30,
+      why: 'The asking price is far below the typical sold price. A price this low is a common warning sign.' },
+    { max: 0.65, key: 'low', label: 'Suspiciously low', short: 'Very low', tone: 'warn', pts: 18,
+      why: 'The asking price is well below the typical sold price. Prices this far under market are a common warning sign.' },
+    { max: 0.8, key: 'great', label: 'Great price if real', short: 'Great', tone: 'good', pts: 6,
+      why: 'The asking price is under the typical sold price. Real bargains exist, but low prices are also how many scams start.' },
+    { max: 0.95, key: 'good', label: 'Good price', short: 'Good', tone: 'good', pts: 0, why: '' },
+    { max: 1.1, key: 'fair', label: 'Fair price', short: 'Fair', tone: 'neutral', pts: 0, why: '' },
+    { max: 1.25, key: 'high', label: 'A bit high', short: 'High', tone: 'warn', pts: 0, why: '' },
+    { max: Infinity, key: 'over', label: 'Overpriced', short: 'Over', tone: 'warn', pts: 0, why: '' }
+  ];
+
+  /* Every question. v: stored value, t: label, p: warning points, w: reason shown when p > 0, g: good sign shown when it applies. */
+  var Q = [
+    { key: 'platform', sec: 'listing', legend: 'Where is the listing?', cols: 1, opts: [
+      { v: 'ebay', t: 'eBay', p: 0 },
+      { v: 'store', t: 'Amazon, Newegg or another store', p: 0 },
+      { v: 'local', t: 'Facebook Marketplace, OfferUp or Craigslist', p: 10, w: 'Local listings are easy to fake and usually come with little or no buyer protection.' },
+      { v: 'forum', t: 'Reddit or a forum', p: 8, w: "Forum deals rest on the seller's reputation, and there is usually no buyer protection." },
+      { v: 'chat', t: 'Discord, Telegram, a text or a DM', p: 25, w: 'A deal made in private messages has no marketplace to step in if something goes wrong.' },
+      { v: 'site', t: 'A website I found', p: 12, w: 'An unfamiliar website could be a fake store, so it needs extra checks.' }
+    ] },
+    { key: 'pay', sec: 'listing', legend: 'How would you pay?', cols: 1, opts: [
+      { v: 'card', t: "Card or the site's own checkout", p: 0, g: 'You pay through a checkout or card, which usually gives you a way to dispute the payment.' },
+      { v: 'gs', t: 'PayPal Goods and Services', p: 3, w: 'PayPal covers eligible goods and services payments only, and claims have rules and deadlines.' },
+      { v: 'cash', t: 'Cash in person', p: 0 },
+      { v: 'app', t: 'PayPal Friends and Family, Venmo, Cash App or Zelle', p: 30, w: 'Payment apps sent to a stranger are hard to undo, and PayPal does not cover personal payments.' },
+      { v: 'wire', t: 'Crypto, wire transfer, gift cards or a money order', p: 70, w: 'Scammers ask for crypto, wire transfers and gift cards because the money is hard to get back. A money order has no buyer protection either. Do not pay this way.' }
+    ] },
+    { key: 'get', sec: 'listing', legend: 'How do you get it?', cols: 1, opts: [
+      { v: 'test', t: 'I see it running before I pay', p: 0, g: 'You can see the card working before any money changes hands.' },
+      { v: 'notest', t: 'We meet, but I cannot test it there', p: 10, w: 'Without a test you would be buying blind, so protect yourself in other ways.' },
+      { v: 'ship', t: 'It ships to me', p: 6, w: 'A shipped card cannot be tested until it arrives, so buyer protection matters more.' },
+      { v: 'prepay', t: 'They want a deposit or payment before we meet', p: 25, w: 'Paying before you have seen the card is a common way to lose money.' }
+    ] },
+    { key: 'account', sec: 'seller', legend: "How old is the seller's account?", cols: 2, opts: [
+      { v: 'old', t: 'Years old', p: 0, g: "The seller's account has been around for years." },
+      { v: 'mid', t: 'A few months', p: 8, w: "The seller's account is fairly new." },
+      { v: 'new', t: 'Under a month', p: 22, w: "The seller's account is brand new, which is common with throwaway scam accounts." },
+      { v: 'unk', t: "Can't tell", p: 12, w: "You could not check how old the seller's account is." }
+    ] },
+    { key: 'feedback', sec: 'seller', legend: 'Seller reviews or trade history', cols: 2, opts: [
+      { v: 'good', t: 'Lots of good reviews', p: 0, g: 'The seller has plenty of good reviews or trades.' },
+      { v: 'few', t: 'A few reviews', p: 8, w: 'The seller has little history to check.' },
+      { v: 'none', t: 'No reviews', p: 20, w: 'The seller has no reviews or trade history.' },
+      { v: 'bad', t: 'Bad or mixed reviews', p: 35, w: 'The seller has bad or mixed reviews.' }
+    ] },
+    { key: 'contact', sec: 'seller', legend: 'How does the seller talk to you?', cols: 1, opts: [
+      { v: 'clear', t: 'Answers my questions clearly', p: 0, g: 'The seller answers your questions clearly.' },
+      { v: 'vague', t: 'Vague, copy-pasted or dodges questions', p: 12, w: 'Vague or copy-pasted replies can mean the seller is not who they say.' },
+      { v: 'offsite', t: 'Wants to leave the site to text or email first', p: 12, w: 'Taking the chat off the site removes the protections the site offers.' }
+    ] },
+    { key: 'pressure', sec: 'seller', legend: 'Are they rushing you?', cols: 1, opts: [
+      { v: 'none', t: 'No pressure', p: 0 },
+      { v: 'some', t: 'Says others are interested or it must go today', p: 8, w: 'You are being rushed. Honest sellers give you time to decide.' },
+      { v: 'hard', t: 'Gets pushy when I ask for proof or time', p: 22, w: 'Pushing back when you ask for proof or time is a red flag.' }
+    ] },
+    { key: 'story', sec: 'seller', legend: 'Why are they selling?', cols: 1, opts: [
+      { v: 'clear', t: 'A clear reason that fits', p: 0, g: 'The reason for selling makes sense.' },
+      { v: 'none', t: 'No reason given', p: 3, w: 'No reason was given for selling.' },
+      { v: 'odd', t: 'Cannot meet: away, overseas, or an agent handles it', p: 22, w: 'Stories that keep you from meeting or testing the card are a common scam script.' }
+    ] },
+    { key: 'photos', sec: 'card', legend: 'Photos in the listing', cols: 1, opts: [
+      { v: 'own', t: 'Clear photos of the actual card, label showing', p: 0, g: 'The photos show the actual card with its label.' },
+      { v: 'some', t: 'Photos of the card, but no label or serial number', p: 6, w: 'The photos do not show a label or serial number you can check.' },
+      { v: 'stock', t: 'Only stock photos, or blurry ones', p: 25, w: 'Stock or blurry photos hide what you would actually get.' }
+    ] },
+    { key: 'history', sec: 'card', legend: 'What is its history?', cols: 1, opts: [
+      { v: 'use', t: 'Normal home or work use', p: 0 },
+      { v: 'new', t: 'New in a sealed box', p: 0 },
+      { v: 'mining', t: 'Used for mining', p: 10, w: 'Mining cards can run hot for long stretches, so check the fans and the temperatures.' },
+      { v: 'unk', t: 'Unknown, or the seller will not say', p: 8, w: "The card's history is unknown." }
+    ] },
+    { key: 'domain', sec: 'site', site: true, legend: 'How old is the website?', cols: 1, opts: [
+      { v: 'old', t: 'Years old', p: 0, g: 'The website has been around for years.' },
+      { v: 'young', t: 'Under a year', p: 20, w: 'A very new website has no track record.' },
+      { v: 'unk', t: 'I have not checked', p: 8, w: 'You have not checked when the website was created.' }
+    ] },
+    { key: 'business', sec: 'site', site: true, legend: 'Does it show a real address, phone number and return policy?', cols: 1, opts: [
+      { v: 'yes', t: 'Yes, all three', p: 0, g: 'The website lists an address, a phone number and a return policy.' },
+      { v: 'some', t: 'Only some of them', p: 8, w: 'The website is missing some business details.' },
+      { v: 'no', t: 'None of them', p: 20, w: 'The website shows no real business details.' }
+    ] },
+    { key: 'reviews', sec: 'site', site: true, legend: 'Reviews of the website from other places', cols: 1, opts: [
+      { v: 'good', t: 'Mostly good', p: 0, g: 'Independent reviews of the website are mostly good.' },
+      { v: 'none', t: 'None found', p: 10, w: 'You found no independent reviews of the website.' },
+      { v: 'bad', t: 'Mostly complaints', p: 35, w: 'Independent reviews of the website are mostly complaints.' }
+    ] },
+    { key: 'lookalike', sec: 'site', site: true, legend: 'Does the address copy a known store, or is the text full of errors?', cols: 3, opts: [
+      { v: 'no', t: 'No', p: 0 },
+      { v: 'unk', t: 'Not sure', p: 6, w: 'You are not sure the website is what it claims to be.' },
+      { v: 'yes', t: 'Yes', p: 25, w: 'Look-alike addresses and sloppy text are common on fake stores.' }
+    ] }
+  ];
+  var EXTRAS_LEGEND = 'Anything else? Tick what applies.';
+  var EXTRAS = [
+    { v: 'noproof', t: 'Will not share a serial number photo or proof of purchase', p: 15, w: 'The seller will not share a serial number photo or proof of purchase.' },
+    { v: 'notest', t: 'Will not let me test it or show it running live', p: 25, w: 'The seller will not let you test the card or show it running live.' },
+    { v: 'odd', t: 'Ports, fans or branding look wrong for the model', p: 15, w: 'Details that do not match the model can mean an old card dressed up as a new one.' },
+    { v: 'fee', t: 'Asks for extra fees, taxes or "verification" money', p: 30, w: 'Asking for extra fees before you get the card is a classic scam.' },
+    { v: 'screens', t: 'Only shows benchmark screenshots, not the card running', p: 10, w: 'Screenshots are easy to fake, so they do not prove the card works.' }
+  ];
+
+  var SECTIONS = { listing: 'qs-listing', seller: 'qs-seller', card: 'qs-card', site: 'qs-site' };
+
+  var state = null;
+  var syncers = [];
+  var showAllReasons = false;
+  var srReady = false; /* the read is announced only after a change, not when the page first loads */
+  var sortMode = 'new';
+
+  function $(id) { return document.getElementById(id); }
+
+  /* ---------- numbers and formatting ---------- */
+  /* Reads "12.5", "12,5" (comma as the decimal mark) and "1,234". Anything that is not a number gives NaN. */
+  function parseNum(v) {
+    var s = String(v == null ? '' : v).trim().replace(/[^0-9.,\-]/g, '');
+    if (!s) return NaN;
+    if (s.indexOf(',') >= 0 && s.indexOf('.') < 0) {
+      s = /^-?\d{1,3}(,\d{3})+$/.test(s) ? s.replace(/,/g, '') : s.replace(',', '.');
+    } else {
+      s = s.replace(/,/g, '');
+    }
+    var n = parseFloat(s);
+    return isFinite(n) ? n : NaN;
+  }
+  function nn(v, d) {
+    var n = parseNum(v);
+    return isFinite(n) ? Math.max(0, n) : (d == null ? 0 : d);
+  }
+  function fmtNum(n, max, min) {
+    return (isFinite(n) ? n : 0).toLocaleString('en-US', { minimumFractionDigits: min || 0, maximumFractionDigits: max == null ? 2 : max });
+  }
+  var USD = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+  function money(n) {
+    n = isFinite(n) ? n : 0;
+    return Math.round(n * 100) % 100 === 0 ? '$' + fmtNum(Math.round(n), 0) : USD.format(n);
+  }
+
+  /* ---------- config lookups ---------- */
+  function qOf(key) { for (var i = 0; i < Q.length; i++) if (Q[i].key === key) return Q[i]; return null; }
+  function optOf(q, v) { for (var i = 0; i < q.opts.length; i++) if (q.opts[i].v === v) return q.opts[i]; return null; }
+  function extraOf(v) { for (var i = 0; i < EXTRAS.length; i++) if (EXTRAS[i].v === v) return EXTRAS[i]; return null; }
+  function levelOf(total) {
+    for (var i = LEVELS.length - 1; i >= 0; i--) if (total >= LEVELS[i].min) return LEVELS[i];
+    return LEVELS[0];
+  }
+  function dealOf(ask, typ) {
+    if (!(ask > 0 && typ > 0)) return null;
+    var r = ask / typ, band = DEAL[DEAL.length - 1];
+    for (var i = 0; i < DEAL.length; i++) if (r < DEAL[i].max) { band = DEAL[i]; break; }
+    return { r: r, band: band, pts: band.pts };
+  }
+  function pctDiff(r) { return Math.floor(Math.abs(r - 1) * 100 + 0.5); }
+
+  /* ---------- state ---------- */
+  function defaults() {
+    return { v: 1, card: '', ask: 0, typ: 0, a: {}, extras: [], seq: 0, sort: 'new', saved: [] };
+  }
+  function cleanAnswers(a) {
+    var out = {};
+    if (!a || typeof a !== 'object') return out;
+    Q.forEach(function (q) {
+      var v = a[q.key];
+      if (typeof v === 'string' && optOf(q, v)) out[q.key] = v;
+    });
+    return out;
+  }
+  function cleanExtras(list) {
+    var out = [];
+    (Array.isArray(list) ? list : []).forEach(function (v) {
+      if (typeof v === 'string' && extraOf(v) && out.indexOf(v) < 0) out.push(v);
+    });
+    return out;
+  }
+  function cut(v, n) {
+    var t = String(v == null ? '' : v).slice(0, n), c = t.charCodeAt(t.length - 1);
+    return c >= 0xD800 && c <= 0xDBFF ? t.slice(0, -1) : t;
+  }
+  function cleanCard(v) { return cut(v, MAX_CARD); }
+  function sanitizeSaved(list) {
+    return (Array.isArray(list) ? list : []).filter(function (m) { return m && m.id; }).slice(0, MAX_SAVED).map(function (m) {
+      return {
+        id: String(m.id), name: cut(m.name || '', 60), card: cleanCard(m.card),
+        ask: Math.min(MAX_PRICE, nn(m.ask)), typ: Math.min(MAX_PRICE, nn(m.typ)),
+        a: cleanAnswers(m.a), extras: cleanExtras(m.extras), ts: nn(m.ts)
+      };
+    });
+  }
+  function sanitize(d) {
+    return {
+      v: 1, card: cleanCard(d.card), ask: Math.min(MAX_PRICE, nn(d.ask)), typ: Math.min(MAX_PRICE, nn(d.typ)),
+      a: cleanAnswers(d.a), extras: cleanExtras(d.extras), seq: Math.floor(nn(d.seq)),
+      sort: d.sort === 'risk' || d.sort === 'price' ? d.sort : 'new', saved: sanitizeSaved(d.saved)
+    };
+  }
+  function load() {
+    try {
+      var raw = localStorage.getItem(STORE_KEY);
+      if (!raw) return null;
+      var d = JSON.parse(raw);
+      if (!d || d.v !== 1) return null;
+      return sanitize(d);
+    } catch (e) { return null; }
+  }
+  function save() { try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) { /* storage unavailable */ } }
+  var saveTimer;
+  function scheduleSave() { clearTimeout(saveTimer); saveTimer = setTimeout(save, 250); }
+  /* Saved listings are written at once, and anything still waiting is written when the page is hidden or closed. */
+  function flushSave() { clearTimeout(saveTimer); save(); }
+  window.addEventListener('pagehide', flushSave);
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') flushSave(); });
+
+  /* ---------- the score ---------- */
+  /* s: { ask, typ, a, extras }. Adds the points of every answer that applies, then the price points, and stops at 100. */
+  function scoreOf(s) {
+    var items = [], goods = [], raw = 0, answered = 0, needed = 0, ord = 0;
+    var site = s.a.platform === 'site';
+    Q.forEach(function (q) {
+      if (q.site && !site) return;
+      needed++;
+      var v = s.a[q.key], o = typeof v === 'string' ? optOf(q, v) : null;
+      if (!o) return;
+      answered++;
+      raw += o.p;
+      if (o.p > 0) items.push({ key: q.key, opt: o.v, pts: o.p, text: o.w, ord: ord++ });
+      else if (o.g) goods.push({ key: q.key, opt: o.v, text: o.g });
+    });
+    /* Extras count in the order they are listed, not the order they were ticked, so the reasons never shuffle. */
+    EXTRAS.forEach(function (e) {
+      if ((s.extras || []).indexOf(e.v) < 0) return;
+      raw += e.p;
+      items.push({ key: 'extras', opt: e.v, pts: e.p, text: e.w, ord: ord++ });
+    });
+    var deal = dealOf(s.ask, s.typ);
+    if (deal && deal.pts > 0) {
+      raw += deal.pts;
+      items.push({ key: 'price', opt: deal.band.key, pts: deal.pts, text: deal.band.why, ord: ord++ });
+    }
+    var total = Math.min(MAX_SCORE, raw);
+    items.sort(function (x, y) { return y.pts - x.pts || x.ord - y.ord; });
+    return {
+      total: total, raw: raw, level: levelOf(total), answered: answered, needed: needed,
+      items: items, goods: goods, deal: deal, read: answered > 0 || items.length > 0
+    };
+  }
+
+  /* ---------- DOM helpers ---------- */
+  function h(tag, props, kids) {
+    var el = document.createElement(tag);
+    if (props) Object.keys(props).forEach(function (k) {
+      var v = props[k];
+      if (v == null || v === false) return;
+      if (k === 'class') el.className = v;
+      else if (k === 'text') el.textContent = v;
+      else el.setAttribute(k, v === true ? '' : v);
+    });
+    (kids || []).forEach(function (c) { if (c != null) el.appendChild(c); });
+    return el;
+  }
+  function selectAll(e) {
+    var el = e.target;
+    setTimeout(function () { try { el.select(); } catch (err) { /* ignore */ } }, 0);
+  }
+  function bindNum(el, value, set) {
+    el.value = value();
+    syncers.push(function () { el.value = value(); });
+    el.addEventListener('input', function () { set(el.value); changed(); });
+    el.addEventListener('blur', function () { el.value = value(); });
+    el.addEventListener('focus', selectAll);
+  }
+  function syncStatic() { syncers.forEach(function (f) { f(); }); }
+
+  var toastTimer;
+  function toast(msg) {
+    var t = $('toast');
+    t.textContent = msg;
+    t.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.hidden = true; }, 3200);
+  }
+  function twoTap(btn, idle, armed, action) {
+    var on = false, t;
+    function off() { on = false; clearTimeout(t); btn.textContent = idle; }
+    btn.addEventListener('click', function () {
+      if (!on) { on = true; btn.textContent = armed; t = setTimeout(off, 3000); return; }
+      off();
+      action();
+    });
+  }
+  function copyFallback(text, okMsg) {
+    var sheet = $('sheet'), ta = $('sheetText');
+    ta.value = text;
+    sheet.hidden = false;
+    var ok = false;
+    try { ta.focus(); ta.select(); ok = document.execCommand('copy'); } catch (e) { ok = false; }
+    if (ok) { sheet.hidden = true; toast(okMsg); }
+  }
+  function copyText(text, okMsg) {
+    var p = null;
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) p = navigator.clipboard.writeText(text);
+    } catch (e) { p = null; }
+    if (!p) { copyFallback(text, okMsg); return; }
+    p.then(function () { toast(okMsg); }, function () { copyFallback(text, okMsg); });
+  }
+
+  function changed() { updateAll(); scheduleSave(); }
+
+  /* ---------- questions ---------- */
+  function optRow(type, name, o, checked, onChange, dataAttr) {
+    var attrs = { type: type, name: name, value: o.v };
+    attrs[dataAttr] = name;
+    var inp = h('input', attrs);
+    inp.checked = checked;
+    inp.addEventListener('change', function () { onChange(inp.checked, o.v); });
+    return h('label', { class: 'opt' }, [inp, h('span', { text: o.t })]);
+  }
+  function buildQuestions() {
+    Q.forEach(function (q) {
+      var labId = 'lab-' + q.key;
+      var opts = h('div', { class: 'opts' + (q.cols === 2 ? ' c2' : q.cols === 3 ? ' c3' : ''), role: 'radiogroup', 'aria-labelledby': labId });
+      q.opts.forEach(function (o) {
+        opts.appendChild(optRow('radio', q.key, o, state.a[q.key] === o.v, function (on, v) {
+          if (on) { state.a[q.key] = v; changed(); }
+        }, 'data-q'));
+      });
+      $(SECTIONS[q.sec]).appendChild(h('div', { class: 'q', 'data-q': q.key }, [
+        h('span', { class: 'qlab', id: labId, text: q.legend }), opts
+      ]));
+    });
+    var ex = h('div', { class: 'opts', role: 'group', 'aria-labelledby': 'lab-extras' });
+    EXTRAS.forEach(function (e) {
+      ex.appendChild(optRow('checkbox', e.v, e, state.extras.indexOf(e.v) >= 0, function (on, v) {
+        var i = state.extras.indexOf(v);
+        if (on && i < 0) state.extras.push(v);
+        if (!on && i >= 0) state.extras.splice(i, 1);
+        changed();
+      }, 'data-x'));
+    });
+    $(SECTIONS.card).appendChild(h('div', { class: 'q', 'data-q': 'extras' }, [
+      h('span', { class: 'qlab', id: 'lab-extras', text: EXTRAS_LEGEND }), ex
+    ]));
+  }
+  function syncChecks() {
+    Array.prototype.forEach.call(document.querySelectorAll('input[type="radio"][data-q]'), function (el) {
+      el.checked = state.a[el.getAttribute('data-q')] === el.value;
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('input[type="checkbox"][data-x]'), function (el) {
+      el.checked = state.extras.indexOf(el.value) >= 0;
+    });
+  }
+  syncers.push(syncChecks);
+
+  /* ---------- painting ---------- */
+  function paintAlert(sc) {
+    var box = $('riskAlert');
+    var kind = '', msg = '';
+    var d = sc.deal;
+    if (d && d.r > 3) {
+      kind = 'warn';
+      msg = 'The asking price is more than 3 times the typical sold price. Check both numbers for a typo.';
+    } else if (d && d.r < 0.1) {
+      kind = 'warn';
+      msg = 'The asking price is under a tenth of the typical sold price. Check both numbers for a typo, and be careful if they are right.';
+    } else if (!sc.read) {
+      kind = 'info';
+      msg = 'Answer the questions to get a read on this listing. Nothing you enter leaves your device.';
+    }
+    box.hidden = !kind;
+    box.className = 'alert' + (kind ? ' ' + kind : '');
+    box.textContent = '';
+    if (kind) box.appendChild(h('p', { text: msg }));
+  }
+
+  function progText(sc) {
+    if (sc.answered === 0) return '0 of ' + sc.needed + ' answered';
+    if (sc.answered < sc.needed) return sc.answered + ' of ' + sc.needed + ' answered, a read so far';
+    return 'All ' + sc.needed + ' answered';
+  }
+
+  function paintRisk(sc) {
+    var card = $('riskCard'), lv = sc.level;
+    card.setAttribute('data-level', sc.read ? lv.key : 'none');
+    card.setAttribute('data-score', sc.read ? String(sc.total) : '');
+    card.setAttribute('data-answered', String(sc.answered));
+    card.setAttribute('data-needed', String(sc.needed));
+    $('riskLevel').textContent = sc.read ? lv.label : 'No read yet';
+    $('riskScore').textContent = sc.read ? String(sc.total) : '-';
+    $('riskProg').textContent = progText(sc);
+    $('riskAdvice').textContent = sc.read ? lv.advice : 'Answer the questions below and your read fills in as you go.';
+    $('readSub').textContent = state.card.trim() ? state.card.trim() + (state.ask > 0 ? ' at ' + money(state.ask) : '') : '';
+    var ptr = $('riskPtr');
+    ptr.hidden = !sc.read;
+    ptr.style.left = sc.total + '%';
+    $('riskMeter').setAttribute('aria-label', sc.read
+      ? 'Risk meter: score ' + sc.total + ' out of 100, ' + lv.label.toLowerCase()
+      : 'Risk meter, waiting for answers');
+    if (srReady) {
+      $('srRead').textContent = sc.read
+        ? lv.label + ', score ' + sc.total + ' out of 100. ' + progText(sc) + '.' + (sc.deal ? ' Price check: ' + sc.deal.band.label + '.' : '')
+        : '';
+    }
+  }
+
+  function dealLine(sc) {
+    var d = sc.deal;
+    if (!d) {
+      if (state.ask > 0) return 'Add the typical sold price to check the deal.';
+      if (state.typ > 0) return 'Add the asking price to check the deal.';
+      return 'Add the asking price and the typical sold price to check the deal.';
+    }
+    var pct = pctDiff(d.r);
+    var how = pct === 0 ? 'about the same as typical' : pct + '% ' + (d.r < 1 ? 'below' : 'above') + ' typical';
+    return 'Asking ' + money(state.ask) + ', typical sold ' + money(state.typ) + ': ' + how + '.';
+  }
+  function paintDeal(sc) {
+    var d = sc.deal, pill = $('dealPill');
+    pill.textContent = d ? d.band.label : 'No price check yet';
+    pill.setAttribute('data-tone', d ? d.band.tone : 'none');
+    pill.setAttribute('data-deal', d ? d.band.key : '');
+    $('dealLine').textContent = dealLine(sc);
+  }
+
+  function paintReasons(sc) {
+    var why = $('whyBox'), list = $('reasons');
+    list.textContent = '';
+    why.hidden = !sc.read;
+    var many = sc.items.length > MAX_REASONS;
+    var shown = showAllReasons ? sc.items : sc.items.slice(0, MAX_REASONS);
+    shown.forEach(function (it) {
+      list.appendChild(h('li', { class: 'reason', 'data-key': it.key, 'data-opt': it.opt, 'data-pts': String(it.pts) }, [
+        h('span', { class: 'pts', text: '+' + it.pts }),
+        h('span', { text: it.text })
+      ]));
+    });
+    $('noReasons').hidden = sc.items.length > 0;
+    var more = $('reasonsMore');
+    more.hidden = !many;
+    more.textContent = showAllReasons ? 'Show fewer' : 'Show all ' + sc.items.length + ' reasons';
+
+    var good = $('goodBox'), gl = $('goods');
+    gl.textContent = '';
+    sc.goods.slice(0, MAX_GOODS).forEach(function (g) {
+      gl.appendChild(h('li', { 'data-key': g.key, 'data-opt': g.opt, text: g.text }));
+    });
+    good.hidden = !(sc.read && sc.goods.length > 0);
+  }
+
+  function paintBar(sc) {
+    var bar = $('bar');
+    bar.setAttribute('data-level', sc.read ? sc.level.key : 'none');
+    bar.setAttribute('data-tone', sc.deal ? sc.deal.band.tone : 'none');
+    $('bLevel').textContent = sc.read ? sc.level.short : '-';
+    $('bLabRisk').textContent = sc.read && sc.answered < sc.needed ? 'Risk so far' : 'Risk';
+    $('bScore').textContent = sc.read ? String(sc.total) : '-';
+    $('bDeal').textContent = sc.deal ? sc.deal.band.short : '-';
+  }
+
+  function paintButtons(sc) {
+    $('copyBtn').disabled = !sc.read;
+    $('saveBtn').disabled = !sc.read;
+    if (!sc.read) $('saveForm').hidden = true;
+  }
+
+  function paintSite() {
+    var site = state.a.platform === 'site';
+    $('secSite').hidden = !site;
+  }
+
+  /* ---------- checklist, message, links ---------- */
+  function has(s, v) { return s.extras.indexOf(v) >= 0; }
+  function todoItems(s, sc) {
+    var a = s.a, out = [];
+    function add(k, t) { out.push({ k: k, t: t }); }
+    if (a.pay === 'wire') add('wire', 'Do not pay by crypto, wire transfer, gift card or money order. Money sent this way is hard to get back, which is why scammers ask for it.');
+    if (has(s, 'fee')) add('fee', 'Never pay extra fees, taxes, insurance or "verification" money to get a card.');
+    if (a.get === 'prepay') add('prepay', 'Do not pay a deposit or the full price before you have seen the card working.');
+    if (a.pay === 'app') add('app', 'Switch to a payment with protection, or pay cash after you test it. PayPal does not cover personal payments, and Venmo Purchase Protection has to be turned on for each purchase and mostly does not cover items you collect in person.');
+    if (a.platform === 'ebay') add('ebay', 'On eBay, pay through eBay checkout. Payments made outside eBay, such as cash or a bank transfer, are not covered by the eBay Money Back Guarantee, and you should report a problem within 30 days of delivery.');
+    if (has(s, 'notest')) add('notest', 'If the seller will not let you test the card or show it running live, walk away.');
+    if (a.platform === 'site') add('site', 'Look the website up before you order. Search its name with the word "scam" or "reviews", and check when its domain was registered with a domain lookup.');
+    if (a.platform === 'local' || a.platform === 'forum' || a.platform === 'chat') add('meet', 'Meet in a busy public place in daylight and bring a friend. Some police departments have a safe exchange spot, so ask yours.');
+    if (sc.deal && sc.deal.r < 0.65) add('photos', "Search for the seller's photos and text in other listings. Scammers often reuse them.");
+    add('test', 'Test the card before you pay. The test guide below shows what to check.');
+    add('keep', 'Keep the listing, the messages and the payment receipt until you are happy with the card.');
+    return out;
+  }
+  function paintTodo(sc) {
+    var ul = $('todoList');
+    ul.textContent = '';
+    todoItems(state, sc).forEach(function (it) {
+      ul.appendChild(h('li', { 'data-k': it.k, text: it.t }));
+    });
+  }
+
+  function sellerMessage(s) {
+    var a = s.a, card = s.card.trim();
+    var L = ['Hi, is the ' + (card || 'graphics card') + ' still available?', '', 'Before I buy, could you send me:',
+      "1. A photo of the card next to a note with today's date",
+      '2. A photo of the serial number sticker',
+      '3. A short video of the card running in your PC', ''];
+    if (a.pay === 'wire') L.push('I do not pay by crypto, wire transfer or gift card. I can pay by card or PayPal Goods and Services, or with cash after I test it.');
+    else if (a.pay === 'app') L.push("I would like to pay with PayPal Goods and Services or the site's checkout so we are both covered. Is that okay?");
+    else if (a.pay === 'cash') L.push('I would like to pay cash once I have tested the card.');
+    else if (a.pay === 'gs') L.push('I will pay with PayPal Goods and Services.');
+    else if (a.pay === 'card') L.push("I will pay through the site's checkout.");
+    else L.push("I would like to pay in a way that covers us both, like the site's checkout or PayPal Goods and Services, or cash after I test it.");
+    if (a.get === 'prepay') L.push('I do not pay a deposit before I have seen the card. I can pay in full once it checks out.');
+    else if (a.get === 'ship') L.push('Can you confirm you will take it back if it is not as described?');
+    else if (a.get === 'notest') L.push('Can we meet somewhere I can see it running first, or can you show it running on a video call?');
+    else if (a.get === 'test') L.push('I would like to see it running before I pay. Is that okay?');
+    L.push('', 'Thanks!');
+    return L.join('\n');
+  }
+
+  /* encodeURIComponent throws on a lone surrogate, which a 60 character cut through an emoji can leave behind */
+  function enc(text) {
+    try { return encodeURIComponent(text); } catch (err) {
+      return encodeURIComponent(Array.from(text).filter(function (ch) {
+        var c = ch.charCodeAt(0);
+        return ch.length > 1 || c < 0xD800 || c > 0xDFFF;
+      }).join(''));
+    }
+  }
+  function searchLinks(card) {
+    var q = enc(card.trim());
+    return [
+      { k: 'ebay-sold', t: 'eBay sold listings: what it really sold for', sold: true, u: 'https://www.ebay.com/sch/i.html?_nkw=' + q + '&LH_Sold=1&LH_Complete=1' },
+      { k: 'ebay', t: 'eBay for sale', u: 'https://www.ebay.com/sch/i.html?_nkw=' + q },
+      { k: 'amazon', t: 'Amazon', u: 'https://www.amazon.com/s?k=' + q },
+      { k: 'newegg', t: 'Newegg', u: 'https://www.newegg.com/p/pl?d=' + q },
+      { k: 'pcpp', t: 'PCPartPicker', u: 'https://pcpartpicker.com/search/?q=' + q },
+      { k: 'fb', t: 'Facebook Marketplace', u: 'https://www.facebook.com/marketplace/search/?query=' + q },
+      { k: 'offerup', t: 'OfferUp', u: 'https://offerup.com/search?q=' + q },
+      { k: 'reddit', t: 'r/hardwareswap on Reddit', u: 'https://www.reddit.com/r/hardwareswap/search/?q=' + q + '&restrict_sr=1&sort=new' },
+      { k: 'google', t: 'Google Shopping', u: 'https://www.google.com/search?tbm=shop&q=' + q }
+    ];
+  }
+  function paintLinks() {
+    var ul = $('links'), hasCard = state.card.trim().length > 0;
+    ul.textContent = '';
+    $('linksEmpty').hidden = hasCard;
+    ul.hidden = !hasCard;
+    if (hasCard) searchLinks(state.card).forEach(function (l) {
+      ul.appendChild(h('li', { class: l.sold ? 'sold' : null }, [h('a', { href: l.u, target: '_blank', rel: 'noopener noreferrer', 'data-k': l.k, class: l.sold ? 'sold' : null, text: l.t })]));
+    });
+    var help = $('typHelp');
+    help.textContent = '';
+    if (hasCard) {
+      help.appendChild(document.createTextNode('Not sure what it sells for? '));
+      help.appendChild(h('a', { class: 'txt', href: searchLinks(state.card)[0].u, target: '_blank', rel: 'noopener noreferrer', 'data-k': 'sold-help', text: 'Open the eBay sold listings' }));
+      help.appendChild(document.createTextNode(' and take the middle price of the last ten or so.'));
+    } else {
+      help.textContent = 'Type the card name to get a link to what it really sold for.';
+    }
+  }
+
+  /* ---------- summary text ---------- */
+  function summaryText(s, sc) {
+    var L = ['Used GPU check'];
+    if (s.card.trim()) L.push('Card: ' + s.card.trim());
+    if (sc.deal) {
+      var pct = pctDiff(sc.deal.r);
+      L.push('Price: asking ' + money(s.ask) + ', typical sold ' + money(s.typ) + ' (' + sc.deal.band.label.toLowerCase() + (pct === 0 ? '' : ', ' + pct + '% ' + (sc.deal.r < 1 ? 'below' : 'above')) + ')');
+    } else if (s.ask > 0) {
+      L.push('Price: asking ' + money(s.ask));
+    }
+    L.push('Risk: ' + sc.level.label + ', ' + sc.total + ' of ' + MAX_SCORE + ' (' + sc.answered + ' of ' + sc.needed + ' questions answered)');
+    if (sc.items.length) {
+      L.push('Warning signs:');
+      sc.items.forEach(function (it) { L.push('+' + it.pts + ' ' + it.text); });
+    } else {
+      L.push('No warning signs in the answers so far.');
+    }
+    L.push('This is a checklist result, not proof. Test the card and pay with protection.');
+    return L.join('\n');
+  }
+  function copySummary() {
+    var sc = scoreOf(state);
+    if (!sc.read) return;
+    copyText(summaryText(state, sc), 'Summary copied.');
+  }
+
+  /* ---------- saved listings ---------- */
+  function defaultName(s) {
+    var c = s.card.trim();
+    if (c && s.ask > 0) return c + ' at ' + money(s.ask);
+    if (c) return c;
+    if (s.ask > 0) return 'Listing at ' + money(s.ask);
+    return 'Saved listing';
+  }
+  function sortedSaved() {
+    var list = state.saved.map(function (m, i) { return { m: m, i: i, sc: scoreOf(m) }; });
+    if (sortMode === 'risk') {
+      list.sort(function (x, y) { return x.sc.total - y.sc.total || x.i - y.i; });
+    } else if (sortMode === 'price') {
+      list.sort(function (x, y) {
+        var px = x.m.ask > 0 ? x.m.ask : Infinity, py = y.m.ask > 0 ? y.m.ask : Infinity;
+        if (px === py) return x.i - y.i;
+        return px < py ? -1 : 1;
+      });
+    }
+    return list;
+  }
+  function renderSaved() {
+    var box = $('savedList');
+    box.textContent = '';
+    $('sortRow').hidden = state.saved.length < 2;
+    ['new', 'risk', 'price'].forEach(function (k) {
+      $('sort' + k.charAt(0).toUpperCase() + k.slice(1)).setAttribute('aria-pressed', sortMode === k ? 'true' : 'false');
+    });
+    if (!state.saved.length) {
+      box.appendChild(h('p', { class: 'empty', text: 'No saved listings yet. Tap Save listing on your read to keep one here, then save a few and sort them to compare.' }));
+      return;
+    }
+    sortedSaved().forEach(function (row) {
+      var m = row.m, sc = row.sc;
+      var use = h('button', { type: 'button', class: 'btn sm', text: 'Load' });
+      use.addEventListener('click', function () { useListing(m); });
+      var del = h('button', { type: 'button', class: 'btn ghost sm', text: 'Delete' });
+      twoTap(del, 'Delete', 'Tap again to delete', function () {
+        state.saved = state.saved.filter(function (x) { return x !== m; });
+        renderSaved();
+        flushSave();
+      });
+      var sum = sc.deal
+        ? 'Asking ' + money(m.ask) + ', typical sold ' + money(m.typ) + ': ' + sc.deal.band.label.toLowerCase()
+        : (m.ask > 0 ? 'Asking ' + money(m.ask) : 'No price entered');
+      box.appendChild(h('article', { class: 'saved', 'data-id': m.id, 'data-score': String(sc.total), 'data-level': sc.read ? sc.level.key : 'none' }, [
+        h('strong', { class: 'sv-name', text: m.name || 'Saved listing' }),
+        h('p', { class: 'sv-sum', text: sum }),
+        h('p', { class: 'sv-risk' }, [
+          h('span', { class: 'lvchip', text: (sc.read ? sc.level.label + ' ' + sc.total : 'No read') }),
+          h('span', { text: sc.answered + ' of ' + sc.needed + ' answered' })
+        ]),
+        h('div', { class: 'row-actions' }, [use, del])
+      ]));
+    });
+  }
+  function saveListing(name) {
+    var sc = scoreOf(state);
+    if (!sc.read) { toast('Answer a question or two before saving.'); return; }
+    if (state.saved.length >= MAX_SAVED) { toast('You can keep ' + MAX_SAVED + ' listings. Delete one to save another.'); return; }
+    state.seq += 1;
+    var label = cut(String(name || '').trim(), 60) || defaultName(state);
+    state.saved.unshift({
+      id: 'g' + state.seq, name: label, card: state.card, ask: state.ask, typ: state.typ,
+      a: cleanAnswers(state.a), extras: state.extras.slice(), ts: Date.now()
+    });
+    $('saveForm').hidden = true;
+    $('saveName').value = '';
+    renderSaved();
+    flushSave();
+    toast('Saved ' + label + '.');
+  }
+  function useListing(m) {
+    state.card = m.card;
+    state.ask = m.ask;
+    state.typ = m.typ;
+    state.a = cleanAnswers(m.a);
+    state.extras = cleanExtras(m.extras);
+    syncStatic();
+    changed();
+    toast('Loaded ' + (m.name || 'saved listing') + '.');
+    try {
+      if (window.matchMedia && window.matchMedia('(max-width: 899px)').matches) {
+        var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        $('h-read').scrollIntoView({ block: 'start', behavior: reduce ? 'auto' : 'smooth' });
+      }
+    } catch (e) { /* scrolling is a nicety */ }
+  }
+
+  function resetAll() {
+    state.card = '';
+    state.ask = 0;
+    state.typ = 0;
+    state.a = {};
+    state.extras = [];
+    showAllReasons = false;
+    syncStatic();
+    changed();
+    toast('Started over.');
+  }
+
+  /* ---------- score rules table ---------- */
+  function paintRules() {
+    var body = $('rulesBody');
+    body.textContent = '';
+    function group(title) {
+      body.appendChild(h('tr', { class: 'grp' }, [h('th', { colspan: '2', scope: 'colgroup', text: title })]));
+    }
+    function row(q, o, t, p) {
+      body.appendChild(h('tr', { 'data-q': q, 'data-o': o, 'data-pts': String(p) }, [h('td', { text: t }), h('td', { text: p > 0 ? '+' + p : '0' })]));
+    }
+    Q.forEach(function (q) {
+      group(q.legend + (q.site ? ' (websites only)' : ''));
+      q.opts.forEach(function (o) { row(q.key, o.v, o.t, o.p); });
+    });
+    group(EXTRAS_LEGEND);
+    EXTRAS.forEach(function (e) { row('extras', e.v, e.t, e.p); });
+    group('Asking price compared with the typical sold price');
+    var lo = 0;
+    DEAL.forEach(function (d) {
+      var t = d.max === Infinity ? 'Over ' + Math.round(lo * 100) + '%: ' + d.label
+        : (lo === 0 ? 'Under ' + Math.round(d.max * 100) + '%: ' : Math.round(lo * 100) + '% to under ' + Math.round(d.max * 100) + '%: ') + d.label;
+      row('price', d.key, t, d.pts);
+      lo = d.max;
+    });
+    $('levelRules').textContent = 'Score bands: ' + LEVELS.map(function (l, i) {
+      var next = LEVELS[i + 1];
+      return l.label.toLowerCase() + ' ' + (next ? l.min + ' to ' + (next.min - 1) : l.min + ' and up');
+    }).join(', ') + '.';
+  }
+
+  function updateAll() {
+    var sc = scoreOf(state);
+    paintSite();
+    paintAlert(sc);
+    paintRisk(sc);
+    paintDeal(sc);
+    paintReasons(sc);
+    paintBar(sc);
+    paintButtons(sc);
+    paintTodo(sc);
+    paintLinks();
+    $('msgText').textContent = sellerMessage(state);
+  }
+
+  function fillSupport() {
+    Array.prototype.forEach.call(document.querySelectorAll('.mail'), function (el) { el.textContent = SUPPORT; });
+    Array.prototype.forEach.call(document.querySelectorAll('.mail-copy'), function (b) {
+      b.addEventListener('click', function () { copyText(SUPPORT, 'Email address copied.'); });
+    });
+  }
+
+  function bindStatic() {
+    var cardEl = $('card');
+    cardEl.value = state.card;
+    syncers.push(function () { cardEl.value = state.card; });
+    cardEl.addEventListener('input', function () { state.card = cleanCard(cardEl.value); changed(); });
+    bindNum($('ask'),
+      function () { return state.ask > 0 ? fmtNum(state.ask, 2) : ''; },
+      function (v) { state.ask = Math.min(MAX_PRICE, nn(v)); });
+    bindNum($('typ'),
+      function () { return state.typ > 0 ? fmtNum(state.typ, 2) : ''; },
+      function (v) { state.typ = Math.min(MAX_PRICE, nn(v)); });
+
+    $('copyBtn').addEventListener('click', copySummary);
+    $('msgCopy').addEventListener('click', function () { copyText($('msgText').textContent, 'Message copied.'); });
+    $('saveBtn').addEventListener('click', function () {
+      var f = $('saveForm');
+      f.hidden = !f.hidden;
+      if (!f.hidden) $('saveName').focus();
+    });
+    $('saveForm').addEventListener('submit', function (e) { e.preventDefault(); saveListing($('saveName').value); });
+    $('reasonsMore').addEventListener('click', function () { showAllReasons = !showAllReasons; updateAll(); });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-sort]'), function (b) {
+      b.addEventListener('click', function () {
+        sortMode = b.getAttribute('data-sort');
+        state.sort = sortMode;
+        renderSaved();
+        scheduleSave();
+      });
+    });
+    twoTap($('resetBtn'), 'Start over', 'Tap again to start over', resetAll);
+    $('sheetClose').addEventListener('click', function () { $('sheet').hidden = true; });
+  }
+
+  state = load() || defaults();
+  sortMode = state.sort;
+  fillSupport();
+  buildQuestions();
+  bindStatic();
+  paintRules();
+  updateAll();
+  renderSaved();
+  srReady = true;
+})();
+</script>

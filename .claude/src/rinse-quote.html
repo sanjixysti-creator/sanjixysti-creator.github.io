@@ -1,0 +1,1643 @@
+<title>Rinse Quote</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Layout concept: a work order built for one hand in a driveway. On a phone it is one column with the running total pinned to the bottom edge. On a wide screen the inputs sit on the left and the quote ticket stays in view on the right. */
+:root {
+  --bg: #E8EDEF;
+  --surface: #FFFFFF;
+  --inset: #F1F5F6;
+  --ink: #0E2029;
+  --muted: #536970;
+  --line: #CBD6DA;
+  --line-strong: #8FA4AC;
+  --accent: #0B78A6;
+  --on-accent: #FFFFFF;
+  --accent-soft: #D8EDF5;
+  --good: #17703F;
+  --good-soft: #DDF2E5;
+  --warn: #7F5200;
+  --warn-soft: #FBEBC8;
+  --bad: #B3261E;
+  --bad-soft: #FADAD7;
+  --tip-white: #F7F9FA;
+  --tip-green: #2E9E4F;
+  --tip-yellow: #F0BE14;
+  --shadow-up: 0 -6px 20px rgb(14 32 41 / 0.10);
+  --shadow-pop: 0 8px 24px rgb(14 32 41 / 0.22);
+  --font-display: 'Big Shoulders Display', 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  --font-body: 'Public Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0B161B;
+    --surface: #12232A;
+    --inset: #0E1C22;
+    --ink: #E5EEF1;
+    --muted: #93A8B0;
+    --line: #23404A;
+    --line-strong: #46656F;
+    --accent: #55C1E7;
+    --on-accent: #04202A;
+    --accent-soft: #113644;
+    --good: #66D08F;
+    --good-soft: #123B25;
+    --warn: #F2BC4B;
+    --warn-soft: #3F2F0B;
+    --bad: #FF8F86;
+    --bad-soft: #451B18;
+    --tip-white: #F7F9FA;
+    --tip-green: #3DBB61;
+    --tip-yellow: #F5C93A;
+    --shadow-up: 0 -1px 0 rgb(0 0 0 / 0.35);
+    --shadow-pop: 0 8px 24px rgb(0 0 0 / 0.5);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0B161B;
+  --surface: #12232A;
+  --inset: #0E1C22;
+  --ink: #E5EEF1;
+  --muted: #93A8B0;
+  --line: #23404A;
+  --line-strong: #46656F;
+  --accent: #55C1E7;
+  --on-accent: #04202A;
+  --accent-soft: #113644;
+  --good: #66D08F;
+  --good-soft: #123B25;
+  --warn: #F2BC4B;
+  --warn-soft: #3F2F0B;
+  --bad: #FF8F86;
+  --bad-soft: #451B18;
+  --tip-white: #F7F9FA;
+  --tip-green: #3DBB61;
+  --tip-yellow: #F5C93A;
+  --shadow-up: 0 -1px 0 rgb(0 0 0 / 0.35);
+  --shadow-pop: 0 8px 24px rgb(0 0 0 / 0.5);
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font: 400 16px/1.45 var(--font-body);
+  padding-inline: 16px;
+  padding-block: 16px 116px;
+  -webkit-font-smoothing: antialiased;
+}
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+h1, h2, h3, p { margin: 0; }
+.app, .layout, .stack, .aside, .sec, .panel, .lines, .line, .extras, .extra, .rates-body, .rate-rows, .check-out, .ledger, .field, .ticket, .t-lines, .t-sum, .t-opts, .t-opt, .foot, .pkg, .pkg-picks, .saved, .saved-list, .pro-actions, .total-block { grid-template-columns: minmax(0, 1fr); }
+
+.app { max-width: 1040px; margin-inline: auto; display: grid; gap: 16px; }
+.layout { display: grid; gap: 16px; min-width: 0; }
+.stack, .aside { display: grid; gap: 16px; min-width: 0; align-content: start; }
+
+/* Masthead */
+.head { display: grid; gap: 8px; }
+.masthead { display: flex; align-items: center; gap: 12px; }
+.mark { width: 40px; height: 40px; flex: none; color: var(--ink); }
+.mark .spray { stroke: var(--accent); }
+.masthead h1 { flex: 1; min-width: 0; font: 800 30px/1 var(--font-display); letter-spacing: 0.02em; text-transform: uppercase; }
+.tagline { color: var(--muted); font-size: 14px; text-wrap: balance; }
+.badge { display: inline-block; vertical-align: middle; margin-left: 8px; padding: 3px 7px; border-radius: 5px; background: var(--accent); color: var(--on-accent); font: 700 11px/1 var(--font-body); letter-spacing: 0.08em; text-transform: uppercase; }
+.sec-head .badge { margin-left: 0; }
+
+/* Sections */
+.sec { display: grid; gap: 10px; min-width: 0; }
+.sec-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 2px 12px; }
+.sec-head h2, .h2 { font: 700 20px/1.1 var(--font-display); letter-spacing: 0.06em; text-transform: uppercase; text-wrap: balance; }
+.hint { color: var(--muted); font-size: 13px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px; display: grid; gap: 14px; min-width: 0; }
+.fine { color: var(--muted); font-size: 13px; }
+.foot { color: var(--muted); font-size: 13px; display: grid; gap: 6px; max-width: 64ch; }
+.mail { overflow-wrap: anywhere; user-select: all; -webkit-user-select: all; color: var(--ink); font-weight: 600; }
+
+.banner { padding: 12px 14px; border-radius: 10px; background: var(--accent-soft); color: var(--ink); font-size: 14px; line-height: 1.4; }
+.linkish { background: none; border: 0; padding: 0; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; text-align: left; }
+
+/* Controls */
+.lab { display: block; font: 600 12px/1.1 var(--font-body); letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); }
+.field { display: grid; gap: 6px; min-width: 0; align-content: start; }
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.ctl { width: 100%; min-width: 0; height: 48px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--inset); color: var(--ink); }
+.ctl::placeholder { color: var(--muted); opacity: 0.85; }
+textarea.ctl { height: auto; padding: 12px; font: 400 16px/1.45 var(--font-mono); resize: vertical; }
+.affix { display: flex; align-items: center; height: 48px; min-width: 0; border: 1px solid var(--line); border-radius: 8px; background: var(--inset); overflow: hidden; }
+.affix:focus-within { outline: 2px solid var(--accent); outline-offset: 1px; }
+.affix input { flex: 1; min-width: 0; width: 100%; height: 100%; border: 0; background: transparent; padding: 0 8px; outline: 0; font-variant-numeric: tabular-nums; }
+.affix .pre, .affix .suf { color: var(--muted); font-size: 14px; white-space: nowrap; }
+.affix .pre { padding-left: 12px; }
+.affix .suf { padding-right: 12px; }
+.select { position: relative; min-width: 0; }
+.select select { appearance: none; -webkit-appearance: none; width: 100%; height: 48px; padding: 0 40px 0 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--inset); color: var(--ink); font-weight: 600; text-overflow: ellipsis; }
+.select::after { content: ""; position: absolute; right: 16px; top: 50%; width: 8px; height: 8px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: translateY(-70%) rotate(45deg); pointer-events: none; }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 52px; padding: 0 20px; border-radius: 10px; border: 1px solid transparent; background: var(--accent); color: var(--on-accent); font-weight: 700; font-size: 16px; letter-spacing: 0.01em; text-decoration: none; }
+.btn:hover { filter: brightness(1.07); }
+.btn:active { transform: translateY(1px); }
+.btn.ghost { background: transparent; border-color: var(--line-strong); color: var(--ink); }
+.btn.ghost .badge { margin-left: 0; }
+.btn.dashed { background: transparent; border: 1.5px dashed var(--line-strong); color: var(--ink); width: 100%; }
+.btn.sm { min-height: 40px; padding: 0 14px; font-size: 14px; }
+.btn-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.btn-row .btn { padding: 0 12px; }
+.icon-btn { width: 44px; height: 44px; border-radius: 8px; border: 1px solid var(--line); background: transparent; color: var(--muted); font-size: 22px; line-height: 1; display: grid; place-items: center; }
+.icon-btn:hover { border-color: var(--line-strong); color: var(--ink); }
+
+/* Surface cards */
+.lines { display: grid; gap: 12px; }
+.line { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px; display: grid; gap: 12px; min-width: 0; }
+.line-top { display: grid; grid-template-columns: minmax(0, 1fr) 44px; gap: 8px; align-items: center; }
+.line-mid { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; }
+.amt { font: 800 30px/1 var(--font-display); letter-spacing: 0.01em; font-variant-numeric: tabular-nums; text-align: right; min-width: 88px; }
+.line-opts { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.chips { position: relative; display: flex; gap: 6px; flex: 1 1 240px; min-width: 0; }
+.chips input { position: absolute; opacity: 0; pointer-events: none; }
+.chip { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center; gap: 6px; height: 44px; border: 1px solid var(--line); border-radius: 8px; background: var(--inset); font-size: 14px; font-weight: 600; white-space: nowrap; cursor: pointer; }
+.chip small { font-size: 12px; font-weight: 500; opacity: 0.8; }
+.chips input:checked + .chip { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.chips input:focus-visible + .chip { outline: 2px solid var(--accent); outline-offset: 2px; }
+.tip { width: 10px; height: 10px; border-radius: 50%; flex: none; box-shadow: 0 0 0 1.5px var(--line-strong); }
+.tip.white { background: var(--tip-white); }
+.tip.green { background: var(--tip-green); }
+.tip.yellow { background: var(--tip-yellow); }
+.chips input:checked + .chip .tip { box-shadow: 0 0 0 1.5px var(--on-accent); }
+.stories { flex: 0 0 136px; }
+.math { color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+.empty { padding: 18px 14px; border: 1.5px dashed var(--line-strong); border-radius: 12px; color: var(--muted); text-align: center; font-size: 14px; }
+
+/* Extras */
+.extras { display: grid; }
+.extra { display: grid; gap: 10px; padding: 10px 0; border-top: 1px solid var(--line); }
+.extra:first-child { border-top: 0; padding-top: 0; }
+.extra-head { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; gap: 12px; align-items: center; min-height: 44px; }
+.extra.custom .extra-head { grid-template-columns: 28px minmax(0, 1fr) auto 44px; }
+.extra-head input[type="checkbox"] { width: 24px; height: 24px; margin: 0; accent-color: var(--accent); }
+.extra .name { font-weight: 600; line-height: 1.25; cursor: pointer; min-width: 0; }
+.extra .tag { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 15px; white-space: nowrap; }
+.extra.is-on .tag { color: var(--ink); font-weight: 700; }
+.extra-body { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding-left: 40px; }
+
+/* Price check */
+.check-out { display: grid; gap: 12px; padding-top: 14px; border-top: 1px solid var(--line); }
+.check-top { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.ck-msg { font-size: 14px; color: var(--muted); min-width: 0; flex: 1 1 200px; }
+.pill { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
+.pill::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.pill.good { background: var(--good-soft); color: var(--good); }
+.pill.warn { background: var(--warn-soft); color: var(--warn); }
+.pill.bad { background: var(--bad-soft); color: var(--bad); }
+.pill.plain { background: var(--inset); color: var(--muted); border: 1px solid var(--line); }
+.ledger { margin: 0; display: grid; gap: 8px; }
+.ledger > div { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.ledger dt { color: var(--muted); font-size: 14px; }
+.ledger dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; }
+
+/* Pro card */
+.pro-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.pro-list li { position: relative; padding-left: 20px; font-size: 15px; line-height: 1.4; }
+.pro-list li::before { content: ""; position: absolute; left: 0; top: 0.5em; width: 8px; height: 8px; background: var(--accent); border-radius: 2px; }
+.pro-price { display: flex; align-items: baseline; gap: 10px; color: var(--muted); font-size: 14px; }
+.pro-price strong { font: 800 44px/1 var(--font-display); color: var(--ink); }
+.pro-actions { display: grid; gap: 12px; }
+.code-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; }
+.form-msg { font-size: 14px; color: var(--bad); min-height: 1.2em; }
+
+/* Packages */
+.switch-row { display: flex; align-items: center; gap: 12px; min-height: 44px; }
+.switch-row input { width: 24px; height: 24px; margin: 0; accent-color: var(--accent); flex: none; }
+.switch-row label { font-weight: 600; line-height: 1.25; }
+.pkg { display: grid; gap: 12px; padding-top: 14px; margin-top: 14px; border-top: 1px solid var(--line); }
+.pkg-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.pkg-head h3 { font: 700 20px/1.1 var(--font-display); letter-spacing: 0.06em; text-transform: uppercase; }
+.pkg-price { font: 800 30px/1 var(--font-display); font-variant-numeric: tabular-nums; }
+.pkg-picks { display: grid; }
+.pkg-pick { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; gap: 12px; align-items: center; min-height: 44px; }
+.pkg-pick input { width: 24px; height: 24px; margin: 0; accent-color: var(--accent); }
+.pkg-pick .name { min-width: 0; font-weight: 600; line-height: 1.25; }
+.pkg-pick .sub { display: block; color: var(--muted); font-size: 13px; font-weight: 400; }
+.pkg-pick .sub:empty { display: none; }
+.pkg-pick .amt-s { color: var(--muted); font-variant-numeric: tabular-nums; font-size: 15px; }
+.pkg-warn { color: var(--warn); font-size: 13px; }
+
+/* Saved quotes */
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.stat { background: var(--inset); border: 1px solid var(--line); border-radius: 8px; padding: 10px; display: grid; gap: 6px; min-width: 0; align-content: start; }
+.stat-n { font: 800 24px/1 var(--font-display); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.saved-list { display: grid; gap: 10px; }
+.saved { display: grid; gap: 10px; padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--inset); min-width: 0; }
+.sv-top { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
+.sv-who { min-width: 0; display: grid; }
+.sv-who strong { overflow-wrap: anywhere; }
+.sv-who span { color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
+.sv-amt { font: 800 26px/1 var(--font-display); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.sv-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; color: var(--muted); font-size: 13px; }
+.sv-selects { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px; }
+.sv-selects .select select { height: 40px; font-size: 14px; }
+.sv-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.sv-actions .fu { order: -1; grid-column: 1 / -1; }
+.row-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.restore { display: grid; gap: 8px; }
+
+/* Rates */
+details.rates { display: block; }
+.rates summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; cursor: pointer; list-style: none; }
+.rates summary::-webkit-details-marker { display: none; }
+.rates summary .hint { display: flex; align-items: center; gap: 8px; }
+.rates summary .hint::after { content: ""; width: 8px; height: 8px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: translateY(-2px) rotate(45deg); }
+.rates[open] summary .hint::after { transform: translateY(2px) rotate(-135deg); }
+.rates-body { display: grid; gap: 16px; margin-top: 12px; padding-top: 14px; border-top: 1px solid var(--line); }
+.rate-rows { display: grid; gap: 10px; }
+.rate-row { display: grid; grid-template-columns: minmax(0, 1fr) 148px; gap: 10px; align-items: center; }
+.rate-row label { font-weight: 600; line-height: 1.25; min-width: 0; }
+
+/* Quote */
+.total-card { gap: 12px; }
+.total-block { display: grid; gap: 6px; }
+.total { font: 800 64px/1.02 var(--font-display); letter-spacing: 0.005em; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; padding-top: 4px; }
+.total-note { color: var(--muted); font-size: 14px; min-height: 1.4em; }
+.ticket { position: relative; display: grid; gap: 10px; padding: 16px 16px 14px; background: var(--surface); border: 1px solid var(--line); border-bottom: 0; border-radius: 6px 6px 0 0; font: 400 13.5px/1.5 var(--font-mono); min-width: 0; margin-bottom: 8px; }
+.ticket::after { content: ""; position: absolute; left: 0; right: 0; top: 100%; height: 8px; background: conic-gradient(from -45deg at 50% 100%, var(--surface) 90deg, transparent 0) 0 0 / 16px 8px repeat-x; }
+.t-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.t-biz { font: 800 22px/1 var(--font-display); letter-spacing: 0.03em; text-transform: uppercase; overflow-wrap: anywhere; }
+.t-biz.is-placeholder { color: var(--muted); }
+.t-date { color: var(--muted); font-size: 12px; white-space: nowrap; }
+.t-meta { color: var(--muted); font-size: 12.5px; overflow-wrap: anywhere; }
+.t-rule { border-top: 1px dashed var(--line-strong); }
+.t-lines { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.t-lines li { display: flex; justify-content: space-between; gap: 12px; }
+.t-lines .d { min-width: 0; overflow-wrap: anywhere; }
+.t-lines .a { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.t-empty { color: var(--muted); }
+.t-opts { display: grid; gap: 14px; }
+.t-opt { display: grid; gap: 4px; }
+.t-opt-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.t-opt-name { font: 700 17px/1.1 var(--font-display); letter-spacing: 0.06em; text-transform: uppercase; }
+.t-opt-price { font-size: 16px; font-weight: 500; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.t-opt ul { margin: 0; padding-left: 16px; color: var(--muted); font-size: 12.5px; display: grid; gap: 2px; }
+.t-sum { margin: 0; display: grid; gap: 6px; }
+.t-sum > div { display: flex; justify-content: space-between; gap: 12px; }
+.t-sum dt, .t-sum dd { margin: 0; font-variant-numeric: tabular-nums; }
+.t-sum .grand { font-size: 16px; font-weight: 500; padding-top: 6px; border-top: 1px dashed var(--line-strong); }
+.t-foot { color: var(--muted); font-size: 12px; }
+
+/* Pinned total (phone), copy sheet and toast */
+.bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px)); background: var(--surface); border-top: 1px solid var(--line-strong); box-shadow: var(--shadow-up); }
+.b-total { min-width: 0; display: grid; gap: 3px; }
+.b-lab { font-size: 12px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); }
+.b-amt { font: 800 34px/1 var(--font-display); font-variant-numeric: tabular-nums; }
+.sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; display: grid; gap: 10px; max-width: 640px; margin-inline: auto; padding: 16px 16px calc(16px + env(safe-area-inset-bottom, 0px)); background: var(--surface); border-top: 1px solid var(--line-strong); box-shadow: var(--shadow-up); }
+.toast { position: fixed; left: 50%; bottom: calc(92px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 50; max-width: calc(100% - 32px); padding: 10px 16px; border-radius: 999px; background: var(--ink); color: var(--surface); font-size: 14px; font-weight: 600; text-align: center; box-shadow: var(--shadow-pop); }
+
+@media (min-width: 900px) {
+  body { padding-block: 24px 40px; }
+  .layout { grid-template-columns: minmax(0, 1fr) 400px; gap: 28px; align-items: start; }
+  .aside { position: sticky; top: 16px; max-height: calc(100vh - 32px); overflow-y: auto; padding-bottom: 8px; }
+  .bar { display: none; }
+  .toast { bottom: 24px; }
+}
+@media (max-width: 380px) {
+  .total { font-size: 54px; }
+  .rate-row { grid-template-columns: minmax(0, 1fr) 132px; }
+}
+@media (max-width: 350px) {
+  .chip small { display: none; }
+  .masthead h1 { font-size: 26px; }
+  .stat-n { font-size: 20px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .btn, .chip, .icon-btn { transition: background-color 0.12s, border-color 0.12s, filter 0.12s; }
+}
+</style>
+
+<div class="app">
+  <div class="head">
+    <header class="masthead">
+      <svg class="mark" viewBox="0 0 40 40" aria-hidden="true" focusable="false">
+        <rect x="2" y="15" width="13" height="10" rx="2.5" fill="currentColor"/>
+        <rect x="13" y="17.5" width="5" height="5" rx="1" fill="currentColor"/>
+        <g class="spray" fill="none" stroke-width="2.6" stroke-linecap="round">
+          <path d="M22 20 L37 9"/><path d="M22 20 L38 14.5"/><path d="M22 20 L38.5 20"/><path d="M22 20 L38 25.5"/><path d="M22 20 L37 31"/>
+        </g>
+      </svg>
+      <h1>Rinse Quote<span class="badge" id="proBadge" hidden>Pro</span></h1>
+      <button type="button" class="btn ghost sm" id="newQuote">New quote</button>
+    </header>
+    <p class="tagline">Price a pressure washing job before you leave the driveway.</p>
+  </div>
+
+  <div class="layout">
+    <div class="stack">
+      <div class="banner" id="sampleBanner">
+        <p>Example job with starting rates. Change any number, or <button type="button" class="linkish" id="startBlank">start a blank quote</button>.</p>
+      </div>
+
+      <section class="sec" aria-labelledby="h-surfaces">
+        <div class="sec-head"><h2 id="h-surfaces">Surfaces</h2><span class="hint">Size × your rate</span></div>
+        <div class="lines" id="lines"></div>
+        <button type="button" class="btn dashed" id="addLine">+ Add a surface</button>
+      </section>
+
+      <section class="sec" aria-labelledby="h-extras">
+        <div class="sec-head"><h2 id="h-extras">Extras</h2><span class="hint">Tap to add a flat charge</span></div>
+        <div class="panel">
+          <div class="extras" id="extraList"></div>
+          <button type="button" class="btn ghost sm" id="addExtra">+ Add a custom charge</button>
+        </div>
+      </section>
+
+      <section class="sec" aria-labelledby="h-terms">
+        <div class="sec-head"><h2 id="h-terms">Minimum, tax, deposit</h2></div>
+        <div class="panel">
+          <div class="grid3">
+            <div class="field"><label class="lab" for="minCharge">Minimum job</label><div class="affix"><span class="pre">$</span><input id="minCharge" type="text" inputmode="decimal" autocomplete="off"></div></div>
+            <div class="field"><label class="lab" for="taxPct">Tax</label><div class="affix"><input id="taxPct" type="text" inputmode="decimal" autocomplete="off"><span class="suf">%</span></div></div>
+            <div class="field"><label class="lab" for="depositPct">Deposit</label><div class="affix"><input id="depositPct" type="text" inputmode="decimal" autocomplete="off"><span class="suf">%</span></div></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" aria-labelledby="h-job">
+        <div class="sec-head"><h2 id="h-job">Customer</h2><span class="hint">Optional, shown on the quote</span></div>
+        <div class="panel">
+          <div class="field"><label class="lab" for="customer">Name</label><input class="ctl" id="customer" type="text" autocomplete="off" placeholder="Who is this quote for?"></div>
+          <div class="field"><label class="lab" for="address">Property</label><input class="ctl" id="address" type="text" autocomplete="off" placeholder="Street address"></div>
+        </div>
+      </section>
+
+      <section class="sec" aria-labelledby="h-check">
+        <div class="sec-head"><h2 id="h-check">Price check</h2><span class="hint">Does this job pay?</span></div>
+        <div class="panel">
+          <div class="grid2">
+            <div class="field"><label class="lab" for="hours">Labor hours</label><div class="affix"><input id="hours" type="text" inputmode="decimal" autocomplete="off"><span class="suf">hrs</span></div></div>
+            <div class="field"><label class="lab" for="laborRate">Cost per hour</label><div class="affix"><span class="pre">$</span><input id="laborRate" type="text" inputmode="decimal" autocomplete="off"><span class="suf">/hr</span></div></div>
+            <div class="field"><label class="lab" for="materials">Materials, fuel</label><div class="affix"><span class="pre">$</span><input id="materials" type="text" inputmode="decimal" autocomplete="off"></div></div>
+            <div class="field"><label class="lab" for="targetPct">Target margin</label><div class="affix"><input id="targetPct" type="text" inputmode="decimal" autocomplete="off"><span class="suf">%</span></div></div>
+          </div>
+          <p class="fine">Count every crew member's hours. Cost per hour should cover wages, truck, insurance and equipment wear.</p>
+          <div class="check-out">
+            <div class="check-top">
+              <span class="pill" id="ckPill" hidden></span>
+              <p class="ck-msg" id="ckMsg" aria-live="polite"></p>
+            </div>
+            <dl class="ledger">
+              <div><dt>Your cost</dt><dd id="ckCost">-</dd></div>
+              <div><dt>Profit</dt><dd id="ckProfit">-</dd></div>
+              <div><dt>Margin</dt><dd id="ckMargin">-</dd></div>
+              <div><dt>Revenue per labor hour</dt><dd id="ckHour">-</dd></div>
+              <div id="ckSuggestRow" hidden><dt id="ckSuggestLab">Price for target margin</dt><dd id="ckSuggest">-</dd></div>
+            </dl>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" id="proCard" aria-labelledby="h-pro">
+        <div class="sec-head"><h2 id="h-pro">Rinse Quote Pro</h2><span class="hint">One payment</span></div>
+        <div class="panel">
+          <ul class="pro-list">
+            <li><strong>Good, Better, Best options.</strong> Put three packages on one quote so more customers pick the bigger job.</li>
+            <li><strong>Saved quotes.</strong> Keep every quote, mark it sent, won or lost, and watch your close rate.</li>
+            <li><strong>Follow-up texts.</strong> Copy a ready-to-send nudge for any saved quote.</li>
+          </ul>
+          <p class="pro-price"><strong id="proPrice">$29</strong><span>one time, no subscription</span></p>
+          <div class="pro-actions">
+            <a class="btn" id="getPro" href="#" target="_blank" rel="noopener" hidden>Get Pro</a>
+            <p class="fine" id="proSoon">Checkout opens soon.</p>
+            <p class="fine">After you pay, the confirmation page shows your code. Enter it here on any device.</p>
+            <p class="fine">Trouble with a code? Email <span class="mail"></span> <button type="button" class="linkish mail-copy">Copy</button></p>
+            <button type="button" class="linkish" id="haveCode">I already have a code</button>
+            <form class="code-form" id="codeForm" hidden>
+              <input class="ctl" id="codeInput" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="RINSE-XXXX-XXXX" aria-label="Pro code">
+              <button type="submit" class="btn">Unlock</button>
+            </form>
+            <p class="form-msg" id="codeMsg" role="status"></p>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" id="secPackages" aria-labelledby="h-pkg" hidden>
+        <div class="sec-head"><h2 id="h-pkg">Packages</h2><span class="badge">Pro</span></div>
+        <div class="panel">
+          <div class="switch-row">
+            <input type="checkbox" id="pkgOn">
+            <label for="pkgOn">Offer three options on this quote</label>
+          </div>
+          <div id="pkgBody" hidden>
+            <p class="fine">Good is your quote as priced above. Better and Best add extras and can carry a bundle discount. Each option includes everything in the one before it.</p>
+            <div class="pkg">
+              <div class="pkg-head"><h3>Better</h3><span class="pkg-price" id="pkgBetterPrice">$0.00</span></div>
+              <div class="pkg-picks" id="pkgBetterPicks"></div>
+              <p class="pkg-warn" id="pkgBetterWarn" hidden></p>
+              <div class="grid2">
+                <div class="field"><label class="lab" for="pkgBetterDisc">Bundle discount</label><div class="affix"><input id="pkgBetterDisc" type="text" inputmode="decimal" autocomplete="off"><span class="suf">%</span></div></div>
+              </div>
+              <div class="field"><label class="lab" for="pkgBetterNote">Note for the customer</label><input class="ctl" id="pkgBetterNote" type="text" autocomplete="off" placeholder="Optional, e.g. 30 day guarantee"></div>
+            </div>
+            <div class="pkg">
+              <div class="pkg-head"><h3>Best</h3><span class="pkg-price" id="pkgBestPrice">$0.00</span></div>
+              <div class="pkg-picks" id="pkgBestPicks"></div>
+              <p class="pkg-warn" id="pkgBestWarn" hidden></p>
+              <div class="grid2">
+                <div class="field"><label class="lab" for="pkgBestDisc">Bundle discount</label><div class="affix"><input id="pkgBestDisc" type="text" inputmode="decimal" autocomplete="off"><span class="suf">%</span></div></div>
+              </div>
+              <div class="field"><label class="lab" for="pkgBestNote">Note for the customer</label><input class="ctl" id="pkgBestNote" type="text" autocomplete="off" placeholder="Optional, e.g. priority scheduling"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" id="secSaved" aria-labelledby="h-saved" hidden>
+        <div class="sec-head"><h2 id="h-saved">Saved quotes</h2><span class="badge">Pro</span></div>
+        <div class="panel">
+          <div class="stats">
+            <div class="stat"><span class="lab">Waiting</span><span class="stat-n" id="stOpen">$0</span></div>
+            <div class="stat"><span class="lab">Won</span><span class="stat-n" id="stWon">$0</span></div>
+            <div class="stat"><span class="lab">Close rate</span><span class="stat-n" id="stRate">-</span></div>
+          </div>
+          <div class="saved-list" id="savedList"></div>
+          <div class="row-actions">
+            <button type="button" class="btn ghost sm" id="backupCopy">Copy backup</button>
+            <button type="button" class="btn ghost sm" id="restoreOpen">Restore</button>
+          </div>
+          <div class="restore" id="restoreBox" hidden>
+            <textarea class="ctl" id="restoreText" rows="5" placeholder="Paste a backup here" aria-label="Backup to restore"></textarea>
+            <button type="button" class="btn sm" id="restoreGo">Import quotes</button>
+            <p class="form-msg" id="restoreMsg" role="status"></p>
+          </div>
+          <p class="fine">Saved on this device only. Copy a backup now and then, in case your browser clears its data.</p>
+        </div>
+      </section>
+
+      <details class="panel rates" id="rates">
+        <summary><span class="h2">Your rates</span><span class="hint">Tap to edit</span></summary>
+        <div class="rates-body">
+          <div class="rate-rows" id="rateRows"></div>
+          <div class="grid2">
+            <div class="field"><label class="lab" for="lightMult">Light buildup</label><div class="affix"><span class="pre">×</span><input id="lightMult" type="text" inputmode="decimal" autocomplete="off"></div></div>
+            <div class="field"><label class="lab" for="heavyMult">Heavy buildup</label><div class="affix"><span class="pre">×</span><input id="heavyMult" type="text" inputmode="decimal" autocomplete="off"></div></div>
+            <div class="field"><label class="lab" for="story2">Two stories</label><div class="affix"><span class="pre">×</span><input id="story2" type="text" inputmode="decimal" autocomplete="off"></div></div>
+            <div class="field"><label class="lab" for="story3">Three stories</label><div class="affix"><span class="pre">×</span><input id="story3" type="text" inputmode="decimal" autocomplete="off"></div></div>
+          </div>
+          <p class="fine">Starting rates sit inside published U.S. price ranges for each surface. The multipliers are starting values, so set what matches how you price.</p>
+          <div class="field"><label class="lab" for="business">Business name</label><input class="ctl" id="business" type="text" autocomplete="off" placeholder="Shown at the top of the quote"></div>
+          <div class="grid2">
+            <div class="field"><label class="lab" for="phone">Phone</label><input class="ctl" id="phone" type="text" inputmode="tel" autocomplete="off" placeholder="Optional"></div>
+            <div class="field"><label class="lab" for="validDays">Quote valid for</label><div class="affix"><input id="validDays" type="text" inputmode="numeric" autocomplete="off"><span class="suf">days</span></div></div>
+          </div>
+          <button type="button" class="btn ghost sm" id="resetRates">Reset rates to starting values</button>
+        </div>
+      </details>
+
+      <div class="foot">
+        <p>Rinse Quote runs in your browser. Your rates and quotes stay on this device.</p>
+        <p>Questions, or trouble with a Pro code? Email <span class="mail"></span> <button type="button" class="linkish mail-copy">Copy</button></p>
+      </div>
+    </div>
+
+    <aside class="aside" aria-labelledby="h-quote">
+      <div class="panel total-card">
+        <div class="sec-head"><h2 id="h-quote">Quote</h2></div>
+        <div class="total-block">
+          <div class="lab" id="totalLab">Total</div>
+          <div class="total" id="totalAmt">$0.00</div>
+        </div>
+        <p class="total-note" id="totalNote"></p>
+        <div class="btn-row">
+          <button type="button" class="btn" id="copyBtn">Copy quote</button>
+          <button type="button" class="btn ghost" id="saveBtn"><span id="saveLabel">Save</span><span class="badge" id="saveBadge">Pro</span></button>
+        </div>
+      </div>
+      <div class="ticket" id="ticket">
+        <div class="t-head"><strong class="t-biz" id="tBiz">Your business</strong><span class="t-date" id="tDate"></span></div>
+        <div class="t-meta" id="tMeta" hidden></div>
+        <div class="t-rule"></div>
+        <ul class="t-lines" id="tLines"></ul>
+        <div class="t-opts" id="tOpts" hidden></div>
+        <dl class="t-sum" id="tSum" hidden></dl>
+        <p class="t-foot" id="tFoot" hidden></p>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<div class="bar" id="bar">
+  <div class="b-total"><div class="b-lab" id="barLab">Total</div><div class="b-amt" id="barAmt">$0.00</div></div>
+  <button type="button" class="btn" id="barCopy">Copy quote</button>
+</div>
+<div class="sheet" id="sheet" role="dialog" aria-label="Copy text" hidden>
+  <p class="fine">Your browser blocked the copy button. Press and hold the text, then choose Copy.</p>
+  <textarea class="ctl" id="sheetText" rows="7" readonly aria-label="Text to copy"></textarea>
+  <button type="button" class="btn ghost sm" id="sheetClose">Done</button>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+(function () {
+  'use strict';
+
+  var STORE_KEY = 'rinse-quote-v1';
+
+  /* Pro unlock. link is the Stripe Payment Link. hash is SHA-256 of 'rinse-quote|' plus the code, uppercased, letters and digits only. */
+  var PRO = { link: 'https://buy.stripe.com/eVqbJ15fQ5mx4Ru7txcV200', price: '$29', hash: '4eda2e189ba9060286804c4426a688a35516631c261d614f31a60ed89051591e' };
+  /* Shown to buyers who need help. */
+  var SUPPORT = 'fireseabrook2566@gmail.com';
+
+  var SURFACES = [
+    { key: 'driveway', label: 'Driveway & concrete', unit: 'sq ft', suf: 'sq ft', rate: 0.25, tall: false },
+    { key: 'patio', label: 'Patio & walkway', unit: 'sq ft', suf: 'sq ft', rate: 0.30, tall: false },
+    { key: 'house', label: 'House wash (soft wash)', unit: 'sq ft of home', suf: 'sq ft home', rate: 0.25, tall: true },
+    { key: 'deck', label: 'Deck', unit: 'sq ft', suf: 'sq ft', rate: 0.50, tall: false },
+    { key: 'fence', label: 'Fence (length × height)', unit: 'sq ft', suf: 'sq ft', rate: 0.35, tall: false },
+    { key: 'roof', label: 'Roof soft wash', unit: 'sq ft of roof', suf: 'sq ft roof', rate: 0.50, tall: true },
+    { key: 'lot', label: 'Commercial lot', unit: 'sq ft', suf: 'sq ft', rate: 0.12, tall: false }
+  ];
+  var SURF = {};
+  SURFACES.forEach(function (s) { SURF[s.key] = s; });
+  function known(key) { return Object.prototype.hasOwnProperty.call(SURF, key); }
+
+  var CONDS = [
+    { key: 'light', label: 'Light', deg: '40°', tip: 'white', name: 'White tip, 40°' },
+    { key: 'normal', label: 'Normal', deg: '25°', tip: 'green', name: 'Green tip, 25°' },
+    { key: 'heavy', label: 'Heavy', deg: '15°', tip: 'yellow', name: 'Yellow tip, 15°' }
+  ];
+  var STATUSES = [['draft', 'Draft'], ['sent', 'Sent'], ['won', 'Won'], ['lost', 'Lost']];
+  var TIERS = [
+    { k: 'better', cap: 'Better', idx: 1, prev: 'Good' },
+    { k: 'best', cap: 'Best', idx: 2, prev: 'Better' }
+  ];
+
+  var state = null;
+  var syncers = [];
+
+  function $(id) { return document.getElementById(id); }
+  function clone(o) { return JSON.parse(JSON.stringify(o)); }
+  function uniq(a) { return a.filter(function (x, i) { return a.indexOf(x) === i; }); }
+
+  /* ---------- numbers and formatting ---------- */
+  function num(v, d) {
+    var n = typeof v === 'number' ? v : parseFloat(String(v == null ? '' : v).replace(/[^0-9.\-]/g, ''));
+    return isFinite(n) ? n : (d == null ? 0 : d);
+  }
+  function nn(v, d) { return Math.max(0, num(v, d)); }
+  function pct(v) { return Math.min(100, nn(v)); }
+  function cents(n) { return Math.round((n + 1e-9) * 100) / 100; }
+
+  var USD = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+  var USD0 = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+  function fmt(n) { return USD.format(n || 0); }
+  function fmt0(n) { return USD0.format(n || 0); }
+  function fmtNum(n, min, max) {
+    return (n || 0).toLocaleString('en-US', { minimumFractionDigits: min || 0, maximumFractionDigits: max == null ? 2 : max });
+  }
+  function fmtRate(n) { return '$' + fmtNum(n, 2, 3); }
+  function fmtQty(n) { return n ? n.toLocaleString('en-US', { maximumFractionDigits: 2 }) : ''; }
+  function fmtPct(n) { return (Math.round(n * 10) / 10).toLocaleString('en-US') + '%'; }
+  function fmtDate(d) { return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); }
+
+  /* ---------- state ---------- */
+  function uid(prefix) { state.seq = (state.seq || 0) + 1; return prefix + state.seq; }
+
+  function newLine(surface, qty) {
+    return { id: uid('l'), surface: surface, qty: qty || 0, cond: 'normal', stories: 1 };
+  }
+
+  function defaultSettings() {
+    var rates = {};
+    SURFACES.forEach(function (s) { rates[s.key] = s.rate; });
+    return {
+      rates: rates, lightMult: 0.85, heavyMult: 1.35, story2: 1.25, story3: 1.5,
+      minCharge: 150, taxPct: 0, depositPct: 0, laborRate: 60, targetPct: 30,
+      business: '', phone: '', validDays: 14
+    };
+  }
+
+  function defaultExtras() {
+    return [
+      { id: 'oil', label: 'Oil & grease treatment', price: 45, qty: 1, on: false, custom: false },
+      { id: 'rust', label: 'Rust stain treatment', price: 60, qty: 1, on: false, custom: false },
+      { id: 'gutter', label: 'Gutter brightening', price: 80, qty: 1, on: false, custom: false },
+      { id: 'trip', label: 'Trip charge', price: 25, qty: 1, on: false, custom: false }
+    ];
+  }
+
+  function defaultPackages() {
+    return { on: false, better: { ids: [], discount: 0, note: '' }, best: { ids: [], discount: 0, note: '' } };
+  }
+
+  function blankJob(prevExtras) {
+    var extras = (prevExtras || defaultExtras()).filter(function (x) { return !x.custom; }).map(function (x) {
+      return { id: x.id, label: x.label, price: x.price, qty: 1, on: false, custom: false };
+    });
+    return { customer: '', address: '', lines: [newLine('driveway', 0)], extras: extras, hours: 0, materials: 0, packages: defaultPackages() };
+  }
+
+  function sampleJob() {
+    var j = blankJob();
+    j.lines = [newLine('driveway', 900), newLine('house', 1800)];
+    j.lines[1].stories = 2;
+    j.extras[0].on = true;
+    j.extras[0].qty = 2;
+    j.hours = 6;
+    j.materials = 35;
+    return j;
+  }
+
+  function sanitizePkg(p, validIds) {
+    p = p || {};
+    function tier(t) {
+      t = t || {};
+      return {
+        ids: (Array.isArray(t.ids) ? t.ids : []).map(String).filter(function (id) { return validIds.indexOf(id) >= 0; }),
+        discount: Math.min(50, nn(t.discount)),
+        note: String(t.note || '').slice(0, 120)
+      };
+    }
+    return { on: !!p.on, better: tier(p.better), best: tier(p.best) };
+  }
+
+  function sanitizeJob(j) {
+    j = j || {};
+    var saved = Array.isArray(j.extras) ? j.extras : [];
+    var extras = defaultExtras().map(function (x) {
+      var m = saved.filter(function (y) { return y && y.id === x.id && !y.custom; })[0];
+      return m ? { id: x.id, label: x.label, price: nn(m.price, x.price), qty: nn(m.qty, 1), on: !!m.on, custom: false } : x;
+    });
+    saved.forEach(function (y) {
+      if (y && y.custom) extras.push({ id: String(y.id), label: String(y.label || '').slice(0, 80), price: nn(y.price), qty: nn(y.qty, 1), on: !!y.on, custom: true });
+    });
+    var lines = (Array.isArray(j.lines) ? j.lines : []).filter(function (l) { return l && known(l.surface); }).map(function (l) {
+      return {
+        id: String(l.id), surface: l.surface, qty: nn(l.qty),
+        cond: ['light', 'normal', 'heavy'].indexOf(l.cond) >= 0 ? l.cond : 'normal',
+        stories: [1, 2, 3].indexOf(l.stories) >= 0 ? l.stories : 1
+      };
+    });
+    var ids = extras.map(function (x) { return x.id; });
+    return {
+      customer: String(j.customer || '').slice(0, 120), address: String(j.address || '').slice(0, 160),
+      lines: lines, extras: extras, hours: nn(j.hours), materials: nn(j.materials), packages: sanitizePkg(j.packages, ids)
+    };
+  }
+
+  function sanitizeSaved(list) {
+    return (Array.isArray(list) ? list : []).filter(function (r) { return r && r.id && r.job; }).slice(0, 100).map(function (r) {
+      var opts = Array.isArray(r.opts) ? r.opts.slice(0, 3).map(function (o) { return { name: String((o && o.name) || ''), total: nn(o && o.total) }; }) : null;
+      return {
+        id: String(r.id), savedAt: nn(r.savedAt),
+        status: ['draft', 'sent', 'won', 'lost'].indexOf(r.status) >= 0 ? r.status : 'draft',
+        choice: Math.max(0, Math.min(2, Math.round(nn(r.choice)))),
+        customer: String(r.customer || '').slice(0, 120), address: String(r.address || '').slice(0, 160),
+        total: nn(r.total), opts: opts && opts.length > 1 ? opts : null, job: sanitizeJob(r.job)
+      };
+    });
+  }
+
+  function sanitize(d) {
+    var base = defaultSettings();
+    var s = d.settings || {};
+    var settings = {};
+    Object.keys(base).forEach(function (k) { settings[k] = (k in s) ? s[k] : base[k]; });
+    settings.rates = {};
+    SURFACES.forEach(function (sf) {
+      settings.rates[sf.key] = (s.rates && s.rates[sf.key] != null) ? nn(s.rates[sf.key], sf.rate) : sf.rate;
+    });
+    settings.business = String(settings.business || '');
+    settings.phone = String(settings.phone || '');
+    return {
+      v: 1, sample: !!d.sample, seq: nn(d.seq), pro: d.pro === true, openId: d.openId ? String(d.openId) : null,
+      settings: settings, job: sanitizeJob(d.job), saved: sanitizeSaved(d.saved)
+    };
+  }
+
+  function load() {
+    try {
+      var raw = localStorage.getItem(STORE_KEY);
+      if (!raw) return null;
+      var d = JSON.parse(raw);
+      if (!d || d.v !== 1 || !d.job || !d.settings) return null;
+      return sanitize(d);
+    } catch (e) { return null; }
+  }
+  function save() { try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) { /* storage unavailable */ } }
+  var saveTimer;
+  function scheduleSave() { clearTimeout(saveTimer); saveTimer = setTimeout(save, 250); }
+
+  /* Give lines and custom extras fresh ids so an opened quote never clashes with ids made on another device. */
+  function reid(j) {
+    j.lines.forEach(function (l) { l.id = uid('l'); });
+    var map = {};
+    j.extras.forEach(function (x) { if (x.custom) { var nid = uid('c'); map[x.id] = nid; x.id = nid; } });
+    ['better', 'best'].forEach(function (k) {
+      j.packages[k].ids = j.packages[k].ids.map(function (i) { return map[i] || i; });
+    });
+    return j;
+  }
+
+  /* ---------- pricing ---------- */
+  function sumBy(list, key) { return list.reduce(function (t, x) { return t + x[key]; }, 0); }
+
+  /* opts.forceExtras: extra ids counted as included. opts.discountPct: bundle discount taken off the items before the minimum. */
+  function compute(st, opts) {
+    opts = opts || {};
+    var s = st.settings, j = st.job;
+    var forced = opts.forceExtras || [];
+    var lines = j.lines.map(function (l) {
+      var sf = SURF[l.surface] || SURFACES[0];
+      var rate = nn(s.rates[l.surface], sf.rate);
+      var cond = l.cond === 'light' ? nn(s.lightMult, 1) : l.cond === 'heavy' ? nn(s.heavyMult, 1) : 1;
+      var height = sf.tall ? (l.stories === 3 ? nn(s.story3, 1) : l.stories === 2 ? nn(s.story2, 1) : 1) : 1;
+      var qty = nn(l.qty);
+      return { l: l, sf: sf, qty: qty, rate: rate, cond: cond, height: height, amount: cents(qty * rate * cond * height) };
+    });
+    var extras = j.extras.filter(function (x) { return x.on || forced.indexOf(x.id) >= 0; }).map(function (x) {
+      var q = nn(x.qty, 1);
+      return { x: x, qty: q, amount: cents(nn(x.price) * q) };
+    });
+    var itemsTotal = cents(sumBy(lines, 'amount') + sumBy(extras, 'amount'));
+    var discPct = Math.min(50, nn(opts.discountPct));
+    var discAmt = discPct ? cents(itemsTotal * discPct / 100) : 0;
+    var itemsAfter = cents(itemsTotal - discAmt);
+    var minCharge = nn(s.minCharge);
+    var hasWork = itemsTotal > 0;
+    var minAdj = hasWork && itemsAfter < minCharge ? cents(minCharge - itemsAfter) : 0;
+    var pretax = cents(itemsAfter + minAdj);
+    var taxPct = pct(s.taxPct);
+    var tax = cents(pretax * taxPct / 100);
+    var total = cents(pretax + tax);
+    var depPct = pct(s.depositPct);
+    var deposit = cents(total * depPct / 100);
+
+    var hours = nn(j.hours), materials = nn(j.materials);
+    var cost = cents(hours * nn(s.laborRate) + materials);
+    var profit = cents(pretax - cost);
+    var margin = pretax > 0 ? profit / pretax : 0;
+    var target = Math.min(95, nn(s.targetPct)) / 100;
+    var suggested = cost > 0 ? cents(cost / (1 - target)) : 0;
+    var perHour = hours > 0 ? cents((pretax - materials) / hours) : null;
+
+    return {
+      lines: lines, extras: extras, itemsTotal: itemsTotal, discAmt: discAmt, hasWork: hasWork, minAdj: minAdj, pretax: pretax,
+      taxPct: taxPct, tax: tax, total: total, depPct: depPct, deposit: deposit,
+      hours: hours, cost: cost, profit: profit, margin: margin, target: target, suggested: suggested, perHour: perHour
+    };
+  }
+
+  function packagesActive() { return !!(state.pro && state.job.packages.on); }
+
+  function packageOptions() {
+    var P = state.job.packages;
+    var base = compute(state);
+    var betterIds = P.better.ids.slice();
+    var bestIds = uniq(betterIds.concat(P.best.ids));
+    var better = compute(state, { forceExtras: betterIds, discountPct: P.better.discount });
+    var best = compute(state, { forceExtras: bestIds, discountPct: P.best.discount });
+    function added(q, skipIds) {
+      return q.extras.filter(function (e) { return !e.x.on && skipIds.indexOf(e.x.id) < 0; }).map(extraDesc);
+    }
+    /* What the customer actually saves against the listed items, so the minimum charge is counted. */
+    function saving(q) {
+      var s = cents(q.itemsTotal - q.pretax);
+      return q.discAmt > 0 && s > 0 ? ['Bundle savings of ' + fmt(s)] : [];
+    }
+    return [
+      { name: 'Good', q: base, bullets: goodBullets(base), note: '' },
+      { name: 'Better', q: better, bullets: ['Everything in Good'].concat(added(better, []), saving(better)), note: P.better.note.trim() },
+      { name: 'Best', q: best, bullets: ['Everything in Better'].concat(added(best, betterIds), saving(best)), note: P.best.note.trim() }
+    ];
+  }
+
+  /* ---------- quote wording ---------- */
+  function lineDesc(c) {
+    var d = c.sf.label + ', ' + fmtQty(c.qty) + ' ' + c.sf.unit;
+    if (c.sf.tall && c.l.stories > 1) d += ', ' + c.l.stories + ' stories';
+    if (c.l.cond === 'heavy') d += ', heavy buildup';
+    if (c.l.cond === 'light') d += ', light buildup';
+    return d;
+  }
+  function extraDesc(e) {
+    return (e.x.label.trim() || 'Additional charge') + (e.qty !== 1 ? ' x' + fmtNum(e.qty, 0, 2) : '');
+  }
+  function goodBullets(q) {
+    var out = [];
+    q.lines.forEach(function (c) { if (c.amount > 0) out.push(lineDesc(c)); });
+    q.extras.forEach(function (e) { if (e.amount > 0) out.push(extraDesc(e)); });
+    return out;
+  }
+  function itemRows(q) {
+    var rows = [];
+    q.lines.forEach(function (c) { if (c.amount > 0) rows.push([lineDesc(c), c.amount]); });
+    q.extras.forEach(function (e) { if (e.amount > 0) rows.push([extraDesc(e), e.amount]); });
+    if (q.minAdj > 0) rows.push(['Minimum service charge adjustment', q.minAdj]);
+    return rows;
+  }
+  function totalRows(q) {
+    var rows = [];
+    if (q.tax > 0) {
+      rows.push(['Subtotal', q.pretax, '']);
+      rows.push(['Tax (' + fmtPct(q.taxPct) + ')', q.tax, '']);
+    }
+    rows.push(['Total', q.total, 'grand']);
+    if (q.deposit > 0) rows.push(['Deposit to book (' + fmtPct(q.depPct) + ')', q.deposit, '']);
+    return rows;
+  }
+  function optionNotes(q) {
+    var n = [];
+    if (q.taxPct > 0) n.push('Prices include ' + fmtPct(q.taxPct) + ' sales tax.');
+    if (q.depPct > 0) n.push('A ' + fmtPct(q.depPct) + ' deposit books the job.');
+    return n;
+  }
+  function validUntil() {
+    var days = Math.round(nn(state.settings.validDays));
+    if (days <= 0) return '';
+    var v = new Date();
+    v.setDate(v.getDate() + days);
+    return 'Valid until ' + fmtDate(v) + '.';
+  }
+  function quoteText(q, opts) {
+    var s = state.settings, j = state.job, L = [];
+    var biz = s.business.trim(), phone = s.phone.trim();
+    L.push('Pressure washing quote');
+    if (biz || phone) L.push([biz, phone].filter(Boolean).join(' - '));
+    L.push(fmtDate(new Date()));
+    if (j.customer.trim()) L.push('For: ' + j.customer.trim());
+    if (j.address.trim()) L.push('Property: ' + j.address.trim());
+    L.push('');
+    var tail = [];
+    if (opts) {
+      opts.forEach(function (o, i) {
+        L.push('Option ' + (i + 1) + ', ' + o.name + ': ' + fmt(o.q.total));
+        o.bullets.forEach(function (b) { L.push('- ' + b); });
+        if (o.note) L.push('- ' + o.note);
+        L.push('');
+      });
+      tail = optionNotes(q);
+    } else {
+      itemRows(q).forEach(function (r) { L.push(r[0] + ': ' + fmt(r[1])); });
+      L.push('');
+      totalRows(q).forEach(function (r) { L.push(r[0] + ': ' + fmt(r[1])); });
+      L.push('');
+    }
+    tail.forEach(function (t) { L.push(t); });
+    var v = validUntil();
+    if (v) L.push(v);
+    while (L.length && L[L.length - 1] === '') L.pop();
+    return L.join('\n');
+  }
+
+  /* ---------- DOM helpers ---------- */
+  function h(tag, props, kids) {
+    var el = document.createElement(tag);
+    if (props) Object.keys(props).forEach(function (k) {
+      var v = props[k];
+      if (v == null || v === false) return;
+      if (k === 'class') el.className = v;
+      else if (k === 'text') el.textContent = v;
+      else el.setAttribute(k, v === true ? '' : v);
+    });
+    (kids || []).forEach(function (c) { if (c != null) el.appendChild(c); });
+    return el;
+  }
+  function selectAll(e) {
+    var el = e.target;
+    setTimeout(function () { try { el.select(); } catch (err) { /* ignore */ } }, 0);
+  }
+  function bindNum(el, value, set) {
+    el.value = value();
+    syncers.push(function () { el.value = value(); });
+    el.addEventListener('input', function () { set(el.value); changed(); });
+    el.addEventListener('blur', function () { el.value = value(); });
+    el.addEventListener('focus', selectAll);
+  }
+  function bindText(el, value, set) {
+    el.value = value();
+    syncers.push(function () { el.value = value(); });
+    el.addEventListener('input', function () { set(el.value); changed(); });
+  }
+  function syncStatic() { syncers.forEach(function (f) { f(); }); }
+
+  var toastTimer;
+  function toast(msg) {
+    var t = $('toast');
+    t.textContent = msg;
+    t.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.hidden = true; }, 3200);
+  }
+
+  function twoTap(btn, idle, armed, action) {
+    var on = false, t;
+    function off() { on = false; clearTimeout(t); btn.textContent = idle; }
+    btn.addEventListener('click', function () {
+      if (!on) { on = true; btn.textContent = armed; t = setTimeout(off, 3000); return; }
+      off();
+      action();
+    });
+  }
+
+  function copyFallback(text, okMsg) {
+    var sheet = $('sheet'), ta = $('sheetText');
+    ta.value = text;
+    sheet.hidden = false;
+    var ok = false;
+    try { ta.focus(); ta.select(); ok = document.execCommand('copy'); } catch (e) { ok = false; }
+    if (ok) { sheet.hidden = true; toast(okMsg); }
+  }
+  function copyText(text, okMsg) {
+    var p = null;
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) p = navigator.clipboard.writeText(text);
+    } catch (e) { p = null; }
+    if (!p) { copyFallback(text, okMsg); return; }
+    p.then(function () { toast(okMsg); }, function () { copyFallback(text, okMsg); });
+  }
+
+  function changed() { updateAll(); scheduleSave(); }
+
+  /* ---------- surface cards ---------- */
+  function lineEl(l) {
+    var id = l.id;
+
+    var sel = h('select', { id: id + '-surface', 'aria-label': 'Surface type' });
+    SURFACES.forEach(function (s) { sel.appendChild(h('option', { value: s.key, text: s.label })); });
+    sel.value = l.surface;
+    sel.addEventListener('change', function () {
+      l.surface = sel.value;
+      if (!SURF[l.surface].tall) l.stories = 1;
+      $(id + '-stories').value = String(l.stories);
+      changed();
+    });
+
+    var rm = h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'Remove this surface', text: '×' });
+    rm.addEventListener('click', function () {
+      state.job.lines = state.job.lines.filter(function (x) { return x !== l; });
+      renderLines();
+      changed();
+    });
+
+    var qty = h('input', { type: 'text', inputmode: 'decimal', autocomplete: 'off', id: id + '-qty', 'aria-label': 'Size', placeholder: '0' });
+    qty.value = fmtQty(l.qty);
+    qty.addEventListener('input', function () { l.qty = nn(qty.value); changed(); });
+    qty.addEventListener('blur', function () { qty.value = fmtQty(l.qty); });
+    qty.addEventListener('focus', selectAll);
+    var size = h('div', { class: 'affix' }, [qty, h('span', { class: 'suf', id: id + '-unit' })]);
+
+    var chips = h('div', { class: 'chips', role: 'radiogroup', 'aria-label': 'How dirty is it' });
+    CONDS.forEach(function (c) {
+      var rid = id + '-cond-' + c.key;
+      var r = h('input', { type: 'radio', name: id + '-cond', id: rid, value: c.key });
+      r.checked = l.cond === c.key;
+      r.addEventListener('change', function () { if (r.checked) { l.cond = c.key; changed(); } });
+      chips.appendChild(r);
+      chips.appendChild(h('label', { class: 'chip', 'for': rid, title: c.name }, [
+        h('i', { class: 'tip ' + c.tip }),
+        h('span', { text: c.label }),
+        h('small', { text: c.deg })
+      ]));
+    });
+
+    var st = h('select', { id: id + '-stories', 'aria-label': 'Stories' });
+    [[1, '1 story'], [2, '2 stories'], [3, '3 stories']].forEach(function (o) { st.appendChild(h('option', { value: String(o[0]), text: o[1] })); });
+    st.value = String(l.stories || 1);
+    st.addEventListener('change', function () { l.stories = parseInt(st.value, 10) || 1; changed(); });
+    var stWrap = h('div', { class: 'select stories', id: id + '-stories-wrap' }, [st]);
+
+    return h('article', { class: 'line', id: 'line-' + id }, [
+      h('div', { class: 'line-top' }, [h('div', { class: 'select' }, [sel]), rm]),
+      h('div', { class: 'line-mid' }, [size, h('span', { class: 'amt', id: id + '-amt' })]),
+      h('div', { class: 'line-opts' }, [chips, stWrap]),
+      h('p', { class: 'math', id: id + '-math' })
+    ]);
+  }
+
+  function renderLines() {
+    var box = $('lines');
+    box.textContent = '';
+    if (!state.job.lines.length) box.appendChild(h('p', { class: 'empty', text: 'No surfaces yet. Add the first one below.' }));
+    state.job.lines.forEach(function (l) { box.appendChild(lineEl(l)); });
+  }
+
+  function paintLines(q) {
+    q.lines.forEach(function (c) {
+      var id = c.l.id;
+      var amt = $(id + '-amt');
+      if (!amt) return;
+      amt.textContent = fmt(c.amount);
+      $(id + '-unit').textContent = c.sf.suf;
+      $(id + '-stories-wrap').hidden = !c.sf.tall;
+      var parts = [fmtRate(c.rate) + '/sq ft'];
+      if (c.l.cond !== 'normal') parts.push('× ' + fmtNum(c.cond, 2, 3) + ' ' + c.l.cond);
+      if (c.sf.tall && c.l.stories > 1) parts.push('× ' + fmtNum(c.height, 2, 3) + ' for ' + c.l.stories + ' stories');
+      $(id + '-math').textContent = parts.join(' ');
+    });
+  }
+
+  /* ---------- extras ---------- */
+  function extraEl(x) {
+    var id = 'x-' + x.id;
+    var on = h('input', { type: 'checkbox', id: id + '-on', 'aria-label': x.custom ? 'Include this charge' : 'Include ' + x.label });
+    on.checked = x.on;
+    on.addEventListener('change', function () { x.on = on.checked; changed(); });
+
+    var name;
+    if (x.custom) {
+      name = h('input', { type: 'text', class: 'ctl', id: id + '-name', placeholder: 'Describe the charge', autocomplete: 'off', 'aria-label': 'Charge description' });
+      name.value = x.label;
+      name.addEventListener('input', function () { x.label = name.value; changed(); });
+    } else {
+      name = h('label', { class: 'name', 'for': id + '-on', text: x.label });
+    }
+    var tag = h('span', { class: 'tag', id: id + '-tag' });
+    var headKids = [on, name, tag];
+    if (x.custom) {
+      var rm = h('button', { type: 'button', class: 'icon-btn', 'aria-label': 'Remove this charge', text: '×' });
+      rm.addEventListener('click', function () {
+        state.job.extras = state.job.extras.filter(function (y) { return y !== x; });
+        ['better', 'best'].forEach(function (k) {
+          var c = state.job.packages[k];
+          c.ids = c.ids.filter(function (i) { return i !== x.id; });
+        });
+        renderExtras();
+        changed();
+      });
+      headKids.push(rm);
+    }
+
+    var price = h('input', { type: 'text', inputmode: 'decimal', autocomplete: 'off', id: id + '-price', 'aria-label': 'Price' });
+    bindNum(price, function () { return fmtNum(x.price, 0, 2); }, function (v) { x.price = nn(v); });
+    var qty = h('input', { type: 'text', inputmode: 'decimal', autocomplete: 'off', id: id + '-qty', 'aria-label': 'Quantity' });
+    bindNum(qty, function () { return fmtNum(x.qty, 0, 2); }, function (v) { x.qty = String(v).trim() === '' ? 1 : nn(v); });
+
+    var body = h('div', { class: 'extra-body', id: id + '-body' }, [
+      h('div', { class: 'affix' }, [h('span', { class: 'pre', text: '$' }), price, h('span', { class: 'suf', text: 'each' })]),
+      h('div', { class: 'affix' }, [h('span', { class: 'pre', text: '×' }), qty])
+    ]);
+
+    return h('div', { class: 'extra' + (x.custom ? ' custom' : ''), id: id + '-row' }, [
+      h('div', { class: 'extra-head' }, headKids),
+      body
+    ]);
+  }
+
+  function renderExtras() {
+    var box = $('extraList');
+    box.textContent = '';
+    state.job.extras.forEach(function (x) { box.appendChild(extraEl(x)); });
+    renderPackages();
+  }
+
+  function paintExtras() {
+    state.job.extras.forEach(function (x) {
+      var id = 'x-' + x.id;
+      var row = $(id + '-row');
+      if (!row) return;
+      row.classList.toggle('is-on', !!x.on);
+      $(id + '-body').hidden = !x.on;
+      $(id + '-tag').textContent = fmt(x.on ? cents(nn(x.price) * nn(x.qty, 1)) : nn(x.price));
+    });
+  }
+
+  /* ---------- packages (Pro) ---------- */
+  function renderPackages() {
+    var P = state.job.packages;
+    $('pkgOn').checked = P.on;
+    $('pkgBody').hidden = !P.on;
+    TIERS.forEach(function (t) {
+      var box = $('pkg' + t.cap + 'Picks');
+      box.textContent = '';
+      var cfg = P[t.k];
+      state.job.extras.forEach(function (x) {
+        var id = 'pk-' + t.k + '-' + x.id;
+        var cb = h('input', { type: 'checkbox', id: id });
+        cb.addEventListener('change', function () {
+          cfg.ids = cfg.ids.filter(function (i) { return i !== x.id; });
+          if (cb.checked) cfg.ids.push(x.id);
+          changed();
+        });
+        box.appendChild(h('div', { class: 'pkg-pick' }, [
+          cb,
+          h('label', { class: 'name', 'for': id }, [h('span', { id: id + '-name' }), h('span', { class: 'sub', id: id + '-sub' })]),
+          h('span', { class: 'amt-s', id: id + '-amt' })
+        ]));
+      });
+    });
+  }
+
+  function paintPackages(opts) {
+    var P = state.job.packages;
+    if (!P.on || !opts) return;
+    TIERS.forEach(function (t) {
+      var cfg = P[t.k], o = opts[t.idx], prev = opts[t.idx - 1];
+      $('pkg' + t.cap + 'Price').textContent = fmt(o.q.total);
+      state.job.extras.forEach(function (x) {
+        var id = 'pk-' + t.k + '-' + x.id;
+        var cb = $(id);
+        if (!cb) return;
+        var inPrev = x.on || (t.k === 'best' && P.better.ids.indexOf(x.id) >= 0);
+        cb.checked = inPrev || cfg.ids.indexOf(x.id) >= 0;
+        cb.disabled = inPrev;
+        $(id + '-name').textContent = x.label.trim() || 'Additional charge';
+        $(id + '-sub').textContent = inPrev ? 'Already in ' + t.prev : '';
+        $(id + '-amt').textContent = fmt(cents(nn(x.price) * nn(x.qty, 1)));
+      });
+      var same = o.q.hasWork && o.q.total === prev.q.total;
+      var warn = $('pkg' + t.cap + 'Warn');
+      warn.hidden = !same;
+      warn.textContent = same ? t.cap + ' costs the same as ' + t.prev + '. Pick an extra or add a bundle discount so the options differ.' : '';
+    });
+  }
+
+  /* ---------- totals, ticket, price check ---------- */
+  function paintTotals(q, opts) {
+    var pk = !!(opts && q.hasWork);
+    var big = pk ? opts[0].q.total : q.total;
+    $('totalLab').textContent = pk ? 'From' : 'Total';
+    $('barLab').textContent = pk ? 'From' : 'Total';
+    $('totalAmt').textContent = fmt(big);
+    $('barAmt').textContent = fmt(big);
+    var note;
+    if (!q.hasWork) {
+      note = 'Add a surface and a size to start.';
+    } else if (pk) {
+      note = 'Three options: ' + opts.map(function (o) { return fmt(o.q.total); }).join(', ') + '.';
+    } else {
+      var bits = [];
+      if (q.minAdj > 0) bits.push('Minimum job charge applied.');
+      if (q.tax > 0) bits.push('Includes ' + fmt(q.tax) + ' tax.');
+      if (q.deposit > 0) bits.push('Deposit to book: ' + fmt(q.deposit) + '.');
+      note = bits.length ? bits.join(' ') : 'Ready to copy and send.';
+    }
+    $('totalNote').textContent = note;
+  }
+
+  function paintTicket(q, opts) {
+    var s = state.settings, j = state.job;
+    var biz = s.business.trim();
+    $('tBiz').textContent = biz || 'Your business';
+    $('tBiz').classList.toggle('is-placeholder', !biz);
+    $('tDate').textContent = fmtDate(new Date());
+
+    var meta = $('tMeta');
+    meta.textContent = '';
+    var bits = [];
+    if (s.phone.trim()) bits.push(s.phone.trim());
+    if (j.customer.trim()) bits.push('For: ' + j.customer.trim());
+    if (j.address.trim()) bits.push('Property: ' + j.address.trim());
+    bits.forEach(function (b) { meta.appendChild(h('div', { text: b })); });
+    meta.hidden = bits.length === 0;
+
+    var pk = !!(opts && q.hasWork);
+    var ul = $('tLines'), sum = $('tSum'), box = $('tOpts');
+    ul.textContent = '';
+    sum.textContent = '';
+    box.textContent = '';
+    ul.hidden = pk;
+    box.hidden = !pk;
+    var foot = [];
+
+    if (pk) {
+      sum.hidden = true;
+      opts.forEach(function (o, i) {
+        var items = o.bullets.concat(o.note ? [o.note] : []).map(function (b) { return h('li', { text: b }); });
+        box.appendChild(h('div', { class: 't-opt' }, [
+          h('div', { class: 't-opt-head' }, [
+            h('span', { class: 't-opt-name', text: 'Option ' + (i + 1) + ', ' + o.name }),
+            h('span', { class: 't-opt-price', text: fmt(o.q.total) })
+          ]),
+          h('ul', null, items)
+        ]));
+      });
+      foot = optionNotes(q);
+    } else {
+      var rows = itemRows(q);
+      if (!rows.length) ul.appendChild(h('li', { class: 't-empty', text: 'Add a surface and a size to build the quote.' }));
+      rows.forEach(function (r) {
+        ul.appendChild(h('li', null, [h('span', { class: 'd', text: r[0] }), h('span', { class: 'a', text: fmt(r[1]) })]));
+      });
+      sum.hidden = !rows.length;
+      if (rows.length) {
+        totalRows(q).forEach(function (r) {
+          sum.appendChild(h('div', { class: r[2] }, [h('dt', { text: r[0] }), h('dd', { text: fmt(r[1]) })]));
+        });
+      }
+    }
+
+    var v = q.hasWork ? validUntil() : '';
+    if (v) foot.push(v);
+    $('tFoot').textContent = foot.join(' ');
+    $('tFoot').hidden = !foot.length;
+  }
+
+  function paintCheck(q) {
+    var pill = $('ckPill'), msg = $('ckMsg');
+    var dash = '-';
+    var ready = q.hasWork && q.cost > 0;
+    $('ckCost').textContent = q.cost > 0 ? fmt(q.cost) : dash;
+    $('ckProfit').textContent = ready ? fmt(q.profit) : dash;
+    $('ckMargin').textContent = ready ? fmtPct(q.margin * 100) : dash;
+    $('ckHour').textContent = q.hasWork && q.perHour != null ? fmt(q.perHour) + '/hr' : dash;
+    var below = ready && q.suggested > q.pretax;
+    $('ckSuggestRow').hidden = !below;
+    $('ckSuggestLab').textContent = 'Price for ' + fmtPct(q.target * 100) + ' margin';
+    $('ckSuggest').textContent = fmt(q.suggested);
+
+    if (!q.hasWork) {
+      pill.hidden = true;
+      msg.textContent = 'Add a surface to check your margin.';
+    } else if (!ready) {
+      pill.hidden = true;
+      msg.textContent = 'Enter your labor hours and materials to see if this job pays.';
+    } else if (q.profit < 0) {
+      pill.hidden = false; pill.className = 'pill bad'; pill.textContent = 'Losing money';
+      msg.textContent = 'This job costs more than you would charge. Price it at ' + fmt(q.suggested) + ' or more.';
+    } else if (below) {
+      pill.hidden = false; pill.className = 'pill warn'; pill.textContent = 'Below target';
+      msg.textContent = 'Add ' + fmt(cents(q.suggested - q.pretax)) + ' to reach your ' + fmtPct(q.target * 100) + ' margin.';
+    } else {
+      pill.hidden = false; pill.className = 'pill good'; pill.textContent = 'On target';
+      msg.textContent = 'Margin is at or above your ' + fmtPct(q.target * 100) + ' target.';
+    }
+  }
+
+  function findSaved(id) {
+    return id ? state.saved.filter(function (r) { return r.id === id; })[0] || null : null;
+  }
+
+  function paintSaveBtn() {
+    $('saveLabel').textContent = !state.pro ? 'Save' : (findSaved(state.openId) ? 'Update saved' : 'Save quote');
+    $('saveBadge').hidden = !!state.pro;
+  }
+
+  function updateAll() {
+    var q = compute(state);
+    var opts = packagesActive() ? packageOptions() : null;
+    paintLines(q);
+    paintExtras();
+    paintTotals(q, opts);
+    paintTicket(q, opts);
+    paintCheck(q);
+    paintPackages(opts);
+    paintSaveBtn();
+    $('sampleBanner').hidden = !state.sample;
+  }
+
+  /* ---------- saved quotes (Pro) ---------- */
+  function recordTotal(r) {
+    if (r.opts && r.status === 'won') return (r.opts[r.choice] || r.opts[0]).total;
+    return r.total;
+  }
+
+  function savedStats() {
+    var open = 0, won = 0, wonN = 0, lostN = 0;
+    state.saved.forEach(function (r) {
+      var t = recordTotal(r);
+      if (r.status === 'sent') open += t;
+      else if (r.status === 'won') { won += t; wonN += 1; }
+      else if (r.status === 'lost') lostN += 1;
+    });
+    return { open: cents(open), won: cents(won), rate: (wonN + lostN) ? Math.round(wonN / (wonN + lostN) * 100) : null };
+  }
+
+  function followUpText(r) {
+    var s = state.settings;
+    var first = r.customer.trim().split(/\s+/)[0];
+    var biz = s.business.trim();
+    var amount = (r.opts ? 'options from ' : '') + fmt(recordTotal(r));
+    var t = 'Hi' + (first ? ' ' + first : '') + ', this is ' + (biz || 'your pressure washing pro') +
+      ' checking in on the quote' + (r.address.trim() ? ' for ' + r.address.trim() : '') + ' (' + amount + '). ' +
+      'Happy to answer any questions or get you on the schedule.';
+    if (s.phone.trim()) t += ' You can call or text me at ' + s.phone.trim() + '.';
+    return t;
+  }
+
+  function openSaved(r) {
+    var before = r.total;
+    state.job = reid(sanitizeJob(clone(r.job)));
+    state.openId = r.id;
+    state.sample = false;
+    renderLines();
+    renderExtras();
+    syncStatic();
+    updateAll();
+    save();
+    window.scrollTo(0, 0);
+    var now = compute(state).total;
+    toast(now !== before ? 'Opened. Your rates changed since you saved it, so it now totals ' + fmt(now) + '.' : 'Opened. Change anything, then tap Update saved.');
+  }
+
+  function savedEl(r) {
+    var id = 'sv-' + r.id;
+    var pillClass = r.status === 'won' ? 'good' : r.status === 'sent' ? 'warn' : r.status === 'lost' ? 'bad' : 'plain';
+    var statusName = STATUSES.filter(function (s) { return s[0] === r.status; })[0][1];
+
+    var sel = h('select', { id: id + '-status', 'aria-label': 'Status' });
+    STATUSES.forEach(function (s) { sel.appendChild(h('option', { value: s[0], text: s[1] })); });
+    sel.value = r.status;
+    sel.addEventListener('change', function () { r.status = sel.value; save(); renderSaved(); });
+
+    var picks = [h('div', { class: 'select' }, [sel])];
+    if (r.opts && r.status === 'won') {
+      var ch = h('select', { id: id + '-choice', 'aria-label': 'Option the customer chose' });
+      r.opts.forEach(function (o, i) { ch.appendChild(h('option', { value: String(i), text: o.name + ' ' + fmt(o.total) })); });
+      ch.value = String(r.choice);
+      ch.addEventListener('change', function () { r.choice = parseInt(ch.value, 10) || 0; save(); renderSaved(); });
+      picks.push(h('div', { class: 'select' }, [ch]));
+    }
+
+    var open = h('button', { type: 'button', class: 'btn ghost sm', text: 'Open' });
+    open.addEventListener('click', function () { openSaved(r); });
+    var fu = h('button', { type: 'button', class: 'btn ghost sm fu', text: 'Follow-up text' });
+    fu.addEventListener('click', function () { copyText(followUpText(r), 'Follow-up copied. Paste it into a text.'); });
+    var del = h('button', { type: 'button', class: 'btn ghost sm', text: 'Delete' });
+    twoTap(del, 'Delete', 'Tap again', function () {
+      state.saved = state.saved.filter(function (x) { return x !== r; });
+      if (state.openId === r.id) state.openId = null;
+      save();
+      renderSaved();
+      updateAll();
+    });
+
+    return h('article', { class: 'saved', id: id }, [
+      h('div', { class: 'sv-top' }, [
+        h('div', { class: 'sv-who' }, [h('strong', { text: r.customer.trim() || 'No name' }), h('span', { text: r.address.trim() || 'No address' })]),
+        h('div', { class: 'sv-amt', text: fmt(recordTotal(r)) })
+      ]),
+      h('div', { class: 'sv-meta' }, [
+        h('span', { class: 'pill ' + pillClass, text: statusName }),
+        h('span', { text: fmtDate(new Date(r.savedAt)) })
+      ]),
+      h('div', { class: 'sv-selects' }, picks),
+      h('div', { class: 'sv-actions' }, [open, fu, del])
+    ]);
+  }
+
+  function renderSaved() {
+    var st = savedStats();
+    $('stOpen').textContent = fmt0(st.open);
+    $('stWon').textContent = fmt0(st.won);
+    $('stRate').textContent = st.rate == null ? '-' : st.rate + '%';
+    var list = $('savedList');
+    list.textContent = '';
+    if (!state.saved.length) {
+      list.appendChild(h('p', { class: 'empty', text: 'No saved quotes yet. Tap Save quote next to your total.' }));
+      return;
+    }
+    state.saved.forEach(function (r) { list.appendChild(savedEl(r)); });
+  }
+
+  function saveQuote() {
+    if (!state.pro) {
+      toast('Saving quotes is part of Pro.');
+      try { $('proCard').scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) { /* ignore */ }
+      return;
+    }
+    var q = compute(state);
+    if (q.total <= 0) { toast('Add a surface with a size first.'); return; }
+    var existing = findSaved(state.openId);
+    var rec = {
+      id: existing ? existing.id : uid('q'),
+      savedAt: Date.now(),
+      status: existing ? existing.status : 'draft',
+      choice: existing ? existing.choice : 0,
+      customer: state.job.customer,
+      address: state.job.address,
+      total: q.total,
+      opts: packagesActive() ? packageOptions().map(function (o) { return { name: o.name, total: o.q.total }; }) : null,
+      job: clone(state.job)
+    };
+    if (existing) {
+      state.saved[state.saved.indexOf(existing)] = rec;
+    } else {
+      state.saved.unshift(rec);
+      if (state.saved.length > 100) state.saved.length = 100;
+    }
+    state.openId = rec.id;
+    save();
+    renderSaved();
+    updateAll();
+    toast(existing ? 'Saved quote updated.' : 'Quote saved.');
+  }
+
+  function restoreGo() {
+    var msg = $('restoreMsg');
+    var data;
+    try { data = JSON.parse($('restoreText').value.trim()); } catch (e) { msg.textContent = 'That does not look like a backup.'; return; }
+    var list = sanitizeSaved(data && data.saved);
+    if (!list.length) { msg.textContent = 'No quotes found in that backup.'; return; }
+    var added = 0;
+    list.forEach(function (r) {
+      var dup = state.saved.some(function (s) { return s.id === r.id && s.savedAt === r.savedAt; });
+      if (dup) return;
+      if (state.saved.some(function (s) { return s.id === r.id; })) r.id = uid('q');
+      state.saved.push(r);
+      added += 1;
+    });
+    state.saved.sort(function (a, b) { return b.savedAt - a.savedAt; });
+    if (state.saved.length > 100) state.saved.length = 100;
+    save();
+    renderSaved();
+    $('restoreText').value = '';
+    $('restoreBox').hidden = true;
+    msg.textContent = '';
+    toast(added ? 'Restored ' + added + (added === 1 ? ' quote.' : ' quotes.') : 'Those quotes are already here.');
+  }
+
+  /* ---------- Pro unlock ---------- */
+  function normCode(s) { return String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, ''); }
+
+  function unlockWith(code) {
+    var n = normCode(code);
+    if (!n || !(window.crypto && window.crypto.subtle)) return Promise.resolve(false);
+    var bytes = new TextEncoder().encode('rinse-quote|' + n);
+    return window.crypto.subtle.digest('SHA-256', bytes).then(function (buf) {
+      var hex = Array.prototype.map.call(new Uint8Array(buf), function (b) { return ('0' + b.toString(16)).slice(-2); }).join('');
+      return hex === PRO.hash;
+    }, function () { return false; });
+  }
+
+  function applyPro() {
+    var on = !!state.pro;
+    $('proCard').hidden = on;
+    $('secPackages').hidden = !on;
+    $('secSaved').hidden = !on;
+    $('proBadge').hidden = !on;
+  }
+
+  function setPro(on) {
+    state.pro = !!on;
+    save();
+    applyPro();
+    renderSaved();
+    updateAll();
+  }
+
+  function applyProLink() {
+    $('proPrice').textContent = PRO.price;
+    var a = $('getPro');
+    if (PRO.link) { a.href = PRO.link; a.hidden = false; $('proSoon').hidden = true; }
+    else { a.hidden = true; $('proSoon').hidden = false; }
+  }
+
+  /* The address is plain text with a Copy button, because mailto links do not work in every viewer. */
+  function fillSupport() {
+    Array.prototype.forEach.call(document.querySelectorAll('.mail'), function (el) { el.textContent = SUPPORT; });
+    Array.prototype.forEach.call(document.querySelectorAll('.mail-copy'), function (b) {
+      b.addEventListener('click', function () { copyText(SUPPORT, 'Email copied.'); });
+    });
+  }
+
+  /* ---------- actions ---------- */
+  function copyQuote() {
+    var q = compute(state);
+    if (q.total <= 0) { toast('Add a surface with a size first.'); return; }
+    copyText(quoteText(q, packagesActive() ? packageOptions() : null), 'Quote copied. Paste it into a text or email.');
+  }
+
+  function startBlank() {
+    state.job = blankJob(state.job.extras);
+    state.sample = false;
+    state.openId = null;
+    renderLines();
+    renderExtras();
+    syncStatic();
+    updateAll();
+    save();
+    window.scrollTo(0, 0);
+    toast('Blank quote ready.');
+  }
+
+  function resetRates() {
+    var d = defaultSettings(), s = state.settings;
+    s.rates = d.rates;
+    ['lightMult', 'heavyMult', 'story2', 'story3', 'minCharge'].forEach(function (k) { s[k] = d[k]; });
+    syncStatic();
+    updateAll();
+    save();
+    toast('Rates reset to starting values.');
+  }
+
+  /* ---------- boot ---------- */
+  function buildRates() {
+    var box = $('rateRows');
+    SURFACES.forEach(function (sf) {
+      var input = h('input', { type: 'text', inputmode: 'decimal', autocomplete: 'off', id: 'rate-' + sf.key, 'aria-label': sf.label + ' rate per square foot' });
+      bindNum(input, function () { return fmtNum(state.settings.rates[sf.key], 2, 3); }, function (v) { state.settings.rates[sf.key] = nn(v); });
+      box.appendChild(h('div', { class: 'rate-row' }, [
+        h('label', { 'for': 'rate-' + sf.key, text: sf.label }),
+        h('div', { class: 'affix' }, [h('span', { class: 'pre', text: '$' }), input, h('span', { class: 'suf', text: '/ sq ft' })])
+      ]));
+    });
+  }
+
+  function bindStatic() {
+    var S = function () { return state.settings; };
+    var J = function () { return state.job; };
+    bindText($('customer'), function () { return J().customer; }, function (v) { J().customer = v; });
+    bindText($('address'), function () { return J().address; }, function (v) { J().address = v; });
+    bindNum($('minCharge'), function () { return fmtNum(S().minCharge, 0, 2); }, function (v) { S().minCharge = nn(v); });
+    bindNum($('taxPct'), function () { return fmtNum(S().taxPct, 0, 3); }, function (v) { S().taxPct = pct(v); });
+    bindNum($('depositPct'), function () { return fmtNum(S().depositPct, 0, 3); }, function (v) { S().depositPct = pct(v); });
+    bindNum($('hours'), function () { return fmtNum(J().hours, 0, 2); }, function (v) { J().hours = nn(v); });
+    bindNum($('laborRate'), function () { return fmtNum(S().laborRate, 0, 2); }, function (v) { S().laborRate = nn(v); });
+    bindNum($('materials'), function () { return fmtNum(J().materials, 0, 2); }, function (v) { J().materials = nn(v); });
+    bindNum($('targetPct'), function () { return fmtNum(S().targetPct, 0, 2); }, function (v) { S().targetPct = Math.min(95, nn(v)); });
+    ['lightMult', 'heavyMult', 'story2', 'story3'].forEach(function (k) {
+      bindNum($(k), function () { return fmtNum(S()[k], 2, 3); }, function (v) { S()[k] = nn(v); });
+    });
+    bindText($('business'), function () { return S().business; }, function (v) { S().business = v; });
+    bindText($('phone'), function () { return S().phone; }, function (v) { S().phone = v; });
+    bindNum($('validDays'), function () { return fmtNum(S().validDays, 0, 0); }, function (v) { S().validDays = Math.round(nn(v)); });
+
+    TIERS.forEach(function (t) {
+      bindNum($('pkg' + t.cap + 'Disc'), function () { return fmtNum(J().packages[t.k].discount, 0, 2); }, function (v) { J().packages[t.k].discount = Math.min(50, nn(v)); });
+      bindText($('pkg' + t.cap + 'Note'), function () { return J().packages[t.k].note; }, function (v) { J().packages[t.k].note = v.slice(0, 120); });
+    });
+    $('pkgOn').addEventListener('change', function () {
+      J().packages.on = $('pkgOn').checked;
+      $('pkgBody').hidden = !J().packages.on;
+      changed();
+    });
+
+    $('addLine').addEventListener('click', function () {
+      var used = state.job.lines.map(function (l) { return l.surface; });
+      var pick = SURFACES.filter(function (s) { return used.indexOf(s.key) < 0; })[0] || SURFACES[0];
+      var l = newLine(pick.key, 0);
+      state.job.lines.push(l);
+      renderLines();
+      changed();
+      var q = $(l.id + '-qty');
+      if (q) q.focus();
+    });
+    $('addExtra').addEventListener('click', function () {
+      var x = { id: uid('c'), label: '', price: 0, qty: 1, on: true, custom: true };
+      state.job.extras.push(x);
+      renderExtras();
+      changed();
+      var n = $('x-' + x.id + '-name');
+      if (n) n.focus();
+    });
+
+    $('copyBtn').addEventListener('click', copyQuote);
+    $('barCopy').addEventListener('click', copyQuote);
+    $('saveBtn').addEventListener('click', saveQuote);
+    $('startBlank').addEventListener('click', startBlank);
+    twoTap($('newQuote'), 'New quote', 'Tap again to clear', startBlank);
+    twoTap($('resetRates'), 'Reset rates to starting values', 'Tap again to reset', resetRates);
+    $('sheetClose').addEventListener('click', function () { $('sheet').hidden = true; });
+
+    $('haveCode').addEventListener('click', function () {
+      $('codeForm').hidden = !$('codeForm').hidden;
+      if (!$('codeForm').hidden) $('codeInput').focus();
+    });
+    $('codeForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      var msg = $('codeMsg');
+      msg.textContent = '';
+      var code = $('codeInput').value;
+      if (!normCode(code)) { msg.textContent = 'Enter the code from your confirmation page.'; return; }
+      unlockWith(code).then(function (ok) {
+        if (ok) { $('codeInput').value = ''; setPro(true); toast('Pro unlocked on this device.'); }
+        else msg.textContent = 'That code did not match. Check it and try again.';
+      });
+    });
+
+    $('backupCopy').addEventListener('click', function () {
+      copyText(JSON.stringify({ app: 'rinse-quote', v: 1, saved: state.saved }), 'Backup copied. Paste it somewhere safe.');
+    });
+    $('restoreOpen').addEventListener('click', function () {
+      $('restoreBox').hidden = !$('restoreBox').hidden;
+      $('restoreMsg').textContent = '';
+    });
+    $('restoreGo').addEventListener('click', restoreGo);
+  }
+
+  state = load();
+  if (!state) {
+    state = { v: 1, sample: true, seq: 0, pro: false, openId: null, settings: defaultSettings(), job: null, saved: [] };
+    state.job = sampleJob();
+  }
+  applyProLink();
+  fillSupport();
+  buildRates();
+  bindStatic();
+  renderLines();
+  renderExtras();
+  renderSaved();
+  applyPro();
+  updateAll();
+
+  var m = /^#unlock-([A-Za-z0-9._~\-]+)$/.exec(window.location.hash || '');
+  if (m && !state.pro) {
+    unlockWith(m[1]).then(function (ok) { if (ok) { setPro(true); toast('Pro unlocked on this device.'); } });
+  }
+})();
+</script>

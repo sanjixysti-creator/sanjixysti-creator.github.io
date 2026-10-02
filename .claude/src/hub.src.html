@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+@@HEAD@@
+<style>
+@@FONTS@@
+/* Concrete and asphalt grounds, one thick-ruled ledger of tools, and each tool keeps its own colour. */
+:root {
+  color-scheme: light dark;
+  --ground: #E5E9EB;
+  --ink: #0F181D;
+  --muted: #44545D;
+  --rule: #0F181D;
+  --focus: #0F181D;
+  --ring: rgba(15, 24, 29, 0.16);
+  --tint: 10%;
+  --display: 'Big Shoulders Display', 'Arial Narrow', 'Roboto Condensed', Impact, sans-serif;
+  --text: 'Public Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ground: #11171B;
+    --ink: #EDF1F3;
+    --muted: #9CAAB2;
+    --rule: #EDF1F3;
+    --focus: #EDF1F3;
+    --ring: rgba(237, 241, 243, 0.4);
+    --tint: 16%;
+  }
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--ink);
+  font: 400 17px/1.5 var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+.sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0; }
+
+.page { max-width: 960px; margin: 0 auto; padding: 0 20px 48px; }
+
+/* Header */
+.top { display: flex; align-items: center; gap: 10px; padding-top: 22px; }
+.mark { width: 30px; height: 30px; flex: none; }
+.name { font: 800 26px/1 var(--display); letter-spacing: 0.03em; }
+
+/* Intro */
+.intro { padding-top: 44px; }
+.intro h1 { margin: 0; font: 800 clamp(50px, 12.5vw, 104px)/0.93 var(--display); letter-spacing: -0.005em; text-wrap: balance; }
+.lead { margin: 20px 0 0; max-width: 44ch; font-size: clamp(17px, 2.4vw, 20px); line-height: 1.5; text-wrap: pretty; }
+
+/* The ledger */
+.tools { list-style: none; margin: 44px 0 0; padding: 0; border-bottom: 2px solid var(--rule); }
+.row {
+  --tool-line: var(--tool);
+  position: relative;
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr);
+  grid-template-areas: "tile body" "tile meta";
+  column-gap: 16px;
+  row-gap: 10px;
+  align-items: start;
+  padding: 22px 2px 24px;
+  border-top: 2px solid var(--rule);
+}
+@media (prefers-color-scheme: dark) { .row { --tool-line: var(--tool-dark); } }
+.tile { grid-area: tile; width: 56px; height: 56px; border-radius: 22.5%; box-shadow: 0 0 0 1.5px var(--ring); }
+.body { grid-area: body; min-width: 0; }
+.row h3 { margin: 0; font: 800 clamp(31px, 6.5vw, 42px)/1 var(--display); letter-spacing: 0.01em; }
+.row h3 a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: var(--tool-line);
+  text-decoration-thickness: 0.1em;
+  text-underline-offset: 0.14em;
+}
+.row h3 a::after { content: ""; position: absolute; inset: 0; }
+.row h3 a:focus-visible { outline: none; }
+.row h3 a:focus-visible::after { outline: 3px solid var(--focus); outline-offset: -3px; }
+.row p { margin: 0; }
+.body p { margin-top: 8px; max-width: 52ch; font-size: 16px; line-height: 1.5; }
+.meta { grid-area: meta; font-size: 14px; line-height: 1.4; color: var(--muted); }
+.meta span { display: block; }
+.meta .type { color: var(--ink); font-weight: 600; }
+@media (hover: hover) {
+  .row:hover { background: color-mix(in srgb, var(--tool-line) var(--tint), transparent); }
+}
+
+/* Footer */
+.foot { display: grid; grid-template-columns: minmax(0, 1fr); gap: 30px; margin-top: 52px; }
+.foot h2 { margin: 0 0 8px; font: 600 16px/1.3 var(--text); }
+.foot p { margin: 0; font-size: 15px; line-height: 1.55; color: var(--muted); }
+.foot a { color: var(--ink); text-decoration-thickness: 1.5px; text-underline-offset: 3px; }
+.foot a:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; border-radius: 2px; }
+.mailto { display: inline-flex; align-items: center; min-height: 44px; margin-top: 2px; font-size: 16px; font-weight: 600; overflow-wrap: anywhere; }
+.priv ul { list-style: none; margin: 0; padding: 0; }
+.priv a { display: inline-flex; align-items: center; min-height: 44px; font-size: 16px; }
+.foot .legal { font-size: 14px; }
+
+@media (min-width: 720px) {
+  .page { padding: 0 32px 64px; }
+  .top { padding-top: 30px; }
+  .name { font-size: 30px; }
+  .mark { width: 34px; height: 34px; }
+  .intro { padding-top: 72px; }
+  .lead { margin-top: 24px; }
+  .tools { margin-top: 64px; }
+  .row {
+    grid-template-columns: 72px minmax(0, 1fr) 220px;
+    grid-template-areas: "tile body meta";
+    column-gap: 28px;
+    align-items: center;
+    padding: 30px 8px;
+  }
+  .tile { width: 72px; height: 72px; }
+  .body p { font-size: 17px; }
+  .meta { font-size: 15px; }
+  .foot { grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 28px 56px; margin-top: 64px; }
+  .legal { grid-column: 1 / -1; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="top">
+    @@MARK@@
+    <span class="name">Xysti Software</span>
+  </header>
+
+  <main>
+    <section class="intro" aria-labelledby="top-h">
+      <h1 id="top-h">Small tools for specific jobs.</h1>
+      <p class="lead">Free calculators, checkers and browser add-ons. No accounts, and what you type stays in your browser.</p>
+    </section>
+
+    <section aria-labelledby="tools-h">
+      <h2 id="tools-h" class="sr-only">All tools</h2>
+      <ul class="tools">
+        <li class="row" style="--tool:#0B78A6;--tool-dark:#5CC3EE">
+          @@TILE_RQ@@
+          <div class="body">
+            <h3><a href="rinse-quote/">Rinse Quote</a></h3>
+            <p>Price a pressure washing job. Add surfaces, extras and tax, then copy the quote to text your customer.</p>
+          </div>
+          <p class="meta"><span class="type">Web app</span><span>Free, with an optional Pro upgrade</span></p>
+        </li>
+        <li class="row" style="--tool:#0A7A72;--tool-dark:#3FC5BA">
+          @@TILE_RM@@
+          <div class="body">
+            <h3><a href="rinse-mix/">Rinse Mix</a></h3>
+            <p>Work out a soft wash batch. Enter the size, the strength you want and your SH percent to get how much SH, water and surfactant to add.</p>
+          </div>
+          <p class="meta"><span class="type">Web app</span><span>Free</span></p>
+        </li>
+        <li class="row" style="--tool:#4338CA;--tool-dark:#8B9CFF">
+          @@TILE_GPU@@
+          <div class="body">
+            <h3><a href="gpu-check/">Used GPU Check</a></h3>
+            <p>Check a used graphics card listing. Answer a few questions for a scam risk score and a price check before you pay.</p>
+          </div>
+          <p class="meta"><span class="type">Web app</span><span>Free</span></p>
+        </li>
+        <li class="row" style="--tool:#B08400;--tool-dark:#FFD23F">
+          @@TILE_TUNER@@
+          <div class="body">
+            <h3><a href="tuner/">Tuner for YouTube</a></h3>
+            <p>Hide Shorts, keep notes on videos, sort playlists into groups and theme the whole site.</p>
+          </div>
+          <p class="meta"><span class="type">Chrome extension</span><span>Free, with an optional Pro upgrade</span></p>
+        </li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <section aria-labelledby="ideas-h">
+      <h2 id="ideas-h">Ideas and mistakes</h2>
+      <p>Have an idea for a tool, or spotted a mistake in one? Send an email. New tools show up here as they are built.</p>
+      <a class="mailto" href="mailto:fireseabrook2566@gmail.com">fireseabrook2566@gmail.com</a>
+    </section>
+    <nav class="priv" aria-labelledby="priv-h">
+      <h2 id="priv-h">Privacy pages</h2>
+      <ul>
+        <li><a href="rinse-quote/privacy.html">Rinse Quote</a></li>
+        <li><a href="rinse-mix/privacy.html">Rinse Mix</a></li>
+        <li><a href="gpu-check/privacy.html">Used GPU Check</a></li>
+        <li><a href="privacy.html">Tuner for YouTube</a></li>
+      </ul>
+    </nav>
+    <p class="legal">&copy; 2026 Xysti Software. This page sets no cookies and runs no analytics.</p>
+  </footer>
+</div>
+</body>
+</html>

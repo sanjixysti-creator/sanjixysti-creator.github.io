@@ -1,0 +1,8 @@
+# Keep scratch output and anything private out of the repo if the scripts are ever run in place.
+pro-code.txt
+node_modules/
+fonts_build/subset/
+site/
+__pycache__/
+*.png
+*-test.html

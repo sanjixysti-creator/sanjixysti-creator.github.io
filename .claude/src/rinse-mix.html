@@ -1,0 +1,1091 @@
+<title>Rinse Mix</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Layout concept: a mixing card for the tank side of a pressure washing rig. Inputs come first, then the three amounts to pour. On a phone the amounts stay pinned to the bottom edge while you edit. On a wide screen they sit in a card that follows you down the page. */
+:root {
+  --bg: #E6EEEC;
+  --surface: #FFFFFF;
+  --inset: #EEF4F3;
+  --ink: #0D2422;
+  --muted: #4E6864;
+  --line: #C7D8D5;
+  --line-strong: #86A19C;
+  --accent: #0A7A72;
+  --on-accent: #FFFFFF;
+  --accent-soft: #D4EEEA;
+  --good: #17703F;
+  --warn: #7F5200;
+  --warn-soft: #FBEBC8;
+  --bad: #B3261E;
+  --bad-soft: #FADAD7;
+  --seg-water: #B9DCE8;
+  --seg-sh: #0A7A72;
+  --seg-soap: #E2A31B;
+  --shadow-up: 0 -6px 20px rgb(13 36 34 / 0.10);
+  --shadow-pop: 0 8px 24px rgb(13 36 34 / 0.22);
+  --font-display: 'Big Shoulders Display', 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  --font-body: 'Public Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0A1615;
+    --surface: #112321;
+    --inset: #0D1C1B;
+    --ink: #E3EFED;
+    --muted: #92AAA6;
+    --line: #21403C;
+    --line-strong: #45665F;
+    --accent: #4CC9BC;
+    --on-accent: #032622;
+    --accent-soft: #0F3A36;
+    --good: #66D08F;
+    --warn: #F2BC4B;
+    --warn-soft: #3F2F0B;
+    --bad: #FF8F86;
+    --bad-soft: #451B18;
+    --seg-water: #2B5768;
+    --seg-sh: #4CC9BC;
+    --seg-soap: #F2BC4B;
+    --shadow-up: 0 -1px 0 rgb(0 0 0 / 0.35);
+    --shadow-pop: 0 8px 24px rgb(0 0 0 / 0.5);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0A1615;
+  --surface: #112321;
+  --inset: #0D1C1B;
+  --ink: #E3EFED;
+  --muted: #92AAA6;
+  --line: #21403C;
+  --line-strong: #45665F;
+  --accent: #4CC9BC;
+  --on-accent: #032622;
+  --accent-soft: #0F3A36;
+  --good: #66D08F;
+  --warn: #F2BC4B;
+  --warn-soft: #3F2F0B;
+  --bad: #FF8F86;
+  --bad-soft: #451B18;
+  --seg-water: #2B5768;
+  --seg-sh: #4CC9BC;
+  --seg-soap: #F2BC4B;
+  --shadow-up: 0 -1px 0 rgb(0 0 0 / 0.35);
+  --shadow-pop: 0 8px 24px rgb(0 0 0 / 0.5);
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font: 400 16px/1.45 var(--font-body);
+  padding-inline: 16px;
+  padding-block: 16px 108px;
+  -webkit-font-smoothing: antialiased;
+}
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: not-allowed; opacity: 0.45; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+h1, h2, h3, p, ul, dl { margin: 0; }
+
+.app { max-width: 1040px; margin-inline: auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+.layout {
+  display: grid; gap: 16px; min-width: 0;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "inputs" "results" "more";
+}
+.inputs { grid-area: inputs; }
+.results { grid-area: results; }
+.more { grid-area: more; }
+.inputs, .more, .results { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; min-width: 0; align-content: start; }
+
+/* Masthead */
+.head { display: grid; gap: 8px; }
+.masthead { display: flex; align-items: center; gap: 12px; }
+.mark { width: 40px; height: 40px; flex: none; }
+.mark .drop { fill: var(--accent); }
+.mark .wave { stroke: var(--on-accent); }
+.masthead h1 { flex: 1; min-width: 0; font: 800 30px/1 var(--font-display); letter-spacing: 0.02em; text-transform: uppercase; }
+.tagline { color: var(--muted); font-size: 14px; text-wrap: balance; max-width: 62ch; }
+.seg { display: inline-flex; flex: none; padding: 3px; gap: 3px; border-radius: 10px; border: 1px solid var(--line); background: var(--inset); }
+.seg button { min-width: 48px; height: 38px; padding: 0 12px; border: 0; border-radius: 7px; background: transparent; color: var(--muted); font-weight: 700; font-size: 15px; }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); }
+
+/* Sections */
+.sec { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; min-width: 0; }
+.sec-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 2px 12px; }
+.sec-head h2, .h2 { font: 700 20px/1.1 var(--font-display); letter-spacing: 0.06em; text-transform: uppercase; text-wrap: balance; }
+.hint { color: var(--muted); font-size: 13px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; min-width: 0; }
+.fine { color: var(--muted); font-size: 13px; }
+.foot { color: var(--muted); font-size: 13px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; max-width: 64ch; }
+.foot a { color: var(--ink); font-weight: 600; text-underline-offset: 3px; }
+.mail { overflow-wrap: anywhere; user-select: all; -webkit-user-select: all; color: var(--ink); font-weight: 600; }
+.linkish { background: none; border: 0; padding: 0; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; text-align: left; }
+.empty { padding: 18px 14px; border: 1.5px dashed var(--line-strong); border-radius: 12px; color: var(--muted); text-align: center; font-size: 14px; }
+
+/* Controls */
+.lab { display: block; font: 600 12px/1.1 var(--font-body); letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); }
+.field { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; min-width: 0; align-content: start; }
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.ctl { width: 100%; min-width: 0; height: 48px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--inset); color: var(--ink); }
+.ctl::placeholder { color: var(--muted); opacity: 0.85; }
+.affix { display: flex; align-items: center; height: 48px; min-width: 0; border: 1px solid var(--line); border-radius: 8px; background: var(--inset); overflow: hidden; }
+.affix:focus-within { outline: 2px solid var(--accent); outline-offset: 1px; }
+.affix input { flex: 1; min-width: 0; width: 100%; height: 100%; border: 0; background: transparent; padding: 0 8px 0 12px; outline: 0; font-variant-numeric: tabular-nums; }
+.affix input::placeholder { color: var(--muted); opacity: 0.85; }
+.affix .pre, .affix .suf { color: var(--muted); font-size: 14px; white-space: nowrap; }
+.affix .pre { padding-left: 12px; }
+.affix .pre + input { padding-left: 4px; }
+.affix .suf { padding-right: 12px; }
+
+.chips { display: flex; gap: 6px; min-width: 0; }
+.chip { flex: 1 1 0; min-width: 0; height: 44px; padding: 0 4px; border: 1px solid var(--line); border-radius: 8px; background: var(--inset); font-size: 14px; font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 52px; padding: 0 20px; border-radius: 10px; border: 1px solid transparent; background: var(--accent); color: var(--on-accent); font-weight: 700; font-size: 16px; letter-spacing: 0.01em; text-decoration: none; }
+.btn:hover:not(:disabled) { filter: brightness(1.07); }
+.btn:active:not(:disabled) { transform: translateY(1px); }
+.btn.ghost { background: transparent; border-color: var(--line-strong); color: var(--ink); }
+.btn.dashed { background: transparent; border: 1.5px dashed var(--line-strong); color: var(--ink); width: 100%; }
+.btn.sm { min-height: 40px; padding: 0 14px; font-size: 14px; }
+.btn-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.btn-row .btn { padding: 0 12px; }
+.code-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; }
+
+/* Alerts */
+.alert { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; justify-items: start; padding: 12px 14px; border-radius: 10px; border: 1px solid transparent; font-size: 14px; line-height: 1.4; }
+.alert.info { background: var(--accent-soft); }
+.alert.warn { background: var(--warn-soft); border-color: var(--warn); }
+.alert.bad { background: var(--bad-soft); border-color: var(--bad); }
+
+/* Result card */
+.mix-card { gap: 14px; }
+.mix { list-style: none; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); }
+.mrow { display: grid; grid-template-columns: 14px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px 0; border-top: 1px solid var(--line); }
+.mrow:first-child { border-top: 0; padding-top: 0; }
+.mrow:last-child { padding-bottom: 0; }
+.key { width: 14px; height: 14px; border-radius: 4px; }
+.k-sh { background: var(--seg-sh); }
+.k-water { background: var(--seg-water); box-shadow: inset 0 0 0 1px var(--line-strong); }
+.k-soap { background: var(--seg-soap); }
+.mtxt { min-width: 0; display: grid; gap: 2px; }
+.mname { font-weight: 700; line-height: 1.25; }
+.msub { color: var(--muted); font-size: 13px; line-height: 1.3; }
+.mval { text-align: right; font: 800 clamp(30px, 11vw, 44px)/1 var(--font-display); letter-spacing: 0.005em; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.mval .u { font: 600 15px/1 var(--font-body); color: var(--muted); margin-left: 6px; letter-spacing: 0.02em; }
+.mix.is-off .mval { color: var(--muted); }
+.stackbar { display: flex; gap: 2px; height: 16px; border-radius: 8px; overflow: hidden; background: var(--inset); border: 1px solid var(--line-strong); }
+.seg-water, .seg-sh, .seg-soap { display: block; height: 100%; min-width: 0; }
+.seg-water { background: var(--seg-water); }
+.seg-sh { background: var(--seg-sh); }
+.seg-soap { background: var(--seg-soap); min-width: 3px; }
+.ledger { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; padding-top: 14px; border-top: 1px solid var(--line); }
+.ledger > div { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.ledger dt { color: var(--muted); font-size: 14px; }
+.ledger dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; }
+.ledger .total dt { color: var(--ink); font-weight: 600; }
+.surface-note { padding-top: 12px; border-top: 1px solid var(--line); font-size: 14px; }
+.save-form { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+.safety-line { color: var(--warn); font-size: 13px; font-weight: 600; line-height: 1.35; }
+
+/* Quick chart */
+.chart-wrap { overflow-x: auto; }
+.chart { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.chart th { font: 600 12px/1.1 var(--font-body); letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); text-align: right; padding: 0 8px 8px; white-space: nowrap; }
+.chart th:first-child { text-align: left; }
+.chart td { padding: 0 8px; border-top: 1px solid var(--line); text-align: right; height: 46px; white-space: nowrap; }
+.chart td:first-child { padding: 0; text-align: left; }
+.chart .pick { display: block; width: 100%; height: 46px; padding: 0 8px; border: 0; background: transparent; text-align: left; font-weight: 700; }
+.chart tr.is-now td { background: var(--accent-soft); font-weight: 700; }
+
+/* Saved mixes */
+.saved-list { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+.saved { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--inset); min-width: 0; }
+.sv-name { overflow-wrap: anywhere; }
+.sv-sum { font-size: 14px; overflow-wrap: anywhere; }
+.sv-out { color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
+.row-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* Details blocks */
+details.rates { display: block; }
+.rates summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; cursor: pointer; list-style: none; }
+.rates summary::-webkit-details-marker { display: none; }
+.rates summary .hint { display: flex; align-items: center; gap: 8px; }
+.rates summary .hint::after { content: ""; width: 8px; height: 8px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: translateY(-2px) rotate(45deg); }
+.rates[open] summary .hint::after { transform: translateY(2px) rotate(-135deg); }
+.rates-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; margin-top: 12px; padding-top: 14px; border-top: 1px solid var(--line); }
+.mline { font: 400 13px/1.5 var(--font-mono); overflow-wrap: anywhere; }
+.bullets { list-style: none; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+.bullets li { position: relative; padding-left: 20px; font-size: 15px; line-height: 1.4; }
+.bullets li::before { content: ""; position: absolute; left: 0; top: 0.5em; width: 8px; height: 8px; background: var(--warn); border-radius: 2px; }
+.panel.safety { background: var(--warn-soft); border-color: var(--warn); }
+.faq { gap: 0; padding-block: 6px; }
+.faq details { border-top: 1px solid var(--line); }
+.faq details:first-child { border-top: 0; }
+.faq summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; padding: 6px 0; font-weight: 600; line-height: 1.3; cursor: pointer; list-style: none; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: ""; flex: none; width: 8px; height: 8px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: translateY(-2px) rotate(45deg); }
+.faq details[open] summary::after { transform: translateY(2px) rotate(-135deg); }
+.faq p { font-size: 15px; line-height: 1.5; padding: 0 0 14px; max-width: 62ch; }
+
+/* Pinned amounts (phone), copy sheet and toast */
+.bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px)); background: var(--surface); border-top: 1px solid var(--line-strong); box-shadow: var(--shadow-up); }
+.b-cell { min-width: 0; display: grid; gap: 3px; }
+.b-lab { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+.b-lab::before { content: ""; width: 8px; height: 8px; border-radius: 2px; flex: none; background: var(--k); box-shadow: inset 0 0 0 1px var(--line-strong); }
+.b-lab span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.b-amt { font: 800 30px/1 var(--font-display); font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; max-width: 640px; margin-inline: auto; padding: 16px 16px calc(16px + env(safe-area-inset-bottom, 0px)); background: var(--surface); border-top: 1px solid var(--line-strong); box-shadow: var(--shadow-up); }
+textarea.ctl { height: auto; padding: 12px; font: 400 16px/1.45 var(--font-mono); resize: vertical; }
+.toast { position: fixed; left: 50%; bottom: calc(92px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 50; max-width: calc(100% - 32px); padding: 10px 16px; border-radius: 999px; background: var(--ink); color: var(--surface); font-size: 14px; font-weight: 600; text-align: center; box-shadow: var(--shadow-pop); }
+
+@media (min-width: 900px) {
+  body { padding-block: 24px 40px; }
+  .layout { grid-template-columns: minmax(0, 1fr) 400px; grid-template-areas: "inputs results" "more results"; column-gap: 28px; align-items: start; }
+  .results { position: sticky; top: 16px; max-height: calc(100vh - 32px); overflow-y: auto; padding-bottom: 8px; }
+  .bar { display: none; }
+  .toast { bottom: 24px; }
+}
+@media (max-width: 350px) {
+  .masthead h1 { font-size: 26px; }
+  .seg button { min-width: 42px; padding: 0 8px; }
+  .b-amt { font-size: 26px; }
+  .b-lab { font-size: 10px; letter-spacing: 0.04em; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .btn, .chip, .seg button { transition: background-color 0.12s, border-color 0.12s, filter 0.12s; }
+  .seg-water, .seg-sh, .seg-soap { transition: flex-grow 0.18s; }
+}
+</style>
+
+<div class="app">
+  <div class="head">
+    <header class="masthead">
+      <svg class="mark" viewBox="0 0 40 40" aria-hidden="true" focusable="false">
+        <path class="drop" d="M20 3.5C20 3.5 7.5 17.8 7.5 26a12.5 12.5 0 0 0 25 0C32.5 17.8 20 3.5 20 3.5Z"/>
+        <path class="wave" d="M10 26q2.5-3.4 5 0t5 0 5 0 5 0" fill="none" stroke-width="2.6" stroke-linecap="round"/>
+      </svg>
+      <h1>Rinse Mix</h1>
+      <div class="seg" role="group" aria-label="Units">
+        <button type="button" id="unitUs" aria-pressed="true" aria-label="US gallons and fluid ounces">gal</button>
+        <button type="button" id="unitMetric" aria-pressed="false" aria-label="Metric liters and milliliters">L</button>
+      </div>
+    </header>
+    <p class="tagline">Soft wash mix calculator: sodium hypochlorite (SH), water and surfactant for any batch size.</p>
+  </div>
+
+  <div class="layout">
+    <div class="inputs">
+      <section class="sec" aria-labelledby="h-batch">
+        <div class="sec-head"><h2 id="h-batch">Batch size</h2><span class="hint">Final volume in the tank</span></div>
+        <div class="panel">
+          <div class="field">
+            <label class="lab" for="batch">Tank volume</label>
+            <div class="chips" id="batchChips" role="group" aria-label="Common tank sizes"></div>
+            <div class="affix"><input id="batch" type="text" inputmode="decimal" autocomplete="off" placeholder="0"><span class="suf" id="batchUnit">gal</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" aria-labelledby="h-strength">
+        <div class="sec-head"><h2 id="h-strength">Strength</h2><span class="hint">Percent sodium hypochlorite</span></div>
+        <div class="panel">
+          <div class="field">
+            <label class="lab" for="target">Strength you want in the mix</label>
+            <div class="chips" id="targetChips" role="group" aria-label="Common mix strengths"></div>
+            <div class="affix"><input id="target" type="text" inputmode="decimal" autocomplete="off" placeholder="0"><span class="suf">%</span></div>
+          </div>
+          <div class="field">
+            <label class="lab" for="shPct">Strength of your SH</label>
+            <div class="chips" id="shChips" role="group" aria-label="Common SH strengths"></div>
+            <div class="affix"><input id="shPct" type="text" inputmode="decimal" autocomplete="off" placeholder="0"><span class="suf">%</span></div>
+            <p class="fine">Read it off the label. Liquid SH weakens as it ages and in heat, so if yours has been sitting, test it or enter a lower number.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="sec" aria-labelledby="h-soap">
+        <div class="sec-head"><h2 id="h-soap">Surfactant</h2><span class="hint">Helps the mix wet and cling</span></div>
+        <div class="panel">
+          <div class="field">
+            <label class="lab" for="dose" id="doseLab">Dose per gallon of mix</label>
+            <div class="chips" id="doseChips" role="group" aria-label="Common surfactant doses"></div>
+            <div class="affix"><input id="dose" type="text" inputmode="decimal" autocomplete="off" placeholder="0"><span class="suf" id="doseUnit">fl oz per gal</span></div>
+            <p class="fine">Use the dose on your surfactant's label. Enter 0 if you are not using one.</p>
+          </div>
+        </div>
+        <button type="button" class="btn ghost sm" id="resetBtn">Reset the mix fields</button>
+      </section>
+    </div>
+
+    <aside class="results" aria-labelledby="h-mix">
+      <div class="panel mix-card" id="mixCard">
+        <div class="sec-head"><h2 id="h-mix">Your mix</h2><span class="hint" id="mixSub"></span></div>
+        <div class="alert" id="mixAlert" role="status" hidden></div>
+        <ul class="mix" id="mixList">
+          <li class="mrow">
+            <span class="key k-sh" aria-hidden="true"></span>
+            <div class="mtxt"><span class="mname">Sodium hypochlorite</span><span class="msub" id="shSub"></span></div>
+            <div class="mval" id="shVal"><span id="shN">-</span><span class="u" id="shU"></span></div>
+          </li>
+          <li class="mrow">
+            <span class="key k-water" aria-hidden="true"></span>
+            <div class="mtxt"><span class="mname">Water</span><span class="msub" id="waterSub"></span></div>
+            <div class="mval" id="waterVal"><span id="waterN">-</span><span class="u" id="waterU"></span></div>
+          </li>
+          <li class="mrow">
+            <span class="key k-soap" aria-hidden="true"></span>
+            <div class="mtxt"><span class="mname">Surfactant</span><span class="msub" id="soapSub"></span></div>
+            <div class="mval" id="soapVal"><span id="soapN">-</span><span class="u" id="soapU"></span></div>
+          </li>
+        </ul>
+        <div class="stackbar" id="stackBar" role="img" aria-label="Share of the batch">
+          <span class="seg-water" id="segWater"></span><span class="seg-sh" id="segSh"></span><span class="seg-soap" id="segSoap"></span>
+        </div>
+        <p class="fine" id="altUnits"></p>
+        <dl class="ledger" id="costLedger" hidden>
+          <div><dt>SH cost</dt><dd id="costSh">-</dd></div>
+          <div><dt>Surfactant cost</dt><dd id="costSoap">-</dd></div>
+          <div class="total"><dt>Cost per batch</dt><dd id="costBatch">-</dd></div>
+          <div><dt id="costPerLab">Per gallon of mix</dt><dd id="costPer">-</dd></div>
+        </dl>
+        <p class="surface-note" id="surfaceNote" hidden></p>
+        <div class="btn-row">
+          <button type="button" class="btn" id="copyBtn">Copy mix</button>
+          <button type="button" class="btn ghost" id="saveBtn">Save mix</button>
+        </div>
+        <form class="save-form" id="saveForm" hidden>
+          <label class="lab" for="saveName">Name this mix</label>
+          <div class="code-form">
+            <input class="ctl" id="saveName" type="text" maxlength="60" autocomplete="off" placeholder="For example: Roof, 3%">
+            <button type="submit" class="btn">Save</button>
+          </div>
+        </form>
+        <p class="safety-line">Never mix SH with acids or ammonia. Wear splash goggles and gloves.</p>
+      </div>
+    </aside>
+
+    <div class="more">
+      <section class="sec" aria-labelledby="h-chart">
+        <div class="sec-head"><h2 id="h-chart">Quick chart</h2><span class="hint" id="chartHint">Tap a strength to use it</span></div>
+        <div class="panel">
+          <div class="chart-wrap" id="chartWrap">
+            <table class="chart">
+              <thead><tr><th scope="col">Strength</th><th scope="col">SH</th><th scope="col">Water</th></tr></thead>
+              <tbody id="chartBody"></tbody>
+            </table>
+          </div>
+          <p class="empty" id="chartEmpty" hidden>Enter a batch size and your SH strength to see the chart.</p>
+          <p class="fine" id="chartNote"></p>
+        </div>
+      </section>
+
+      <section class="sec" aria-labelledby="h-saved">
+        <div class="sec-head"><h2 id="h-saved">Saved mixes</h2><span class="hint">Kept on this device</span></div>
+        <div class="panel">
+          <div class="saved-list" id="savedList"></div>
+        </div>
+      </section>
+
+      <details class="panel rates" id="costBox">
+        <summary><span class="h2">Cost per batch</span><span class="hint">Optional</span></summary>
+        <div class="rates-body">
+          <div class="grid2">
+            <div class="field"><label class="lab" for="shPrice" id="shPriceLab">SH price per gallon</label><div class="affix"><span class="pre">$</span><input id="shPrice" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00"><span class="suf" id="shPriceUnit">/gal</span></div></div>
+            <div class="field"><label class="lab" for="soapPrice" id="soapPriceLab">Surfactant price per gallon</label><div class="affix"><span class="pre">$</span><input id="soapPrice" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00"><span class="suf" id="soapPriceUnit">/gal</span></div></div>
+          </div>
+          <p class="fine">Enter what you pay and your result adds the cost of each batch and of each gallon of mix.</p>
+        </div>
+      </details>
+
+      <details class="panel rates" id="injBox">
+        <summary><span class="h2">Downstream injector</span><span class="hint">Optional</span></summary>
+        <div class="rates-body">
+          <p class="fine">With a downstream injector only part of the spray comes from your tank, so the surface sees a weaker mix than the tank holds. Enter the share of the flow your injector draws from the tank. Systems that pump the tank mix straight to the nozzle spray the tank strength as is, so leave this blank.</p>
+          <div class="grid2">
+            <div class="field"><label class="lab" for="draw">Injector draw</label><div class="affix"><input id="draw" type="text" inputmode="decimal" autocomplete="off" placeholder="0"><span class="suf">%</span></div></div>
+          </div>
+          <p class="fine" id="drawOut"></p>
+        </div>
+      </details>
+
+      <section class="sec" aria-labelledby="h-safety">
+        <div class="sec-head"><h2 id="h-safety">Safety first</h2></div>
+        <div class="panel safety">
+          <ul class="bullets">
+            <li><strong>Never mix SH with acids or ammonia.</strong> That includes some rust removers and wheel cleaners. The mix gives off toxic gas.</li>
+            <li><strong>Protect yourself.</strong> Wear splash goggles, chemical resistant gloves and clothing that covers your skin. Mix outdoors or with plenty of fresh air.</li>
+            <li><strong>Use vented containers.</strong> SH slowly gives off gas, so a tightly sealed container can build pressure.</li>
+            <li><strong>Read the label and the safety data sheet</strong> for your SH and your surfactant. This calculator only does the math.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="sec" aria-labelledby="h-faq">
+        <div class="sec-head"><h2 id="h-faq">Common questions</h2></div>
+        <div class="panel faq" id="faq">
+          <details>
+            <summary>How much sodium hypochlorite goes in the tank?</summary>
+            <p>Divide the strength you want by the strength of your SH. That is the share of the tank that is SH. For example, a 3% mix from 12.5% SH is 24% SH, so a 50 gallon tank takes 12 gallons of SH. The rest is water and surfactant.</p>
+          </details>
+          <details>
+            <summary>Does surfactant change the SH amount?</summary>
+            <p>No. Surfactant is a small share of the tank, so it only trims the water. The SH amount depends on the batch size, the strength you want and the strength of your SH.</p>
+          </details>
+          <details>
+            <summary>Why does the strength printed on my SH matter?</summary>
+            <p>Liquid SH is sold at different strengths. Pool chlorine is commonly 10% to 12.5%, and household bleach is weaker. The same tank needs more of a weaker product, so use the number on your label.</p>
+          </details>
+          <details>
+            <summary>Does SH lose strength over time?</summary>
+            <p>Yes. Liquid SH breaks down as it ages, and faster in heat and sunlight. If yours has been sitting, test it or enter a lower strength than the label says.</p>
+          </details>
+          <details>
+            <summary>What strength should I mix for a house or a roof?</summary>
+            <p>That depends on the surface and on how much growth is on it, so follow your chemical supplier's guidance or the label of your product. Once you have the number, Rinse Mix works out the amounts.</p>
+          </details>
+        </div>
+      </section>
+
+      <details class="panel rates" id="mathBox">
+        <summary><span class="h2">How the math works</span><span class="hint">Tap to open</span></summary>
+        <div class="rates-body">
+          <p class="fine">A mix's strength is the SH volume times its strength, divided by the total volume. So the share of the tank that has to be SH is the strength you want divided by the strength of your SH.</p>
+          <div id="mathLines"></div>
+          <p class="fine">Surfactant is its dose times the batch size, and water is whatever is left. This assumes the liquids add up to the batch volume, which is close enough for these mixes.</p>
+        </div>
+      </details>
+
+      <div class="foot">
+        <p>Rinse Mix runs in your browser. What you type and the mixes you save stay on this device.</p>
+        <p>Estimates only. SH strength varies, so follow your product labels and test before you spray.</p>
+        <p>Also from Xysti Software: <a href="https://sanjixysti-creator.github.io/rinse-quote/">Rinse Quote</a>, a free quote calculator for pressure washing jobs.</p>
+        <p>Spotted a mistake in the math, or want something added? Email <span class="mail"></span> <button type="button" class="linkish mail-copy">Copy</button></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="bar" id="bar" aria-hidden="true">
+  <div class="b-cell" style="--k: var(--seg-sh)"><div class="b-lab"><span id="bLabSh">SH</span></div><div class="b-amt" id="bAmtSh">-</div></div>
+  <div class="b-cell" style="--k: var(--seg-water)"><div class="b-lab"><span id="bLabWater">Water</span></div><div class="b-amt" id="bAmtWater">-</div></div>
+  <div class="b-cell" style="--k: var(--seg-soap)"><div class="b-lab"><span id="bLabSoap">Soap</span></div><div class="b-amt" id="bAmtSoap">-</div></div>
+</div>
+<div class="sheet" id="sheet" role="dialog" aria-label="Copy text" hidden>
+  <p class="fine">Your browser blocked the copy button. Press and hold the text, then choose Copy.</p>
+  <textarea class="ctl" id="sheetText" rows="7" readonly aria-label="Text to copy"></textarea>
+  <button type="button" class="btn ghost sm" id="sheetClose">Done</button>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+(function () {
+  'use strict';
+
+  var STORE_KEY = 'rinse-mix-v1';
+  /* Shown to people who spot a mistake. */
+  var SUPPORT = 'fireseabrook2566@gmail.com';
+
+  var L_PER_GAL = 3.785411784;   /* liters in a US gallon */
+  var OZ_PER_GAL = 128;          /* US fluid ounces in a US gallon */
+  var DOSE_DEFAULT = 1 / OZ_PER_GAL;   /* 1 fl oz per gal, as a share of the batch */
+  var MAX_BATCH_L = 4000000;
+  var MAX_SAVED = 30;
+
+  var BATCH_CHIPS = { us: [5, 15, 30, 50, 100], metric: [20, 50, 100, 200, 400] };
+  var TARGET_CHIPS = [1, 2, 3, 4, 6];
+  var SH_CHIPS = [12.5, 10, 8.25, 6];
+  var DOSE_CHIPS = { us: [0, 0.5, 1, 2], metric: [0, 5, 10, 20] };
+  var CHART_ROWS = [0.5, 1, 2, 3, 4, 5, 6, 8, 10];
+
+  var state = null;
+  var syncers = [];
+  var chipSets = [];
+
+  function $(id) { return document.getElementById(id); }
+  function isUS() { return state.unit === 'us'; }
+
+  /* ---------- numbers and formatting ---------- */
+  /* Reads "12.5", "12,5" (comma as the decimal mark) and "1,234". Anything that is not a number gives NaN. */
+  function parseNum(v) {
+    var s = String(v == null ? '' : v).trim().replace(/[^0-9.,\-]/g, '');
+    if (!s) return NaN;
+    if (s.indexOf(',') >= 0 && s.indexOf('.') < 0) {
+      s = /^-?\d{1,3}(,\d{3})+$/.test(s) ? s.replace(/,/g, '') : s.replace(',', '.');
+    } else {
+      s = s.replace(/,/g, '');
+    }
+    var n = parseFloat(s);
+    return isFinite(n) ? n : NaN;
+  }
+  function nn(v, d) {
+    var n = parseNum(v);
+    return isFinite(n) ? Math.max(0, n) : (d == null ? 0 : d);
+  }
+  function fmtNum(n, max, min) {
+    return (isFinite(n) ? n : 0).toLocaleString('en-US', { minimumFractionDigits: min || 0, maximumFractionDigits: max == null ? 2 : max });
+  }
+  function fmtPct(n) { return fmtNum(n, 2) + '%'; }
+  function share(x) { var p = x * 100; return fmtNum(p, p < 1 ? 2 : 1) + '%'; }
+  var USD = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+  function money(n) { return USD.format(isFinite(n) ? n : 0); }
+
+  /* Everything is stored in liters (batch, prices) or as a share of the batch (surfactant dose), so switching units never drifts. */
+  function batchToUnit(L) { return isUS() ? L / L_PER_GAL : L; }
+  function batchFromUnit(x) { return isUS() ? x * L_PER_GAL : x; }
+  function doseToUnit(f) { return isUS() ? f * OZ_PER_GAL : f * 1000; }     /* fl oz per gal, or mL per L */
+  function doseFromUnit(x) { return isUS() ? x / OZ_PER_GAL : x / 1000; }
+  function priceToUnit(perL) { return isUS() ? perL * L_PER_GAL : perL; }   /* $ per gal, or $ per L */
+  function priceFromUnit(x) { return isUS() ? x / L_PER_GAL : x; }
+
+  /* A volume in the unit that reads naturally: gallons or liters when it is a gallon or more, fluid ounces or mL below that. */
+  function volDisplay(L, unit) {
+    unit = unit || state.unit;
+    if (!(L > 0)) return { n: '0', u: unit === 'us' ? 'gal' : 'L', big: true };
+    if (unit === 'us') {
+      var gal = L / L_PER_GAL;
+      if (gal >= 1) return { n: fmtNum(gal, 2), u: 'gal', big: true };
+      var oz = gal * OZ_PER_GAL;
+      return { n: fmtNum(oz, oz >= 10 ? 0 : 1), u: 'fl oz', big: false };
+    }
+    if (L >= 1) return { n: fmtNum(L, 2), u: 'L', big: true };
+    var ml = L * 1000;
+    return { n: fmtNum(ml, ml >= 10 ? 0 : 1), u: 'mL', big: false };
+  }
+  function volText(L, unit) { var d = volDisplay(L, unit); return d.n + ' ' + d.u; }
+  function bigText(L, unit) {
+    unit = unit || state.unit;
+    return unit === 'us' ? fmtNum(L / L_PER_GAL, 2) + ' gal' : fmtNum(L, 2) + ' L';
+  }
+  function doseText() {
+    return isUS() ? fmtNum(doseToUnit(state.dose), 3) + ' fl oz per gal' : fmtNum(doseToUnit(state.dose), 2) + ' mL per L';
+  }
+
+  /* ---------- state ---------- */
+  function defaults() {
+    return {
+      v: 1, unit: 'us', batchL: 50 * L_PER_GAL, targetPct: 3, shPct: 12.5, dose: DOSE_DEFAULT,
+      shPriceL: 0, soapPriceL: 0, draw: 0, seq: 0, saved: []
+    };
+  }
+
+  function sanitizeSaved(list) {
+    return (Array.isArray(list) ? list : []).filter(function (m) { return m && m.id; }).slice(0, MAX_SAVED).map(function (m) {
+      return {
+        id: String(m.id), name: String(m.name || '').slice(0, 60),
+        batchL: Math.min(MAX_BATCH_L, nn(m.batchL)), targetPct: Math.min(100, nn(m.targetPct)),
+        shPct: Math.min(100, nn(m.shPct)), dose: Math.min(1, nn(m.dose)), ts: nn(m.ts)
+      };
+    });
+  }
+  function sanitize(d) {
+    var b = defaults();
+    return {
+      v: 1, unit: d.unit === 'metric' ? 'metric' : 'us',
+      batchL: Math.min(MAX_BATCH_L, nn(d.batchL, b.batchL)), targetPct: Math.min(100, nn(d.targetPct, b.targetPct)),
+      shPct: Math.min(100, nn(d.shPct, b.shPct)), dose: Math.min(1, nn(d.dose, b.dose)),
+      shPriceL: nn(d.shPriceL), soapPriceL: nn(d.soapPriceL), draw: Math.min(100, nn(d.draw)),
+      seq: Math.floor(nn(d.seq)), saved: sanitizeSaved(d.saved)
+    };
+  }
+  function load() {
+    try {
+      var raw = localStorage.getItem(STORE_KEY);
+      if (!raw) return null;
+      var d = JSON.parse(raw);
+      if (!d || d.v !== 1) return null;
+      return sanitize(d);
+    } catch (e) { return null; }
+  }
+  function save() { try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) { /* storage unavailable */ } }
+  var saveTimer;
+  function scheduleSave() { clearTimeout(saveTimer); saveTimer = setTimeout(save, 250); }
+  /* Saved mixes are written at once, and anything still waiting is written when the page is hidden or closed. */
+  function flushSave() { clearTimeout(saveTimer); save(); }
+  window.addEventListener('pagehide', flushSave);
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') flushSave(); });
+
+  /* ---------- the math ---------- */
+  /* s: { batchL, targetPct, shPct, dose }. The SH share of the tank is target / SH strength; surfactant is dose x batch; water is the rest. */
+  function compute(s) {
+    var V = s.batchL, t = s.targetPct / 100, sh = s.shPct / 100, d = Math.min(1, Math.max(0, s.dose));
+    var r = { ok: false, why: '', V: V, t: t, sh: sh, d: d, f: 0, maxTarget: 0, shL: 0, soapL: 0, waterL: 0 };
+    if (!(V > 0)) { r.why = 'batch'; return r; }
+    if (!(sh > 0)) { r.why = 'sh'; return r; }
+    if (!(t > 0)) { r.why = 'target'; return r; }
+    r.f = t / sh;
+    r.maxTarget = sh * (1 - d) * 100;
+    if (r.f + d > 1 + 1e-12) { r.why = 'strong'; return r; }
+    r.shL = V * r.f;
+    r.soapL = V * d;
+    r.waterL = Math.max(0, V - r.shL - r.soapL);
+    r.ok = true;
+    return r;
+  }
+
+  function costOf(r) {
+    if (!r.ok || !(state.shPriceL > 0 || state.soapPriceL > 0)) return null;
+    var a = r.shL * state.shPriceL, b = r.soapL * state.soapPriceL, total = a + b;
+    return { sh: a, soap: b, total: total, perL: total / r.V };
+  }
+  function surfacePct() { return state.draw > 0 ? state.targetPct * state.draw / 100 : 0; }
+
+  /* ---------- DOM helpers ---------- */
+  function h(tag, props, kids) {
+    var el = document.createElement(tag);
+    if (props) Object.keys(props).forEach(function (k) {
+      var v = props[k];
+      if (v == null || v === false) return;
+      if (k === 'class') el.className = v;
+      else if (k === 'text') el.textContent = v;
+      else el.setAttribute(k, v === true ? '' : v);
+    });
+    (kids || []).forEach(function (c) { if (c != null) el.appendChild(c); });
+    return el;
+  }
+  function selectAll(e) {
+    var el = e.target;
+    setTimeout(function () { try { el.select(); } catch (err) { /* ignore */ } }, 0);
+  }
+  function bindNum(el, value, set) {
+    el.value = value();
+    syncers.push(function () { el.value = value(); });
+    el.addEventListener('input', function () { set(el.value); changed(); });
+    el.addEventListener('blur', function () { el.value = value(); });
+    el.addEventListener('focus', selectAll);
+  }
+  function syncStatic() { syncers.forEach(function (f) { f(); }); }
+
+  var toastTimer;
+  function toast(msg) {
+    var t = $('toast');
+    t.textContent = msg;
+    t.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.hidden = true; }, 3200);
+  }
+  function twoTap(btn, idle, armed, action) {
+    var on = false, t;
+    function off() { on = false; clearTimeout(t); btn.textContent = idle; }
+    btn.addEventListener('click', function () {
+      if (!on) { on = true; btn.textContent = armed; t = setTimeout(off, 3000); return; }
+      off();
+      action();
+    });
+  }
+  function copyFallback(text, okMsg) {
+    var sheet = $('sheet'), ta = $('sheetText');
+    ta.value = text;
+    sheet.hidden = false;
+    var ok = false;
+    try { ta.focus(); ta.select(); ok = document.execCommand('copy'); } catch (e) { ok = false; }
+    if (ok) { sheet.hidden = true; toast(okMsg); }
+  }
+  function copyText(text, okMsg) {
+    var p = null;
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) p = navigator.clipboard.writeText(text);
+    } catch (e) { p = null; }
+    if (!p) { copyFallback(text, okMsg); return; }
+    p.then(function () { toast(okMsg); }, function () { copyFallback(text, okMsg); });
+  }
+
+  function changed() { updateAll(); scheduleSave(); }
+
+  /* ---------- quick-pick chips ---------- */
+  function chipRow(id, list, label, pick, isOn) {
+    var el = $(id);
+    el.textContent = '';
+    list.forEach(function (v) {
+      var b = h('button', { type: 'button', class: 'chip', 'aria-pressed': 'false', 'data-v': String(v), text: label(v) });
+      b.addEventListener('click', function () { pick(v); syncStatic(); changed(); });
+      el.appendChild(b);
+    });
+    chipSets = chipSets.filter(function (c) { return c.id !== id; });
+    chipSets.push({ id: id, el: el, isOn: isOn });
+  }
+  function paintChips() {
+    chipSets.forEach(function (c) {
+      Array.prototype.forEach.call(c.el.children, function (b) {
+        b.setAttribute('aria-pressed', c.isOn(parseFloat(b.getAttribute('data-v'))) ? 'true' : 'false');
+      });
+    });
+  }
+  function close(a, b) { return Math.abs(a - b) < 1e-6; }
+
+  function buildChips() {
+    var u = state.unit;
+    chipRow('batchChips', BATCH_CHIPS[u], function (v) { return fmtNum(v, 0); },
+      function (v) { state.batchL = batchFromUnit(v); },
+      function (v) { return close(batchToUnit(state.batchL), v); });
+    chipRow('targetChips', TARGET_CHIPS, function (v) { return v + '%'; },
+      function (v) { state.targetPct = v; },
+      function (v) { return close(state.targetPct, v); });
+    chipRow('shChips', SH_CHIPS, function (v) { return v + '%'; },
+      function (v) { state.shPct = v; },
+      function (v) { return close(state.shPct, v); });
+    chipRow('doseChips', DOSE_CHIPS[u], function (v) { return v === 0 ? 'None' : String(v); },
+      function (v) { state.dose = doseFromUnit(v); },
+      function (v) { return close(doseToUnit(state.dose), v); });
+  }
+
+  /* ---------- painting ---------- */
+  function setVal(prefix, L, zeroWord) {
+    var n = $(prefix + 'N'), u = $(prefix + 'U'), box = $(prefix + 'Val');
+    if (L == null) { n.textContent = '-'; u.textContent = ''; box.removeAttribute('data-liters'); return; }
+    box.setAttribute('data-liters', String(L));
+    if (zeroWord && L <= 0) { n.textContent = zeroWord; u.textContent = ''; return; }
+    var d = volDisplay(L);
+    n.textContent = d.n;
+    u.textContent = d.u;
+  }
+  function withAlt(L, text) {
+    return volDisplay(L).big ? text : text + ', ' + bigText(L);
+  }
+
+  function paintAlert(r) {
+    var box = $('mixAlert');
+    box.textContent = '';
+    var kind = '', msg = '', fix = null;
+    if (!r.ok) {
+      if (r.why === 'batch') { kind = 'info'; msg = 'Enter how many ' + (isUS() ? 'gallons' : 'liters') + ' the tank will hold.'; }
+      else if (r.why === 'sh') { kind = 'info'; msg = 'Enter the strength printed on your SH label, for example 12.5%.'; }
+      else if (r.why === 'target') { kind = 'info'; msg = 'Enter the strength you want in the mix, for example 3%.'; }
+      else {
+        var max = Math.floor(r.maxTarget * 100 + 1e-9) / 100;
+        kind = 'bad';
+        msg = 'That strength is out of reach. With ' + fmtPct(state.shPct) + ' SH' + (r.d > 0 ? ' and ' + doseText() + ' of surfactant' : '') +
+          ', the most you can mix is ' + fmtPct(max) + '. Lower the strength you want, or use a stronger SH.';
+        if (max > 0) fix = max;
+      }
+    } else if (r.f >= 0.5) {
+      kind = 'warn';
+      msg = 'More than half of the batch is SH, so this is close to straight SH. Double-check the strength you want.';
+    } else if (state.shPct > 15) {
+      kind = 'warn';
+      msg = 'Liquid SH does not usually come stronger than 15%. Check the strength on your label.';
+    } else if (r.d >= 0.05) {
+      kind = 'warn';
+      msg = 'Surfactant is ' + share(r.d) + ' of the batch, which is a lot. Check the dose on its label.';
+    }
+    box.hidden = !kind;
+    box.className = 'alert' + (kind ? ' ' + kind : '');
+    if (!kind) return;
+    box.appendChild(h('p', { text: msg }));
+    if (fix != null) {
+      var b = h('button', { type: 'button', class: 'btn sm', text: 'Use ' + fmtPct(fix) });
+      b.addEventListener('click', function () { state.targetPct = fix; syncStatic(); changed(); });
+      box.appendChild(b);
+    }
+  }
+
+  function paintMix(r) {
+    var ok = r.ok;
+    $('mixList').classList.toggle('is-off', !ok);
+    $('mixSub').textContent = ok ? volText(r.V) + ' at ' + fmtPct(state.targetPct) : '';
+    setVal('sh', ok ? r.shL : null);
+    setVal('water', ok ? r.waterL : null);
+    setVal('soap', ok ? r.soapL : null, 'None');
+    $('shSub').textContent = ok ? withAlt(r.shL, fmtPct(state.shPct) + ' SH, ' + share(r.f) + ' of the batch') : '';
+    $('waterSub').textContent = ok ? withAlt(r.waterL, 'Top up to ' + volText(r.V) + ' total') : '';
+    $('soapSub').textContent = ok ? (r.d > 0 ? doseText() + ', ' + share(r.d) + ' of the batch' : 'Not using any') : '';
+
+    var bar = $('stackBar');
+    [['segWater', ok ? r.waterL / r.V : 0], ['segSh', ok ? r.f : 0], ['segSoap', ok ? r.d : 0]].forEach(function (s) {
+      var el = $(s[0]);
+      el.hidden = !(s[1] > 0);
+      el.style.flex = (s[1] * 100) + ' 1 0%';
+    });
+    bar.setAttribute('aria-label', ok
+      ? 'Share of the batch: water ' + share(r.waterL / r.V) + ', sodium hypochlorite ' + share(r.f) + ', surfactant ' + share(r.d)
+      : 'Share of the batch, waiting for numbers');
+
+    /* Pinned amounts for phones */
+    var s1 = ok ? volDisplay(r.shL) : null, s2 = ok ? volDisplay(r.waterL) : null, s3 = ok ? volDisplay(r.soapL) : null;
+    $('bAmtSh').textContent = s1 ? s1.n : '-';
+    $('bLabSh').textContent = s1 ? 'SH, ' + s1.u : 'SH';
+    $('bAmtWater').textContent = s2 ? s2.n : '-';
+    $('bLabWater').textContent = s2 ? 'Water, ' + s2.u : 'Water';
+    $('bAmtSoap').textContent = s3 ? (r.soapL > 0 ? s3.n : 'None') : '-';
+    $('bLabSoap').textContent = s3 && r.soapL > 0 ? 'Soap, ' + s3.u : 'Soap';
+
+    var alt = $('altUnits');
+    if (ok) {
+      var other = isUS() ? 'metric' : 'us';
+      var parts = ['SH ' + volText(r.shL, other), 'water ' + volText(r.waterL, other)];
+      if (r.soapL > 0) parts.push('surfactant ' + volText(r.soapL, other));
+      alt.textContent = (isUS() ? 'In metric: ' : 'In US units: ') + parts.join(', ') + '.';
+    } else { alt.textContent = ''; }
+  }
+
+  function paintCost(r) {
+    var c = costOf(r);
+    $('costLedger').hidden = !c;
+    if (!c) return;
+    $('costSh').textContent = money(c.sh);
+    $('costSoap').textContent = money(c.soap);
+    $('costBatch').textContent = money(c.total);
+    $('costPerLab').textContent = isUS() ? 'Per gallon of mix' : 'Per liter of mix';
+    $('costPer').textContent = money(isUS() ? c.perL * L_PER_GAL : c.perL);
+  }
+
+  function paintSurface(r) {
+    var note = $('surfaceNote'), out = $('drawOut');
+    var p = surfacePct();
+    if (r.ok && p > 0) {
+      var t = 'At the surface, with a ' + fmtNum(state.draw, 2) + '% draw, the spray is about ' + fmtNum(p, 3) + '% SH.';
+      note.textContent = t;
+      note.hidden = false;
+      out.textContent = t;
+    } else {
+      note.hidden = true;
+      note.textContent = '';
+      out.textContent = state.draw > 0 ? 'Fix the mix above to see the strength at the surface.' : 'Enter a draw to see the strength at the surface.';
+    }
+  }
+
+  function chartRows() {
+    var rows = CHART_ROWS.slice(), t = state.targetPct;
+    if (t > 0 && rows.every(function (x) { return Math.abs(x - t) > 1e-9; })) rows.push(t);
+    return rows.sort(function (a, b) { return a - b; });
+  }
+  function paintChart(r) {
+    var body = $('chartBody'), shown = 0, hiddenRows = 0;
+    body.textContent = '';
+    if (state.batchL > 0 && state.shPct > 0) {
+      chartRows().forEach(function (t) {
+        var q = compute({ batchL: state.batchL, targetPct: t, shPct: state.shPct, dose: state.dose });
+        if (!q.ok) { hiddenRows++; return; }
+        shown++;
+        var now = Math.abs(t - state.targetPct) < 1e-9;
+        var btn = h('button', { type: 'button', class: 'pick', 'aria-label': 'Use ' + fmtPct(t) + ' strength', text: fmtPct(t) });
+        btn.addEventListener('click', function () { state.targetPct = t; syncStatic(); changed(); });
+        body.appendChild(h('tr', { class: now ? 'is-now' : null }, [
+          h('td', null, [btn]),
+          h('td', { text: volText(q.shL) }),
+          h('td', { text: volText(q.waterL) })
+        ]));
+      });
+    }
+    $('chartWrap').hidden = shown === 0;
+    $('chartEmpty').hidden = shown > 0;
+    $('chartHint').textContent = shown > 0 ? 'Tap a strength to use it' : '';
+    $('chartNote').textContent = shown > 0
+      ? 'For ' + volText(state.batchL) + ' with ' + fmtPct(state.shPct) + ' SH' + (state.dose > 0 ? ' and ' + doseText() + ' of surfactant' : '') + '.' +
+        (hiddenRows > 0 ? ' Higher strengths need a stronger SH.' : '')
+      : '';
+  }
+
+  function mline(text) { return h('p', { class: 'mline', text: text }); }
+  function paintMath(r) {
+    var box = $('mathLines');
+    box.textContent = '';
+    if (!r.ok) { box.appendChild(mline('Enter a batch size, a strength and your SH strength to see the steps.')); return; }
+    box.appendChild(mline('SH = ' + bigText(r.V) + ' × ' + fmtPct(state.targetPct) + ' ÷ ' + fmtPct(state.shPct) + ' = ' + bigText(r.shL)));
+    box.appendChild(mline(r.d > 0
+      ? 'Surfactant = ' + bigText(r.V) + ' × ' + doseText() + ' = ' + volText(r.soapL)
+      : 'Surfactant = none'));
+    box.appendChild(mline('Water = ' + bigText(r.V) + ' - ' + bigText(r.shL) + ' - ' + bigText(r.soapL) + ' = ' + bigText(r.waterL)));
+  }
+
+  function paintButtons(r) {
+    $('copyBtn').disabled = !r.ok;
+    $('saveBtn').disabled = !r.ok;
+    if (!r.ok) $('saveForm').hidden = true;
+  }
+
+  function updateAll() {
+    var r = compute(state);
+    paintAlert(r);
+    paintMix(r);
+    paintCost(r);
+    paintSurface(r);
+    paintChart(r);
+    paintMath(r);
+    paintChips();
+    paintButtons(r);
+    renderSavedText();
+  }
+
+  /* ---------- units ---------- */
+  function applyUnit() {
+    var us = isUS();
+    $('unitUs').setAttribute('aria-pressed', us ? 'true' : 'false');
+    $('unitMetric').setAttribute('aria-pressed', us ? 'false' : 'true');
+    $('batchUnit').textContent = us ? 'gal' : 'L';
+    $('doseLab').textContent = us ? 'Dose per gallon of mix' : 'Dose per liter of mix';
+    $('doseUnit').textContent = us ? 'fl oz per gal' : 'mL per L';
+    $('shPriceLab').textContent = us ? 'SH price per gallon' : 'SH price per liter';
+    $('soapPriceLab').textContent = us ? 'Surfactant price per gallon' : 'Surfactant price per liter';
+    $('shPriceUnit').textContent = us ? '/gal' : '/L';
+    $('soapPriceUnit').textContent = us ? '/gal' : '/L';
+    buildChips();
+    syncStatic();
+  }
+  function setUnit(u) {
+    if (state.unit === u) return;
+    state.unit = u;
+    applyUnit();
+    changed();
+  }
+
+  /* ---------- copy sheet ---------- */
+  function sheetText(r) {
+    var L = ['Soft wash mix'];
+    L.push('Batch: ' + volText(r.V) + ' at ' + fmtPct(state.targetPct) + ' strength');
+    L.push('Sodium hypochlorite (' + fmtPct(state.shPct) + '): ' + volText(r.shL));
+    L.push('Water: ' + volText(r.waterL) + ' (top up to ' + volText(r.V) + ')');
+    L.push(r.d > 0 ? 'Surfactant (' + doseText() + '): ' + volText(r.soapL) : 'Surfactant: none');
+    var c = costOf(r);
+    if (c) L.push('Cost: ' + money(c.total) + ' per batch, ' + money(isUS() ? c.perL * L_PER_GAL : c.perL) + ' per ' + (isUS() ? 'gallon' : 'liter') + ' of mix');
+    var p = surfacePct();
+    if (p > 0) L.push('At the surface with a ' + fmtNum(state.draw, 2) + '% draw: about ' + fmtNum(p, 3) + '% SH');
+    return L.join('\n');
+  }
+  function copyMix() {
+    var r = compute(state);
+    if (!r.ok) return;
+    copyText(sheetText(r), 'Mix copied.');
+  }
+
+  /* ---------- saved mixes ---------- */
+  function renderSaved() {
+    var box = $('savedList');
+    box.textContent = '';
+    if (!state.saved.length) {
+      box.appendChild(h('p', { class: 'empty', text: 'No saved mixes yet. Tap Save mix on your result to keep one here.' }));
+      return;
+    }
+    state.saved.forEach(function (m) {
+      var r = compute(m);
+      var use = h('button', { type: 'button', class: 'btn sm', text: 'Use this mix' });
+      use.addEventListener('click', function () { useMix(m); });
+      var del = h('button', { type: 'button', class: 'btn ghost sm', text: 'Delete' });
+      twoTap(del, 'Delete', 'Tap again to delete', function () {
+        state.saved = state.saved.filter(function (x) { return x !== m; });
+        renderSaved();
+        flushSave();
+      });
+      box.appendChild(h('article', { class: 'saved', 'data-id': m.id }, [
+        h('strong', { class: 'sv-name', text: m.name || 'Saved mix' }),
+        h('p', { class: 'sv-sum' }),
+        h('p', { class: 'sv-out' }),
+        h('div', { class: 'row-actions' }, [use, del])
+      ]));
+    });
+    renderSavedText();
+  }
+  /* Saved rows show volumes in the current units, so they are re-worded whenever the units change. */
+  function renderSavedText() {
+    var rows = $('savedList').querySelectorAll('.saved');
+    Array.prototype.forEach.call(rows, function (row, i) {
+      var m = state.saved[i];
+      if (!m) return;
+      var r = compute(m);
+      row.querySelector('.sv-sum').textContent = volText(m.batchL) + ' at ' + fmtPct(m.targetPct) + ' from ' + fmtPct(m.shPct) + ' SH';
+      row.querySelector('.sv-out').textContent = r.ok
+        ? 'SH ' + volText(r.shL) + ', water ' + volText(r.waterL) + (r.soapL > 0 ? ', surfactant ' + volText(r.soapL) : '')
+        : 'That strength needs a stronger SH.';
+    });
+  }
+  function saveMix(name) {
+    var r = compute(state);
+    if (!r.ok) { toast('Fix the mix before saving it.'); return; }
+    if (state.saved.length >= MAX_SAVED) { toast('You can keep ' + MAX_SAVED + ' mixes. Delete one to save another.'); return; }
+    state.seq += 1;
+    var label = String(name || '').trim().slice(0, 60) || (volText(r.V) + ' at ' + fmtPct(state.targetPct));
+    state.saved.unshift({
+      id: 'm' + state.seq, name: label, batchL: state.batchL, targetPct: state.targetPct,
+      shPct: state.shPct, dose: state.dose, ts: Date.now()
+    });
+    $('saveForm').hidden = true;
+    $('saveName').value = '';
+    renderSaved();
+    flushSave();
+    toast('Saved ' + label + '.');
+  }
+  function useMix(m) {
+    state.batchL = m.batchL;
+    state.targetPct = m.targetPct;
+    state.shPct = m.shPct;
+    state.dose = m.dose;
+    syncStatic();
+    changed();
+    toast('Loaded ' + (m.name || 'saved mix') + '.');
+    try {
+      if (window.matchMedia && window.matchMedia('(max-width: 899px)').matches) {
+        var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        $('h-mix').scrollIntoView({ block: 'start', behavior: reduce ? 'auto' : 'smooth' });
+      }
+    } catch (e) { /* scrolling is a nicety */ }
+  }
+
+  function resetMix() {
+    var b = defaults();
+    state.batchL = b.batchL;
+    state.targetPct = b.targetPct;
+    state.shPct = b.shPct;
+    state.dose = b.dose;
+    syncStatic();
+    changed();
+    toast('Mix fields reset.');
+  }
+
+  function fillSupport() {
+    Array.prototype.forEach.call(document.querySelectorAll('.mail'), function (el) { el.textContent = SUPPORT; });
+    Array.prototype.forEach.call(document.querySelectorAll('.mail-copy'), function (b) {
+      b.addEventListener('click', function () { copyText(SUPPORT, 'Email address copied.'); });
+    });
+  }
+
+  function bindStatic() {
+    bindNum($('batch'),
+      function () { var v = batchToUnit(state.batchL); return v > 0 ? fmtNum(v, 2) : ''; },
+      function (v) { state.batchL = Math.min(MAX_BATCH_L, batchFromUnit(nn(v))); });
+    bindNum($('target'),
+      function () { return state.targetPct > 0 ? fmtNum(state.targetPct, 3) : ''; },
+      function (v) { state.targetPct = Math.min(100, nn(v)); });
+    bindNum($('shPct'),
+      function () { return state.shPct > 0 ? fmtNum(state.shPct, 3) : ''; },
+      function (v) { state.shPct = Math.min(100, nn(v)); });
+    bindNum($('dose'),
+      function () { return fmtNum(doseToUnit(state.dose), isUS() ? 3 : 2); },
+      function (v) { state.dose = Math.min(1, doseFromUnit(nn(v))); });
+    bindNum($('shPrice'),
+      function () { var v = priceToUnit(state.shPriceL); return v > 0 ? fmtNum(v, 2, 2) : ''; },
+      function (v) { state.shPriceL = priceFromUnit(nn(v)); });
+    bindNum($('soapPrice'),
+      function () { var v = priceToUnit(state.soapPriceL); return v > 0 ? fmtNum(v, 2, 2) : ''; },
+      function (v) { state.soapPriceL = priceFromUnit(nn(v)); });
+    bindNum($('draw'),
+      function () { return state.draw > 0 ? fmtNum(state.draw, 2) : ''; },
+      function (v) { state.draw = Math.min(100, nn(v)); });
+
+    $('unitUs').addEventListener('click', function () { setUnit('us'); });
+    $('unitMetric').addEventListener('click', function () { setUnit('metric'); });
+    $('copyBtn').addEventListener('click', copyMix);
+    $('saveBtn').addEventListener('click', function () {
+      var f = $('saveForm');
+      f.hidden = !f.hidden;
+      if (!f.hidden) $('saveName').focus();
+    });
+    $('saveForm').addEventListener('submit', function (e) { e.preventDefault(); saveMix($('saveName').value); });
+    twoTap($('resetBtn'), 'Reset the mix fields', 'Tap again to reset', resetMix);
+    $('sheetClose').addEventListener('click', function () { $('sheet').hidden = true; });
+  }
+
+  state = load() || defaults();
+  fillSupport();
+  bindStatic();
+  applyUnit();
+  renderSaved();
+  updateAll();
+})();
+</script>

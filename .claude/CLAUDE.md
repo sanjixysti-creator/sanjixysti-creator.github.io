@@ -25,7 +25,7 @@ Each tool folder holds index.html (one self-contained file), privacy.html, og.pn
 - Do not add a .nojekyll file. Without Jekyll, this dot folder would become public.
 
 ## Source files
-The tool pages were built from source files and test scripts kept in the working session's scratch folder, not in this repo. That folder is lost if the workspace resets. If the sources are gone, edit the built index.html directly and keep the fonts embedded. Ask the owner if he wants the sources saved here.
+The pages are built from source files saved in .claude/src/, which is hidden from the site like this file. Start with .claude/src/README.md: it explains how to restore the build folder, rebuild each page, run the test suites and ship a change. Edit the fragments (rinse-quote.html, rinse-mix.html, gpu-check.html) and hub.src.html, never the built index.html files, and copy changed sources back into .claude/src/ in the same commit. A rebuild from these sources was checked to reproduce every live page byte for byte. The real Pro unlock code is not stored in the repo.
 
 ## Commits
 End commit messages with the Co-Authored-By and Claude-Session lines the session gives.
