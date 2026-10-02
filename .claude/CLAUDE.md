@@ -15,6 +15,8 @@ This repo is the public site https://sanjixysti-creator.github.io/ (GitHub Pages
 - /rinse-quote/ : pressure washing quote calculator. Free, with a one-time Pro upgrade sold through a Stripe payment link. It earns money, so test its Pro unlock flow after any change to it.
 - /rinse-mix/ : soft wash mix calculator, free.
 - /gpu-check/ : used graphics card listing checker, free. It does not scan marketplaces. It scores a listing from the user's answers and opens search links.
+- /404.html : the page GitHub Pages shows for any address that does not exist. Every link in it is root-absolute because it is served at any depth. It is marked noindex.
+- /sitemap.xml and /robots.txt : made by .claude/src/build_sitemap.py. Add a new tool to its PAGES list.
 Each tool folder holds index.html (one self-contained file), privacy.html, og.png (1200x630) and apple-touch-icon.png.
 
 ## Standards for every page

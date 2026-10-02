@@ -19,6 +19,9 @@ Builders:
   apple-touch-icon.png (180x180) for each tool into site/<tool>/.
 - hub.src.html, hub_icons.py, build_hub.py, build_images_hub.py: the home page. These write straight
   into the site repo root (index.html, og.png, apple-touch-icon.png). Run build_images_hub.py first.
+- 404.src.html, build_404.py: the page GitHub Pages shows for an address that does not exist
+  (404.html in the repo root). It is served at any depth, so every link in it is root-absolute.
+- build_sitemap.py: writes sitemap.xml and robots.txt in the repo root. lastmod comes from git.
 - fonts_build/package.json and package-lock.json: the font packages that get subset and embedded.
 
 Tests:
@@ -48,9 +51,11 @@ Build one tool (output lands in ~/work/site/<tool>/):
     python3 build_mix.py   && python3 build_images_mix.py    # Rinse Mix
     python3 build_gpu.py   && python3 build_images_gpu.py    # Used GPU Check
 
-Build the home page (writes into $SITE_REPO):
+Build the home page, the not-found page, the sitemap and robots.txt (these write into $SITE_REPO):
 
     python3 build_images_hub.py && python3 build_hub.py
+    python3 build_404.py
+    python3 build_sitemap.py
 
 Fonts are subset with pyftsubset. Another fonttools version can give slightly different font bytes,
 so a rebuilt page may differ from the live one by a few bytes while looking identical.
@@ -75,6 +80,16 @@ Every script prints failures and ends with a pass count. Zero failures is the ba
 3. Run site_check.py, look at screenshots in light and dark at phone and desktop width, then commit and push.
 4. Wait for Pages (up to a couple of minutes), then run live_smoke2.py and live_smoke3.py.
 5. Copy any changed source files back into this folder and commit them with the change.
+
+## Add a new tool
+
+Build its fragment, builders and tests the way the three existing ones are done, then wire it in:
+1. hub_icons.py: add its tile art. hub.src.html: add a row (keep the order you want).
+2. build_hub.py: update the expected row count. build_images_hub.py: add it to ROWS.
+3. 404.src.html: add a row with root-absolute links (build_404.py checks the row count too).
+4. build_sitemap.py: add it to PAGES. site_check.py: add it to TITLES and the row checks.
+5. Rebuild the hub, the 404 page and the sitemap, run site_check.py, then commit and push.
+Also add its privacy page to the footer list on the hub and update .claude/CLAUDE.md.
 
 ## Things that are not stored here on purpose
 

@@ -5,6 +5,7 @@ Serves the repo working tree locally. Requests to the live address are answered 
 absolute links in meta tags (share image, canonical) can be tested before anything is pushed.
 """
 import os
+import datetime
 import functools
 import hashlib
 import http.server
@@ -13,6 +14,7 @@ import pathlib
 import re
 import subprocess
 import threading
+import xml.etree.ElementTree as ET
 
 from PIL import Image
 from playwright.sync_api import sync_playwright
@@ -20,11 +22,25 @@ from playwright.sync_api import sync_playwright
 ROOT = pathlib.Path(os.environ.get('SITE_REPO', '/home/claude/sanjixysti-creator.github.io'))
 D = pathlib.Path(__file__).resolve().parent
 LIVE = 'https://sanjixysti-creator.github.io/'
+DEEP = 'no/such/page/at/this/depth'   # an address with nothing behind it, several folders deep
 
 
 class Q(http.server.SimpleHTTPRequestHandler):
     def log_message(self, *a):
         pass
+
+    def send_error(self, code, message=None, explain=None):
+        # Like GitHub Pages: an address with nothing behind it gets 404.html with a 404 status.
+        if code == 404 and (ROOT / '404.html').exists():
+            body = (ROOT / '404.html').read_bytes()
+            self.send_response(404)
+            self.send_header('Content-Type', 'text/html; charset=utf-8')
+            self.send_header('Content-Length', str(len(body)))
+            self.end_headers()
+            if self.command != 'HEAD':
+                self.wfile.write(body)
+            return
+        super().send_error(code, message, explain)
 
 
 httpd = http.server.ThreadingHTTPServer(('127.0.0.1', 0), functools.partial(Q, directory=str(ROOT)))
@@ -119,7 +135,7 @@ def route_live(route):
     if f.is_dir():
         f = f / 'index.html'
     if not f.exists():
-        route.fulfill(status=404, body='not found')
+        route.fulfill(status=404, body=(ROOT / '404.html').read_bytes(), content_type='text/html; charset=utf-8')
         return
     route.fulfill(status=200, body=f.read_bytes(), content_type=mimetypes.guess_type(str(f))[0] or 'application/octet-stream')
 
@@ -129,14 +145,16 @@ with sync_playwright() as p:
         b = p.chromium.launch()
     except Exception:
         b = p.chromium.launch(executable_path='/opt/pw-browsers/chromium-1194/chrome-linux/chrome')
-    errs, foreign = [], []
+    errs, foreign, failed = [], [], []
 
     def new(path='', scheme='light', w=390, h=844, reduced=False):
         ctx = b.new_context(viewport={'width': w, 'height': h}, color_scheme=scheme, device_scale_factor=1,
                             reduced_motion='reduce' if reduced else 'no-preference')
         pg = ctx.new_page()
         pg.set_default_timeout(5000)
-        pg.on('console', lambda m: errs.append((path, m.text)) if m.type in ('error', 'warning') else None)
+        # The not-found page is itself a 404, and Chrome notes that in the console. Anything else that fails is a real problem.
+        pg.on('console', lambda m: errs.append((path, m.text)) if m.type in ('error', 'warning') and not (path == DEEP and m.text.startswith('Failed to load resource: the server responded with a status of 404')) else None)
+        pg.on('response', lambda r: failed.append(r.url) if r.status >= 400 and r.url != BASE + path else None)
         pg.on('pageerror', lambda e: errs.append((path, str(e))))
         pg.on('request', lambda r: foreign.append(r.url) if not r.url.startswith((BASE, LIVE, 'data:', 'blob:')) else None)
         pg.route('**/favicon.ico', lambda r: r.fulfill(status=204, body=''))
@@ -318,16 +336,158 @@ with sync_playwright() as p:
         eq('%s still loads' % href, pg.title(), title)
         ctx.close()
 
+    # ------------------------------------------------------------------ sitemap.xml and robots.txt
+    NS = '{http://www.sitemaps.org/schemas/sitemap/0.9}'
+    tree = ET.parse(str(ROOT / 'sitemap.xml'))
+    urls = [(u.findtext(NS + 'loc'), u.findtext(NS + 'lastmod')) for u in tree.getroot().findall(NS + 'url')]
+    hub_hrefs = re.findall(r'<h3><a href="([^"]+)"', hub_src)
+    eq('sitemap root element', tree.getroot().tag, NS + 'urlset')
+    eq('sitemap lists the home page and every tool on the hub, nothing else',
+       sorted(u[0] for u in urls), sorted([LIVE] + [LIVE + h for h in hub_hrefs]))
+    today = datetime.date.today()
+    bad_dates = []
+    for loc, mod in urls:
+        try:
+            d = datetime.date.fromisoformat(mod)
+            if d > today + datetime.timedelta(days=1) or d.year < 2026:
+                bad_dates.append((loc, mod))
+        except Exception:
+            bad_dates.append((loc, mod))
+    eq('every lastmod is a real recent date', bad_dates, [])
+    eq('every listed address has a page in the repo',
+       [loc for loc, _ in urls if not (ROOT / loc[len(LIVE):] / 'index.html').exists()], [])
+    robots = (ROOT / 'robots.txt').read_text(encoding='utf-8')
+    eq('robots.txt allows everything and names the sitemap',
+       robots.split(), ['User-agent:', '*', 'Allow:', '/', 'Sitemap:', LIVE + 'sitemap.xml'])
+    for f in ('sitemap.xml', 'robots.txt', '404.html'):
+        eq('%s has no em or en dash' % f, bool(re.search('[—–]', (ROOT / f).read_text(encoding='utf-8'))), False)
+    ctx, pg = new('')
+    eq('sitemap.xml is served as xml', (pg.request.get(BASE + 'sitemap.xml').status, 'xml' in pg.request.get(BASE + 'sitemap.xml').headers.get('content-type', '')), (200, True))
+    eq('robots.txt is served as text', (pg.request.get(BASE + 'robots.txt').status, pg.request.get(BASE + 'robots.txt').headers.get('content-type', '').startswith('text/plain')), (200, True))
+    ctx.close()
+
+    # ------------------------------------------------------------------ the not-found page (404.html)
+    nf_src = (ROOT / '404.html').read_text(encoding='utf-8')
+    eq('404 has no script', '<script' in nf_src, False)
+    eq('404 asks search engines to skip it', 'name="robots" content="noindex"' in nf_src, True)
+    eq('404 uses only root-absolute links, so it works at any depth',
+       sorted(set(h for h in re.findall(r'(?:href|src)="([^"]*)"', nf_src) if not h.startswith(('/', 'mailto:', 'data:')))), [])
+    eq('404 makes no outside request or link', re.findall(r'(?:src|href)="(https?://[^"]+)"', nf_src), [])
+    eq('404 stays small', (ROOT / '404.html').stat().st_size < 100_000, True)
+    ctx, pg = new('')
+    r = pg.request.get(BASE + DEEP)
+    eq('a missing address answers 404 with the page', (r.status, 'Nothing here.' in r.text()), (404, True))
+    r = pg.request.get(BASE + 'rinse-quote/missing.html')
+    eq('a missing file inside a tool folder gets the page too', (r.status, 'Nothing here.' in r.text()), (404, True))
+    eq('real pages are not hijacked by it', [pg.request.get(BASE + p).status for p in ('', 'tuner/', 'privacy.html', 'sitemap.xml')], [200, 200, 200, 200])
+    ctx.close()
+
+    ctx, pg = new(DEEP)
+    eq('404 title', pg.title(), 'Page not found - Xysti Software')
+    eq('404 lang', pg.get_attribute('html', 'lang'), 'en')
+    eq('404 robots', pg.get_attribute('meta[name=robots]', 'content'), 'noindex')
+    eq('404 theme colors', pg.eval_on_selector_all('meta[name=theme-color]', 'els => els.map(e => e.content)'), ['#E5E9EB', '#11171B'])
+    eq('404 landmarks', [pg.locator(s).count() for s in ('header', 'main', 'footer')], [1, 1, 1])
+    eq('404 one h1', pg.eval_on_selector_all('h1', 'els => els.map(e => e.textContent.trim())'), ['Nothing here.'])
+    eq('404 tools in order', pg.eval_on_selector_all('.row h3 a', 'els => els.map(e => [e.textContent.trim(), e.getAttribute("href")])'),
+       [['Rinse Quote', '/rinse-quote/'], ['Rinse Mix', '/rinse-mix/'], ['Used GPU Check', '/gpu-check/'], ['Tuner for YouTube', '/tuner/']])
+    eq('404 ways home', pg.eval_on_selector_all('a[href="/"]', 'els => els.map(e => e.textContent.trim().replace(/\\s+/g, " "))'),
+       ['Xysti Software', 'Back to the home page'])
+    eq('404 mail link', pg.get_attribute('.mailto', 'href'), 'mailto:fireseabrook2566@gmail.com')
+    eq('404 icons are hidden from screen readers', pg.evaluate("[...document.querySelectorAll('svg')].every(s => s.getAttribute('aria-hidden') === 'true')"), True)
+    faces = pg.evaluate('''async () => { const o = []; for (const f of [...document.fonts]) { try { await f.load(); o.push(f.family.replace(/"/g, '') + ' ' + f.weight + ' ' + f.status); } catch (e) { o.push('ERR'); } } return o.sort(); }''')
+    eq('404 three fonts embedded and loaded', faces, ['Big Shoulders Display 800 loaded', 'Public Sans 400 loaded', 'Public Sans 600 loaded'])
+    eq('404 no running animations', pg.evaluate('document.getAnimations().length'), 0)
+    ctx.close()
+
+    ctx, pg = new(DEEP)
+    for w in (320, 360, 390, 414, 768, 1024, 1440):
+        pg.set_viewport_size({'width': w, 'height': 900})
+        pg.wait_for_timeout(100)
+        ok, bad = pg.evaluate(OVERFLOW_JS)
+        eq('404 has no sideways scroll at %d' % w, (ok, bad), (True, []))
+    pg.set_viewport_size({'width': 390, 'height': 844})
+    pg.wait_for_timeout(100)
+    for i in range(4):
+        hit = pg.evaluate('''(i) => {
+          const row = document.querySelectorAll('.row')[i];
+          const link = row.querySelector('h3 a');
+          row.scrollIntoView({block: 'center'});
+          const r2 = row.getBoundingClientRect();
+          const pts = [[r2.left + 8, r2.top + 8], [r2.left + r2.width / 2, r2.top + r2.height / 2], [r2.right - 8, r2.bottom - 8], [r2.left + 40, r2.bottom - 8]];
+          return pts.map(([x, y]) => { const e = document.elementFromPoint(x, y); return !!e && e.closest('a') === link; });
+        }''', i)
+        eq('404 row %d is one big tap target' % i, hit, [True, True, True, True])
+    small = pg.evaluate('''() => [...document.querySelectorAll('a')].filter(a => a.getClientRects().length).map(a => [a.textContent.trim(), Math.round(a.getBoundingClientRect().height)]).filter(x => x[1] < 40 && !x[0].match(/^(Rinse Quote|Rinse Mix|Used GPU Check|Tuner for YouTube)$/) || false)''')
+    eq('404 header and footer links are at least 40px tall', small, [])
+    row_h = pg.evaluate("Math.min(...[...document.querySelectorAll('.row')].map(r => r.getBoundingClientRect().height))")
+    eq('404 rows are at least 80px tall', row_h >= 80, True)
+    ctx.close()
+
+    ctx, pg = new(DEEP, w=1200, h=900)
+    order, rings = [], []
+    for _ in range(7):
+        pg.keyboard.press('Tab')
+        order.append(pg.evaluate("document.activeElement.getAttribute('href')"))
+        rings.append(pg.evaluate("(a => { const s = getComputedStyle(a); const t = getComputedStyle(a, '::after'); return s.outlineStyle === 'solid' || t.outlineStyle === 'solid'; })(document.activeElement)"))
+    eq('404 tab order', order, ['/', '/rinse-quote/', '/rinse-mix/', '/gpu-check/', '/tuner/', 'mailto:fireseabrook2566@gmail.com', '/'])
+    eq('404 every focused link shows a ring', rings, [True] * 7)
+    ctx.close()
+
+    for scheme, ground in (('light', (229, 233, 235)), ('dark', (17, 23, 27))):
+        for w in (390, 1200):
+            ctx, pg = new(DEEP, scheme=scheme, w=w)
+            eq('404 ground (%s)' % scheme, parse(pg.evaluate("getComputedStyle(document.body).backgroundColor")), tuple(float(v) for v in ground))
+            bad = []
+            for item in pg.evaluate(AUDIT_JS):
+                fg, bg = parse(item['color']), parse(item['bg'])
+                need = 3.0 if (item['size'] >= 24 or (item['size'] >= 18.66 and item['weight'] >= 700)) else 4.5
+                got = ratio(fg, bg)
+                if got < need:
+                    bad.append((item['t'], round(got, 2), need))
+            eq('404 every text meets contrast (%s, %d)' % (scheme, w), bad, [])
+            ctx.close()
+
+    for i, (href, title) in enumerate(TITLES.items()):
+        ctx, pg = new(DEEP)
+        pg.locator('.row h3 a').nth(i).click()
+        pg.wait_for_url(BASE + href)
+        pg.wait_for_load_state('load')
+        eq('404: %s opens from its name, from a deep address' % href, (pg.url == BASE + href, pg.title()), (True, title))
+        ctx.close()
+        ctx, pg = new(DEEP)
+        row = pg.locator('.row').nth(i)
+        row.scroll_into_view_if_needed()
+        box = row.bounding_box()
+        pg.mouse.click(box['x'] + box['width'] - 24, box['y'] + box['height'] / 2)
+        pg.wait_for_url(BASE + href)
+        pg.wait_for_load_state('load')
+        eq('404: %s opens from the empty part of its row' % href, (pg.url == BASE + href, pg.title()), (True, title))
+        ctx.close()
+    for sel in ('header a.top', '.homelink'):
+        ctx, pg = new(DEEP)
+        pg.locator(sel).click()
+        pg.wait_for_url(BASE)
+        pg.wait_for_load_state('load')
+        eq('404: %s goes to the hub' % sel, (pg.url, pg.title()), (BASE, 'Xysti Software: Small Free Tools for Specific Jobs'))
+        ctx.close()
+
     # ------------------------------------------------------------------ pictures for the report
     for scheme, w, h, name in (('light', 390, 844, 'hub-phone-light'), ('dark', 390, 844, 'hub-phone-dark'),
                                ('light', 1200, 900, 'hub-desk-light'), ('dark', 1200, 900, 'hub-desk-dark')):
         ctx, pg = new('', scheme=scheme, w=w, h=h)
         pg.screenshot(path=str(D / (name + '.png')), full_page=True)
         ctx.close()
+    for scheme, w, h, name in (('light', 390, 844, '404-phone-light'), ('dark', 390, 844, '404-phone-dark'),
+                               ('light', 1200, 900, '404-desk-light'), ('dark', 1200, 900, '404-desk-dark')):
+        ctx, pg = new(DEEP, scheme=scheme, w=w, h=h)
+        pg.screenshot(path=str(D / (name + '.png')), full_page=True)
+        ctx.close()
     b.close()
 
 real = [e for e in errs]
 eq('no console errors on any page', real, [])
+eq('no request failed on any page', failed, [])
 eq('nothing outside the site was requested', sorted(set(foreign)), [])
 httpd.shutdown()
 print('SITE passed', passes, 'failed', len(fails))

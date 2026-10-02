@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://sanjixysti-creator.github.io/sitemap.xml
