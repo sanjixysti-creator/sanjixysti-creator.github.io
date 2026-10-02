@@ -4,6 +4,7 @@
 Serves the repo working tree locally. Requests to the live address are answered from the same files, so
 absolute links in meta tags (share image, canonical) can be tested before anything is pushed.
 """
+import base64
 import os
 import datetime
 import functools
@@ -124,6 +125,7 @@ OVERFLOW_JS = '''() => {
 TITLES = {
     'rinse-quote/': 'Rinse Quote: Free Pressure Washing Quote Calculator',
     'rinse-mix/': 'Rinse Mix: Free Soft Wash Mix Calculator',
+    'rinse-rate/': 'Rinse Rate: Pressure Washing Job Profit Calculator',
     'gpu-check/': 'Used GPU Check: Free Risk and Price Checker',
     'tuner/': 'Tuner for YouTube - make YouTube yours',
 }
@@ -178,6 +180,18 @@ with sync_playwright() as p:
     eq('og.png is 1200x630', Image.open(ROOT / 'og.png').size, (1200, 630))
     eq('apple-touch-icon.png is 180x180', Image.open(ROOT / 'apple-touch-icon.png').size, (180, 180))
     eq('og.png stays small enough to share', (ROOT / 'og.png').stat().st_size < 400_000, True)
+    rate_page = (ROOT / 'rinse-rate' / 'index.html').read_text(encoding='utf-8')
+    fav = re.search(r'<link rel="icon" href="data:image/svg\+xml;base64,([^"]+)"', rate_page)
+    fav_art = re.sub(r'^<svg[^>]*>', '', base64.b64decode(fav.group(1)).decode('utf-8')) if fav else None
+    def tile_art_of(src, href):
+        # The art inside the tile (everything after the opening svg tag) of the ledger row that links to href.
+        for chunk in src.split('<li class="row"')[1:]:
+            if '<h3><a href="%s"' % href in chunk:
+                m = re.search(r'(<svg.*?</svg>)', chunk, re.S)
+                return re.sub(r'^<svg[^>]*>', '', m.group(1)) if m else None
+        return None
+    eq('the hub tile for Rinse Rate is the same art as that page favicon', (fav_art is not None, tile_art_of(hub_src, 'rinse-rate/') == fav_art), (True, True))
+    eq('the not-found tile for Rinse Rate is the same art too', tile_art_of((ROOT / '404.html').read_text(encoding='utf-8'), '/rinse-rate/') == fav_art, True)
 
     # ------------------------------------------------------------------ hub, structure
     ctx, pg = new('')
@@ -192,17 +206,17 @@ with sync_playwright() as p:
     eq('hub lang', pg.get_attribute('html', 'lang'), 'en')
     eq('hub landmarks', [pg.locator(s).count() for s in ('header', 'main', 'footer', 'footer nav')], [1, 1, 1, 1])
     eq('one h1', pg.eval_on_selector_all('h1', 'els => els.map(e => e.textContent.trim())'), ['Small tools for specific jobs.'])
-    eq('four tools in order', pg.eval_on_selector_all('.row h3 a', 'els => els.map(e => e.textContent.trim())'),
-       ['Rinse Quote', 'Rinse Mix', 'Used GPU Check', 'Tuner for YouTube'])
+    eq('five tools in order', pg.eval_on_selector_all('.row h3 a', 'els => els.map(e => e.textContent.trim())'),
+       ['Rinse Quote', 'Rinse Mix', 'Rinse Rate', 'Used GPU Check', 'Tuner for YouTube'])
     eq('tool links', pg.eval_on_selector_all('.row h3 a', 'els => els.map(e => e.getAttribute("href"))'),
-       ['rinse-quote/', 'rinse-mix/', 'gpu-check/', 'tuner/'])
+       ['rinse-quote/', 'rinse-mix/', 'rinse-rate/', 'gpu-check/', 'tuner/'])
     eq('tool kinds', pg.eval_on_selector_all('.row .meta .type', 'els => els.map(e => e.textContent.trim())'),
-       ['Web app', 'Web app', 'Web app', 'Chrome extension'])
+       ['Web app', 'Web app', 'Web app', 'Web app', 'Chrome extension'])
     eq('icons are hidden from screen readers', pg.evaluate("[...document.querySelectorAll('svg')].every(s => s.getAttribute('aria-hidden') === 'true')"), True)
     eq('mail link', pg.get_attribute('.mailto', 'href'), 'mailto:fireseabrook2566@gmail.com')
     eq('privacy links', pg.eval_on_selector_all('.priv a', 'els => els.map(e => e.getAttribute("href"))'),
-       ['rinse-quote/privacy.html', 'rinse-mix/privacy.html', 'gpu-check/privacy.html', 'privacy.html'])
-    for href in ('rinse-quote/privacy.html', 'rinse-mix/privacy.html', 'gpu-check/privacy.html', 'privacy.html'):
+       ['rinse-quote/privacy.html', 'rinse-mix/privacy.html', 'rinse-rate/privacy.html', 'gpu-check/privacy.html', 'privacy.html'])
+    for href in ('rinse-quote/privacy.html', 'rinse-mix/privacy.html', 'rinse-rate/privacy.html', 'gpu-check/privacy.html', 'privacy.html'):
         r = pg.request.get(BASE + href)
         eq('%s is served' % href, r.status, 200)
     for asset in ('og.png', 'apple-touch-icon.png'):
@@ -223,7 +237,7 @@ with sync_playwright() as p:
         eq('hub has no sideways scroll at %d' % w, (ok, bad), (True, []))
     pg.set_viewport_size({'width': 390, 'height': 844})
     pg.wait_for_timeout(100)
-    for i in range(4):
+    for i in range(5):
         hit = pg.evaluate('''(i) => {
           const row = document.querySelectorAll('.row')[i];
           const link = row.querySelector('h3 a');
@@ -234,7 +248,7 @@ with sync_playwright() as p:
           return pts.map(([x, y]) => { const e = document.elementFromPoint(x, y); return !!e && e.closest('a') === link; });
         }''', i)
         eq('row %d is one big tap target' % i, hit, [True, True, True, True])
-    small = pg.evaluate('''() => [...document.querySelectorAll('a')].filter(a => a.getClientRects().length).map(a => [a.textContent.trim(), Math.round(a.getBoundingClientRect().height)]).filter(x => x[1] < 40 && !x[0].match(/^(Rinse Quote|Rinse Mix|Used GPU Check|Tuner for YouTube)$/) || false)''')
+    small = pg.evaluate('''() => [...document.querySelectorAll('a')].filter(a => a.getClientRects().length).map(a => [a.textContent.trim(), Math.round(a.getBoundingClientRect().height)]).filter(x => x[1] < 40 && !x[0].match(/^(Rinse Quote|Rinse Mix|Rinse Rate|Used GPU Check|Tuner for YouTube)$/) || false)''')
     eq('footer links are at least 40px tall', small, [])
     row_h = pg.evaluate("Math.min(...[...document.querySelectorAll('.row')].map(r => r.getBoundingClientRect().height))")
     eq('rows are at least 100px tall', row_h >= 100, True)
@@ -245,16 +259,17 @@ with sync_playwright() as p:
     # ------------------------------------------------------------------ hub, keyboard and hover
     ctx, pg = new('', w=1200, h=900)
     order = []
-    for _ in range(9):
+    for _ in range(11):
         pg.keyboard.press('Tab')
         order.append(pg.evaluate("document.activeElement.getAttribute('href')"))
         if len(order) == 1:
             outline = pg.evaluate("(a => { const s = getComputedStyle(a, '::after'); return [s.outlineStyle, s.outlineWidth]; })(document.activeElement)")
             eq('focus ring is a solid 3px outline', outline, ['solid', '3px'])
-    eq('tab order', order, ['rinse-quote/', 'rinse-mix/', 'gpu-check/', 'tuner/', 'mailto:fireseabrook2566@gmail.com',
-                            'rinse-quote/privacy.html', 'rinse-mix/privacy.html', 'gpu-check/privacy.html', 'privacy.html'])
+    eq('tab order', order, ['rinse-quote/', 'rinse-mix/', 'rinse-rate/', 'gpu-check/', 'tuner/', 'mailto:fireseabrook2566@gmail.com',
+                            'rinse-quote/privacy.html', 'rinse-mix/privacy.html', 'rinse-rate/privacy.html', 'gpu-check/privacy.html', 'privacy.html'])
     pg.mouse.move(5, 5)
     before = pg.evaluate("getComputedStyle(document.querySelectorAll('.row')[1]).backgroundColor")
+    pg.locator('.row:nth-child(2) .meta').scroll_into_view_if_needed()
     mb = pg.locator('.row:nth-child(2) .meta').bounding_box()
     pg.mouse.move(mb['x'] + 6, mb['y'] + 6)
     after = pg.evaluate("getComputedStyle(document.querySelectorAll('.row')[1]).backgroundColor")
@@ -330,8 +345,8 @@ with sync_playwright() as p:
     eq('footer link goes to the hub', pg.url, BASE)
     ctx.close()
 
-    # ------------------------------------------------------------------ the three tools still load and link back
-    for href, title in list(TITLES.items())[:3]:
+    # ------------------------------------------------------------------ the four web tools still load
+    for href, title in list(TITLES.items())[:4]:
         ctx, pg = new(href)
         eq('%s still loads' % href, pg.title(), title)
         ctx.close()
@@ -390,7 +405,7 @@ with sync_playwright() as p:
     eq('404 landmarks', [pg.locator(s).count() for s in ('header', 'main', 'footer')], [1, 1, 1])
     eq('404 one h1', pg.eval_on_selector_all('h1', 'els => els.map(e => e.textContent.trim())'), ['Nothing here.'])
     eq('404 tools in order', pg.eval_on_selector_all('.row h3 a', 'els => els.map(e => [e.textContent.trim(), e.getAttribute("href")])'),
-       [['Rinse Quote', '/rinse-quote/'], ['Rinse Mix', '/rinse-mix/'], ['Used GPU Check', '/gpu-check/'], ['Tuner for YouTube', '/tuner/']])
+       [['Rinse Quote', '/rinse-quote/'], ['Rinse Mix', '/rinse-mix/'], ['Rinse Rate', '/rinse-rate/'], ['Used GPU Check', '/gpu-check/'], ['Tuner for YouTube', '/tuner/']])
     eq('404 ways home', pg.eval_on_selector_all('a[href="/"]', 'els => els.map(e => e.textContent.trim().replace(/\\s+/g, " "))'),
        ['Xysti Software', 'Back to the home page'])
     eq('404 mail link', pg.get_attribute('.mailto', 'href'), 'mailto:fireseabrook2566@gmail.com')
@@ -408,7 +423,7 @@ with sync_playwright() as p:
         eq('404 has no sideways scroll at %d' % w, (ok, bad), (True, []))
     pg.set_viewport_size({'width': 390, 'height': 844})
     pg.wait_for_timeout(100)
-    for i in range(4):
+    for i in range(5):
         hit = pg.evaluate('''(i) => {
           const row = document.querySelectorAll('.row')[i];
           const link = row.querySelector('h3 a');
@@ -418,7 +433,7 @@ with sync_playwright() as p:
           return pts.map(([x, y]) => { const e = document.elementFromPoint(x, y); return !!e && e.closest('a') === link; });
         }''', i)
         eq('404 row %d is one big tap target' % i, hit, [True, True, True, True])
-    small = pg.evaluate('''() => [...document.querySelectorAll('a')].filter(a => a.getClientRects().length).map(a => [a.textContent.trim(), Math.round(a.getBoundingClientRect().height)]).filter(x => x[1] < 40 && !x[0].match(/^(Rinse Quote|Rinse Mix|Used GPU Check|Tuner for YouTube)$/) || false)''')
+    small = pg.evaluate('''() => [...document.querySelectorAll('a')].filter(a => a.getClientRects().length).map(a => [a.textContent.trim(), Math.round(a.getBoundingClientRect().height)]).filter(x => x[1] < 40 && !x[0].match(/^(Rinse Quote|Rinse Mix|Rinse Rate|Used GPU Check|Tuner for YouTube)$/) || false)''')
     eq('404 header and footer links are at least 40px tall', small, [])
     row_h = pg.evaluate("Math.min(...[...document.querySelectorAll('.row')].map(r => r.getBoundingClientRect().height))")
     eq('404 rows are at least 80px tall', row_h >= 80, True)
@@ -426,12 +441,12 @@ with sync_playwright() as p:
 
     ctx, pg = new(DEEP, w=1200, h=900)
     order, rings = [], []
-    for _ in range(7):
+    for _ in range(8):
         pg.keyboard.press('Tab')
         order.append(pg.evaluate("document.activeElement.getAttribute('href')"))
         rings.append(pg.evaluate("(a => { const s = getComputedStyle(a); const t = getComputedStyle(a, '::after'); return s.outlineStyle === 'solid' || t.outlineStyle === 'solid'; })(document.activeElement)"))
-    eq('404 tab order', order, ['/', '/rinse-quote/', '/rinse-mix/', '/gpu-check/', '/tuner/', 'mailto:fireseabrook2566@gmail.com', '/'])
-    eq('404 every focused link shows a ring', rings, [True] * 7)
+    eq('404 tab order', order, ['/', '/rinse-quote/', '/rinse-mix/', '/rinse-rate/', '/gpu-check/', '/tuner/', 'mailto:fireseabrook2566@gmail.com', '/'])
+    eq('404 every focused link shows a ring', rings, [True] * 8)
     ctx.close()
 
     for scheme, ground in (('light', (229, 233, 235)), ('dark', (17, 23, 27))):

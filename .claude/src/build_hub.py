@@ -21,11 +21,11 @@ OUT = REPO / 'index.html'
 
 SITE_URL = 'https://sanjixysti-creator.github.io/'
 TITLE = 'Xysti Software: Small Free Tools for Specific Jobs'
-DESC = ('Free calculators, checkers and browser add-ons: pressure washing quotes, soft wash mixes, '
+DESC = ('Free calculators, checkers and browser add-ons: pressure washing quotes, mixes and job profit, '
         'used graphics card listing checks and a YouTube extension.')
-OG_DESC = 'Small free tools for specific jobs: pressure washing quotes, soft wash mixes, used GPU checks and a YouTube extension.'
+OG_DESC = 'Small free tools for specific jobs: pressure washing quotes, mixes and job profit, used GPU checks and a YouTube extension.'
 OG_ALT = ('Xysti Software, small free tools for specific jobs, with the icons of Rinse Quote, Rinse Mix, '
-          'Used GPU Check and Tuner for YouTube.')
+          'Rinse Rate, Used GPU Check and Tuner for YouTube.')
 BG_LIGHT = '#E5E9EB'
 BG_DARK = '#11171B'
 
@@ -76,6 +76,7 @@ def main():
               .replace('@@MARK@@', ic.mark_svg())
               .replace('@@TILE_RQ@@', ic.tile_svg(ic.RINSE_QUOTE))
               .replace('@@TILE_RM@@', ic.tile_svg(ic.RINSE_MIX))
+              .replace('@@TILE_RATE@@', ic.tile_svg(ic.RINSE_RATE))
               .replace('@@TILE_GPU@@', ic.tile_svg(ic.GPU_CHECK))
               .replace('@@TILE_TUNER@@', ic.tile_svg(ic.TUNER)))
     problems = []
@@ -85,8 +86,8 @@ def main():
         problems.append('dash character found')
     if not 61 <= len(DESC) <= 160:
         problems.append(f'description length {len(DESC)}')
-    if len(re.findall(r'<li class="row"', out)) != 4:
-        problems.append('expected four rows')
+    if len(re.findall(r'<li class="row"', out)) != 5:
+        problems.append('expected five rows')
     # Every internal link must exist in the site repo.
     for href in re.findall(r'href="([^"#:]+)"', out):
         if href.startswith(('data:', 'http')):

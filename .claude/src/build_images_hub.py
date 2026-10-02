@@ -17,6 +17,7 @@ FONTS = [('Big Shoulders Display', 'big-shoulders-display', 800), ('Public Sans'
 ROWS = [
     ('Rinse Quote', ic.RINSE_QUOTE),
     ('Rinse Mix', ic.RINSE_MIX),
+    ('Rinse Rate', ic.RINSE_RATE),
     ('Used GPU Check', ic.GPU_CHECK),
     ('Tuner for YouTube', ic.TUNER),
 ]

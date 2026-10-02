@@ -7,16 +7,18 @@ folder, so GitHub Pages does not publish it, but the repo is public: never put s
 ## What is here
 
 Tool pages (edit these, never the built index.html files):
-- rinse-quote.html, rinse-mix.html, gpu-check.html: one fragment per tool. Each is the whole app
-  (markup, CSS, JavaScript) with no head tags.
+- rinse-quote.html, rinse-mix.html, rinse-rate.html, gpu-check.html: one fragment per tool. Each is the
+  whole app (markup, CSS, JavaScript) with no head tags.
 
 Builders:
 - build_site.py: shared helpers (font embedding, base CSS) and the Rinse Quote build.
-- build_mix.py, build_gpu.py: Rinse Mix and Used GPU Check. Each wraps its fragment into a full page
-  with title, description, share tags, favicon, embedded fonts, and writes index.html plus
-  privacy.html to site/<tool>/. Each refuses to build if it finds a dash character or a broken link.
-- build_images.py, build_images_mix.py, build_images_gpu.py: draw og.png (1200x630) and
-  apple-touch-icon.png (180x180) for each tool into site/<tool>/.
+- build_mix.py, build_gpu.py, build_rate.py: Rinse Mix, Used GPU Check and Rinse Rate. Each wraps its
+  fragment into a full page with title, description, share tags, favicon, embedded fonts, and writes
+  index.html plus privacy.html to site/<tool>/. Each refuses to build if it finds a dash character or a
+  broken link.
+- build_images.py, build_images_mix.py, build_images_gpu.py, build_images_rate.py: draw og.png
+  (1200x630) and apple-touch-icon.png (180x180) for each tool into site/<tool>/. The Rinse Rate preview
+  contains a real screenshot of the built result card, so run build_rate.py before build_images_rate.py.
 - hub.src.html, hub_icons.py, build_hub.py, build_images_hub.py: the home page. These write straight
   into the site repo root (index.html, og.png, apple-touch-icon.png). Run build_images_hub.py first.
 - 404.src.html, build_404.py: the page GitHub Pages shows for an address that does not exist
@@ -25,13 +27,16 @@ Builders:
 - fonts_build/package.json and package-lock.json: the font packages that get subset and embedded.
 
 Tests:
-- rq_test.py, rm_test.py, gpu_test.py: full test suites for each tool (maths against independent
-  reference code, layout at many widths, contrast, tap sizes, keyboard, storage, share tags).
-- site_check.py: checks the home page, the /tuner/ page and the files that must never change.
-- tuner_check.py, iosfs_check.py, gpu_smoke.py, rm_states.py, hub_shots.py, gpu_shots2.py,
-  ticket_shot.py: smaller checks and screenshot helpers.
+- rq_test.py, rm_test.py, rate_test.py, gpu_test.py: full test suites for each tool (maths against
+  independent reference code, layout at many widths, contrast, tap sizes, keyboard, storage, share
+  tags). rate_test.py takes a couple of minutes.
+- site_check.py: checks the home page, the 404 page, the sitemap, the /tuner/ page and the files that
+  must never change.
+- tuner_check.py, iosfs_check.py, gpu_smoke.py, rate_smoke.py, rm_states.py, hub_shots.py,
+  gpu_shots2.py, shots_rate.py, ticket_shot.py: smaller checks and screenshot helpers.
 - live_smoke.py, live_smoke2.py, live_smoke3.py: run against the live site after a push. They compare
-  what GitHub serves with the local files, byte for byte.
+  what GitHub serves with the local files, byte for byte. live_smoke3.py is the current one: it covers
+  the home page, all five pages, the hidden folder and the not-found page. Older ones are kept for history.
 
 ## Restore and rebuild
 
@@ -50,8 +55,11 @@ Build one tool (output lands in ~/work/site/<tool>/):
     python3 build_site.py  && python3 build_images.py        # Rinse Quote
     python3 build_mix.py   && python3 build_images_mix.py    # Rinse Mix
     python3 build_gpu.py   && python3 build_images_gpu.py    # Used GPU Check
+    python3 build_rate.py  && python3 build_images_rate.py   # Rinse Rate
 
-Build the home page, the not-found page, the sitemap and robots.txt (these write into $SITE_REPO):
+Build the home page, the not-found page, the sitemap and robots.txt (these write into $SITE_REPO).
+The tool folders must already be in the repo first, because these builders check that every link
+exists:
 
     python3 build_images_hub.py && python3 build_hub.py
     python3 build_404.py
@@ -68,9 +76,13 @@ so a rebuilt page may differ from the live one by a few bytes while looking iden
     RQ_STANDALONE=$PWD/site/rinse-quote/index.html python3 rq_test.py     # the built page
     RM_STANDALONE=$PWD/site/rinse-mix/index.html   python3 rm_test.py
     GPU_STANDALONE=$PWD/site/gpu-check/index.html  python3 gpu_test.py
-    python3 site_check.py                   # home page, /tuner/, untouched files (reads $SITE_REPO)
+    python3 rate_test.py                    # Rinse Rate fragment
+    RATE_STANDALONE=$PWD/site/rinse-rate/index.html python3 rate_test.py
+    python3 site_check.py                   # home page, 404, sitemap, /tuner/, untouched files (reads $SITE_REPO)
 
 Every script prints failures and ends with a pass count. Zero failures is the bar before a push.
+Run the built-page versions (the *_STANDALONE ones) for the final word: the fragment runs block the
+Google font requests, so text-fit checks are only meaningful on the built page with embedded fonts.
 
 ## Ship a change
 
@@ -78,18 +90,28 @@ Every script prints failures and ends with a pass count. Zero failures is the ba
 2. Copy site/<tool>/index.html, privacy.html, og.png and apple-touch-icon.png into the repo's tool
    folder. The home page builders already write into the repo.
 3. Run site_check.py, look at screenshots in light and dark at phone and desktop width, then commit and push.
-4. Wait for Pages (up to a couple of minutes), then run live_smoke2.py and live_smoke3.py.
+4. Wait for Pages (up to a couple of minutes), then run live_smoke3.py.
 5. Copy any changed source files back into this folder and commit them with the change.
 
 ## Add a new tool
 
-Build its fragment, builders and tests the way the three existing ones are done, then wire it in:
+Build its fragment, builders and tests the way the existing ones are done (Rinse Rate is the newest
+example), then wire it in:
 1. hub_icons.py: add its tile art. hub.src.html: add a row (keep the order you want).
 2. build_hub.py: update the expected row count. build_images_hub.py: add it to ROWS.
 3. 404.src.html: add a row with root-absolute links (build_404.py checks the row count too).
-4. build_sitemap.py: add it to PAGES. site_check.py: add it to TITLES and the row checks.
-5. Rebuild the hub, the 404 page and the sitemap, run site_check.py, then commit and push.
+4. build_sitemap.py: add it to PAGES. site_check.py: add it to TITLES and the row checks (row counts,
+   tab order, privacy links). live_smoke3.py: add it to the lists there too.
+5. Copy the built tool folder into the repo first, then rebuild the hub, the 404 page and the sitemap,
+   run site_check.py, then commit and push.
 Also add its privacy page to the footer list on the hub and update .claude/CLAUDE.md.
+
+## Yearly upkeep
+
+- Rinse Rate starts its per mile cost from the IRS business mileage rate (72.5 cents for 2026). It is
+  the IRS_PER_MILE value near the top of the script in rinse-rate.html, and the sentence under the
+  mileage field names the rate and the year. Each January look up the new rate, change both, rebuild,
+  run rate_test.py on the built page, and ship. The page's UPDATED date in build_rate.py moves with it.
 
 ## Things that are not stored here on purpose
 

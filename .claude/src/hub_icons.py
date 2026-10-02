@@ -1,7 +1,8 @@
 """Icon art shared by the hub page, its share image and its home screen icon.
 
-The three web tools reuse the exact art from their own favicons so the hub shows the same tiles people
-see in their browser tabs. Tuner's tile follows the three-bar mark on its page.
+The four web tools reuse the exact art from their own favicons so the hub shows the same tiles people
+see in their browser tabs (site_check.py compares the Rinse Rate tile with that page's favicon).
+Tuner's tile follows the three-bar mark on its page.
 All art lives in a 40 x 40 box with a rounded square ground.
 """
 
@@ -25,6 +26,15 @@ RINSE_MIX = (
     '<g transform="translate(4 4) scale(.8)">'
     '<path d="M20 3.5C20 3.5 7.5 17.8 7.5 26a12.5 12.5 0 0 0 25 0C32.5 17.8 20 3.5 20 3.5Z" fill="#fff"/>'
     '<path d="M10 26q2.5-3.4 5 0t5 0 5 0 5 0" fill="none" stroke="#0A7A72" stroke-width="2.6" stroke-linecap="round"/></g>',
+)
+
+# A dial: half circle, needle and hub. Same markup as MARK_ON_ORANGE in build_rate.py (the favicon).
+RINSE_RATE = (
+    '#C2410C',
+    '<g transform="translate(2 .4) scale(.9)">'
+    '<path d="M6 28a14 14 0 0 1 28 0" fill="none" stroke="#fff" stroke-width="4.4" stroke-linecap="round"/>'
+    '<path d="M20 28L27.5 15.5" fill="none" stroke="#FFD9BF" stroke-width="3.4" stroke-linecap="round"/>'
+    '<circle cx="20" cy="28" r="3.8" fill="#fff"/></g>',
 )
 
 GPU_CHECK = (

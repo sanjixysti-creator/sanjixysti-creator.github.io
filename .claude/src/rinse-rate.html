@@ -1,0 +1,1337 @@
+<title>Rinse Rate</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Layout concept: a pay check for one pressure washing job. Inputs come first, then a gauge that shows what the job really paid per hour against your goal, with the line by line math under it. On a phone the three headline numbers stay pinned to the bottom edge while you edit. On a wide screen the result sits in a card that follows you down the page. */
+:root {
+  --bg: #F1ECE5;
+  --surface: #FFFFFF;
+  --inset: #F7F3EE;
+  --ink: #2A1A10;
+  --muted: #65503F;
+  --line: #DCCFC1;
+  --line-strong: #A48F7C;
+  --accent: #C2410C;
+  --on-accent: #FFFFFF;
+  --accent-soft: #FBE4D5;
+  --good: #17703F;
+  --warn: #7F5200;
+  --warn-soft: #FBEBC8;
+  --bad: #B3261E;
+  --bad-soft: #FADAD7;
+  --shadow-up: 0 -6px 20px rgb(42 26 16 / 0.10);
+  --shadow-pop: 0 8px 24px rgb(42 26 16 / 0.22);
+  --font-display: 'Big Shoulders Display', 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  --font-body: 'Public Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #17110C;
+    --surface: #211812;
+    --inset: #1B140F;
+    --ink: #F5EBE1;
+    --muted: #BBA796;
+    --line: #3D3025;
+    --line-strong: #6E5B49;
+    --accent: #FF9248;
+    --on-accent: #2B1100;
+    --accent-soft: #3D2412;
+    --good: #6FD69A;
+    --warn: #F2BC4B;
+    --warn-soft: #3F2F0B;
+    --bad: #FF8F86;
+    --bad-soft: #451B18;
+    --shadow-up: 0 -1px 0 rgb(0 0 0 / 0.35);
+    --shadow-pop: 0 8px 24px rgb(0 0 0 / 0.5);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #17110C;
+  --surface: #211812;
+  --inset: #1B140F;
+  --ink: #F5EBE1;
+  --muted: #BBA796;
+  --line: #3D3025;
+  --line-strong: #6E5B49;
+  --accent: #FF9248;
+  --on-accent: #2B1100;
+  --accent-soft: #3D2412;
+  --good: #6FD69A;
+  --warn: #F2BC4B;
+  --warn-soft: #3F2F0B;
+  --bad: #FF8F86;
+  --bad-soft: #451B18;
+  --shadow-up: 0 -1px 0 rgb(0 0 0 / 0.35);
+  --shadow-pop: 0 8px 24px rgb(0 0 0 / 0.5);
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font: 400 16px/1.45 var(--font-body);
+  padding-inline: 16px;
+  padding-block: 16px 108px;
+  -webkit-font-smoothing: antialiased;
+}
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: not-allowed; opacity: 0.45; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+h1, h2, h3, p, ul, dl { margin: 0; }
+.sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0; }
+
+.app { max-width: 1040px; margin-inline: auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+.layout {
+  display: grid; gap: 16px; min-width: 0;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "inputs" "results" "more";
+}
+.inputs { grid-area: inputs; }
+.results { grid-area: results; }
+.more { grid-area: more; }
+.inputs, .more, .results { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; min-width: 0; align-content: start; }
+
+/* Masthead */
+.head { display: grid; gap: 8px; }
+.masthead { display: flex; align-items: center; gap: 12px; }
+.mark { width: 40px; height: 40px; flex: none; }
+.mark .mk-arc { stroke: var(--accent); }
+.mark .mk-needle { stroke: var(--ink); }
+.mark .mk-hub { fill: var(--ink); }
+.masthead h1 { flex: 1; min-width: 0; font: 800 30px/1 var(--font-display); letter-spacing: 0.02em; text-transform: uppercase; }
+.tagline { color: var(--muted); font-size: 14px; text-wrap: balance; max-width: 62ch; }
+
+/* Sections */
+.sec { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; min-width: 0; }
+.sec-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 2px 12px; }
+.sec-head h2, .h2 { font: 700 20px/1.1 var(--font-display); letter-spacing: 0.06em; text-transform: uppercase; text-wrap: balance; }
+.hint { color: var(--muted); font-size: 13px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; min-width: 0; }
+.fine { color: var(--muted); font-size: 13px; }
+.foot { color: var(--muted); font-size: 13px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; max-width: 64ch; }
+.foot a { color: var(--ink); font-weight: 600; text-underline-offset: 3px; }
+.mail { overflow-wrap: anywhere; user-select: all; -webkit-user-select: all; color: var(--ink); font-weight: 600; }
+.linkish { background: none; border: 0; padding: 0; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; text-align: left; }
+.empty { padding: 18px 14px; border: 1.5px dashed var(--line-strong); border-radius: 12px; color: var(--muted); text-align: center; font-size: 14px; }
+
+/* Controls */
+.lab { display: block; font: 600 12px/1.1 var(--font-body); letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); }
+.field { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; min-width: 0; align-content: start; }
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-items: end; }
+.ctl { width: 100%; min-width: 0; height: 48px; padding: 0 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--inset); color: var(--ink); }
+.ctl::placeholder { color: var(--muted); opacity: 0.85; }
+.affix { display: flex; align-items: center; height: 48px; min-width: 0; border: 1px solid var(--line); border-radius: 8px; background: var(--inset); overflow: hidden; }
+.affix:focus-within { outline: 2px solid var(--accent); outline-offset: 1px; }
+.affix input { flex: 1; min-width: 0; width: 100%; height: 100%; border: 0; background: transparent; padding: 0 8px 0 12px; outline: 0; font-variant-numeric: tabular-nums; }
+.affix input::placeholder { color: var(--muted); opacity: 0.85; }
+.affix .pre, .affix .suf { color: var(--muted); font-size: 14px; white-space: nowrap; }
+.affix .pre { padding-left: 12px; }
+.affix .pre + input { padding-left: 4px; }
+.affix .suf { padding-right: 12px; }
+
+.chips { display: flex; gap: 6px; min-width: 0; }
+.chip { flex: 1 1 0; min-width: 0; height: 44px; padding: 0 4px; border: 1px solid var(--line); border-radius: 8px; background: var(--inset); font-size: 14px; font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 52px; padding: 0 20px; border-radius: 10px; border: 1px solid transparent; background: var(--accent); color: var(--on-accent); font-weight: 700; font-size: 16px; letter-spacing: 0.01em; text-decoration: none; }
+.btn:hover:not(:disabled) { filter: brightness(1.07); }
+.btn:active:not(:disabled) { transform: translateY(1px); }
+.btn.ghost { background: transparent; border-color: var(--line-strong); color: var(--ink); }
+.btn.sm { min-height: 40px; padding: 0 14px; font-size: 14px; }
+.btn-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.btn-row .btn { padding: 0 12px; }
+.code-form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; }
+
+/* Alerts */
+.alert { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; justify-items: start; padding: 12px 14px; border-radius: 10px; border: 1px solid transparent; font-size: 14px; line-height: 1.4; }
+.alert.info { background: var(--accent-soft); }
+.alert.warn { background: var(--warn-soft); border-color: var(--warn); }
+.alert.bad { background: var(--bad-soft); border-color: var(--bad); }
+
+/* Result card: the gauge, the reading inside it, then the verdict and the price that would hit the goal */
+.pay-card { gap: 14px; }
+.meter { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); width: 100%; max-width: 360px; margin-inline: auto; padding-top: 24px; }
+.gauge { --g: var(--line-strong); grid-area: 1 / 1; min-width: 0; }
+.gauge[data-state="good"] { --g: var(--good); }
+.gauge[data-state="warn"] { --g: var(--warn); }
+.gauge[data-state="bad"] { --g: var(--bad); }
+.gauge[data-state="accent"] { --g: var(--accent); }
+.gauge svg { display: block; width: 100%; height: auto; overflow: visible; }
+.g-track { fill: none; stroke: var(--line); stroke-width: 16; stroke-linecap: round; }
+.g-fill { fill: none; stroke: var(--g); stroke-width: 16; stroke-linecap: round; }
+.g-tick { stroke: var(--ink); stroke-width: 3; stroke-linecap: round; }
+.g-dot { fill: var(--surface); stroke: var(--g); stroke-width: 5; }
+.g-goal { position: absolute; top: 2px; left: 50%; transform: translateX(-50%); font-size: 12px; font-weight: 600; line-height: 1.2; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.reading { grid-area: 1 / 1; align-self: end; justify-self: center; display: grid; justify-items: center; gap: 2px; padding-bottom: 7%; max-width: 76%; text-align: center; }
+.r-num { font: 800 clamp(34px, 11.5vw, 52px)/1 var(--font-display); letter-spacing: 0.005em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.r-num.long { font-size: clamp(26px, 8.5vw, 38px); }
+.r-num.longer { font-size: clamp(20px, 6.5vw, 28px); }
+.r-unit { font-size: 13px; font-weight: 600; color: var(--muted); letter-spacing: 0.02em; }
+.g-scale { position: relative; height: 20px; margin-top: 2px; font-size: 12px; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; }
+.g-scale span { position: absolute; top: 0; transform: translateX(-50%); white-space: nowrap; }
+.g-min { left: 10%; }
+.g-max { left: 90%; }
+.verdict { text-align: center; font-weight: 600; text-wrap: balance; }
+.need { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; justify-items: start; padding: 12px 14px; border-radius: 10px; background: var(--accent-soft); font-size: 15px; line-height: 1.4; }
+.need strong { font-weight: 700; }
+.need .fine { color: var(--ink); opacity: 0.8; }
+
+/* The line by line stub */
+.stub { display: grid; grid-template-columns: minmax(0, 1fr); font: 400 14px/1.35 var(--font-mono); padding-top: 4px; border-top: 1px solid var(--line); }
+.srow { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 12px; align-items: baseline; padding: 6px 0; }
+.srow dt { display: flex; align-items: baseline; gap: 8px; min-width: 0; color: var(--muted); }
+.srow dt::after { content: ""; flex: 1 1 12px; min-width: 12px; border-bottom: 1.5px dotted var(--line-strong); transform: translateY(-3px); }
+.srow dd { margin: 0; text-align: right; font-weight: 500; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.srow.total { margin-top: 6px; padding-top: 10px; border-top: 2px solid var(--ink); }
+.srow.total dt { color: var(--ink); font-weight: 500; }
+.srow.total dd { font-size: 16px; font-weight: 500; }
+.srow.sub dt { color: var(--muted); }
+.hours-note { color: var(--muted); font-size: 13px; }
+.save-form { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+
+/* What-if tables */
+.chart-wrap { overflow-x: auto; }
+.wi { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.wi th, .wi td { padding: 0 4px; height: 52px; text-align: right; border-top: 1px solid var(--line); white-space: nowrap; font-weight: 400; }
+.wi thead th { height: auto; padding-bottom: 8px; border-top: 0; font: 600 12px/1.1 var(--font-body); letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); }
+.wi thead th:first-child, .wi tbody th { text-align: left; }
+.wi tbody th { font-weight: 700; white-space: normal; }
+.wi .sub { display: block; font-size: 12px; font-weight: 400; color: var(--muted); line-height: 1.2; }
+.wi .pick { display: block; width: 100%; height: 52px; padding: 0 4px; border: 0; background: transparent; text-align: left; font-weight: 700; line-height: 1.15; }
+.wi .pick .sub { margin-top: 2px; }
+.wi tr.is-now > * { background: var(--accent-soft); font-weight: 700; }
+.wi tr.is-now .sub { color: var(--ink); font-weight: 400; }
+
+/* Month planner */
+.ledger { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; padding-top: 14px; border-top: 1px solid var(--line); }
+.ledger > div { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.ledger dt { color: var(--muted); font-size: 14px; }
+.ledger dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; }
+.ledger .total dt { color: var(--ink); font-weight: 600; }
+
+/* Saved jobs */
+.saved-list { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+.saved { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--inset); min-width: 0; }
+.sv-name { overflow-wrap: anywhere; }
+.sv-sum { font-size: 14px; overflow-wrap: anywhere; }
+.sv-out { color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
+.row-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.sv-total { font-size: 14px; font-weight: 600; }
+
+/* Details blocks */
+details.rates { display: block; }
+.rates summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; cursor: pointer; list-style: none; }
+.rates summary::-webkit-details-marker { display: none; }
+.rates summary .hint { display: flex; align-items: center; gap: 8px; }
+.rates summary .hint::after { content: ""; width: 8px; height: 8px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: translateY(-2px) rotate(45deg); }
+.rates[open] summary .hint::after { transform: translateY(2px) rotate(-135deg); }
+.rates-body { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; margin-top: 12px; padding-top: 14px; border-top: 1px solid var(--line); }
+.mline { font: 400 13px/1.5 var(--font-mono); overflow-wrap: anywhere; }
+.faq { gap: 0; padding-block: 6px; }
+.faq details { border-top: 1px solid var(--line); }
+.faq details:first-child { border-top: 0; }
+.faq summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; padding: 6px 0; font-weight: 600; line-height: 1.3; cursor: pointer; list-style: none; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: ""; flex: none; width: 8px; height: 8px; border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: translateY(-2px) rotate(45deg); }
+.faq details[open] summary::after { transform: translateY(2px) rotate(-135deg); }
+.faq p { font-size: 15px; line-height: 1.5; padding: 0 0 14px; max-width: 62ch; }
+
+/* Pinned numbers (phone), copy sheet and toast */
+.bar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px)); background: var(--surface); border-top: 1px solid var(--line-strong); box-shadow: var(--shadow-up); }
+.b-cell { min-width: 0; display: grid; gap: 3px; }
+.b-lab { font-size: 11px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.b-amt { height: 30px; font: 800 30px/30px var(--font-display); font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.b-amt.sm { font-size: 24px; }
+.b-amt.xs { font-size: 19px; }
+.sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; max-width: 640px; margin-inline: auto; padding: 16px 16px calc(16px + env(safe-area-inset-bottom, 0px)); background: var(--surface); border-top: 1px solid var(--line-strong); box-shadow: var(--shadow-up); }
+textarea.ctl { height: auto; padding: 12px; font: 400 16px/1.45 var(--font-mono); resize: vertical; }
+.toast { position: fixed; left: 50%; bottom: calc(92px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 50; max-width: calc(100% - 32px); padding: 10px 16px; border-radius: 999px; background: var(--ink); color: var(--surface); font-size: 14px; font-weight: 600; text-align: center; box-shadow: var(--shadow-pop); }
+
+@media (min-width: 900px) {
+  body { padding-block: 24px 40px; }
+  .layout { grid-template-columns: minmax(0, 1fr) 400px; grid-template-areas: "inputs results" "more results"; column-gap: 28px; align-items: start; }
+  .results { position: sticky; top: 16px; max-height: calc(100vh - 32px); overflow-y: auto; padding-bottom: 8px; }
+  .bar { display: none; }
+  .toast { bottom: 24px; }
+}
+/* Six job-length chips would be under 40px wide on a small phone, so they sit in two rows of three. */
+@media (max-width: 359px) {
+  #hoursChips { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 350px) {
+  .masthead h1 { font-size: 26px; }
+  .b-amt { height: 26px; font-size: 26px; line-height: 26px; }
+  .b-amt.sm { font-size: 21px; }
+  .b-amt.xs { font-size: 17px; }
+  .b-lab { font-size: 10px; letter-spacing: 0.04em; }
+  .chip { font-size: 13px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .btn, .chip { transition: background-color 0.12s, border-color 0.12s, filter 0.12s; }
+  .g-fill, .g-dot { transition: stroke 0.15s; }
+}
+</style>
+
+<div class="app">
+  <div class="head">
+    <header class="masthead">
+      <svg class="mark" viewBox="0 0 40 40" aria-hidden="true" focusable="false">
+        <path class="mk-arc" d="M6 28a14 14 0 0 1 28 0" fill="none" stroke-width="4.4" stroke-linecap="round"/>
+        <path class="mk-needle" d="M20 28L27.5 15.5" fill="none" stroke-width="3.4" stroke-linecap="round"/>
+        <circle class="mk-hub" cx="20" cy="28" r="3.8"/>
+      </svg>
+      <h1>Rinse Rate</h1>
+    </header>
+    <p class="tagline">Pressure washing job profit calculator: see what a job really paid per hour, and what to charge to hit your goal.</p>
+  </div>
+
+  <div class="layout">
+    <div class="inputs">
+      <section class="sec" aria-labelledby="h-job">
+        <div class="sec-head"><h2 id="h-job">This job</h2><span class="hint">What you charge and what it takes</span></div>
+        <div class="panel">
+          <div class="alert info" id="exampleNote" hidden>
+            <p>This is an example job. Change the numbers to match yours, or start with a blank job.</p>
+            <button type="button" class="btn sm" id="exampleClear">Start blank</button>
+          </div>
+          <div class="field">
+            <label class="lab" for="price">What you charge</label>
+            <div class="affix"><span class="pre">$</span><input id="price" type="text" inputmode="decimal" autocomplete="off" placeholder="0" aria-describedby="priceHint"></div>
+            <p class="fine" id="priceHint">The price before sales tax.</p>
+          </div>
+          <div class="field">
+            <label class="lab" for="onsite">Hours on site</label>
+            <div class="chips" id="hoursChips" role="group" aria-label="Common job lengths"></div>
+            <div class="affix"><input id="onsite" type="text" inputmode="decimal" autocomplete="off" placeholder="0" aria-describedby="onsiteHint"><span class="suf">hours</span></div>
+            <p class="fine" id="onsiteHint">Type 2.5 or 2:30. Count the time you are working at the property.</p>
+          </div>
+          <div class="field">
+            <label class="lab" for="crew">People on the job</label>
+            <div class="chips" id="crewChips" role="group" aria-label="Common crew sizes"></div>
+            <div class="affix"><input id="crew" type="text" inputmode="numeric" autocomplete="off" placeholder="1"><span class="suf">including you</span></div>
+          </div>
+          <div class="grid2">
+            <div class="field"><label class="lab" for="driveMin">Drive time</label><div class="affix"><input id="driveMin" type="text" inputmode="decimal" autocomplete="off" placeholder="0" aria-describedby="tripHint"><span class="suf">min</span></div></div>
+            <div class="field"><label class="lab" for="miles">Distance</label><div class="affix"><input id="miles" type="text" inputmode="decimal" autocomplete="off" placeholder="0" aria-describedby="tripHint"><span class="suf">miles</span></div></div>
+          </div>
+          <p class="fine" id="tripHint">Both are for the whole round trip.</p>
+          <div class="grid2">
+            <div class="field"><label class="lab" for="setupMin">Setup and cleanup</label><div class="affix"><input id="setupMin" type="text" inputmode="decimal" autocomplete="off" placeholder="0"><span class="suf">min</span></div></div>
+            <div class="field"><label class="lab" for="chem">Chemicals and supplies</label><div class="affix"><span class="pre">$</span><input id="chem" type="text" inputmode="decimal" autocomplete="off" placeholder="0"></div></div>
+          </div>
+          <div class="field">
+            <label class="lab" for="other">Other costs</label>
+            <div class="affix"><span class="pre">$</span><input id="other" type="text" inputmode="decimal" autocomplete="off" placeholder="0" aria-describedby="otherHint"></div>
+            <p class="fine" id="otherHint">Dump fees, rentals, a subcontractor, anything else this job cost.</p>
+          </div>
+          <button type="button" class="btn ghost sm" id="clearBtn">Clear this job</button>
+        </div>
+      </section>
+
+      <section class="sec" aria-labelledby="h-goal">
+        <div class="sec-head"><h2 id="h-goal">Your goal</h2><span class="hint">What an hour of your time should pay</span></div>
+        <div class="panel">
+          <div class="field">
+            <label class="lab" for="goal">Pay you want per hour</label>
+            <div class="chips" id="goalChips" role="group" aria-label="Common hourly goals"></div>
+            <div class="affix"><span class="pre">$</span><input id="goal" type="text" inputmode="decimal" autocomplete="off" placeholder="0" aria-describedby="goalHint"><span class="suf">per hour</span></div>
+            <p class="fine" id="goalHint">Rinse Rate works out the price that earns you this on the job. Enter 0 to skip it.</p>
+          </div>
+        </div>
+      </section>
+
+      <details class="panel rates" id="usualBox">
+        <summary><span class="h2">Your usual numbers</span><span class="hint">Mileage, wear, helpers, fees</span></summary>
+        <div class="rates-body">
+          <p class="fine">These rarely change from job to job, so they stay put when you clear a job.</p>
+          <div class="grid2">
+            <div class="field"><label class="lab" for="perMile">Cost per mile</label><div class="affix"><span class="pre">$</span><input id="perMile" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00" aria-describedby="mileHint"></div></div>
+            <div class="field"><label class="lab" for="wearH">Machine wear per hour</label><div class="affix"><span class="pre">$</span><input id="wearH" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00" aria-describedby="wearHint"></div></div>
+          </div>
+          <p class="fine" id="mileHint">Many owners start from the IRS business rate, which is 72.5 cents a mile for 2026 and changes every year.</p>
+          <p class="fine" id="wearHint">Machine wear is counted for the hours on site. It covers fuel for the machine, pump kits, hoses and nozzles.</p>
+          <div class="grid2">
+            <div class="field"><label class="lab" for="helperPay">Helper pay per hour</label><div class="affix"><span class="pre">$</span><input id="helperPay" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00" aria-describedby="helperHint"></div></div>
+            <div class="field"><label class="lab" for="overheadPct">Overhead</label><div class="affix"><input id="overheadPct" type="text" inputmode="decimal" autocomplete="off" placeholder="0" aria-describedby="overHint"><span class="suf">%</span></div></div>
+          </div>
+          <p class="fine" id="helperHint">Pay for each person besides you. Add payroll tax and insurance if they are employees.</p>
+          <p class="fine" id="overHint">Insurance, software, ads, phone and accounting, as a share of what you charge.</p>
+          <div class="field">
+            <span class="lab" id="feeLab">Payment fee</span>
+            <div class="chips" id="feeChips" role="group" aria-labelledby="feeLab"></div>
+          </div>
+          <div class="grid2">
+            <div class="field"><label class="lab" for="feePct">Fee percent</label><div class="affix"><input id="feePct" type="text" inputmode="decimal" autocomplete="off" placeholder="0"><span class="suf">%</span></div></div>
+            <div class="field"><label class="lab" for="feeFixed">Fee per payment</label><div class="affix"><span class="pre">$</span><input id="feeFixed" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00"></div></div>
+          </div>
+          <p class="fine">Cash and checks cost nothing. Check your card processor for its current rates.</p>
+          <button type="button" class="btn ghost sm" id="usualResetBtn">Reset my usual numbers</button>
+        </div>
+      </details>
+    </div>
+
+    <aside class="results" aria-labelledby="h-pay">
+      <div class="panel pay-card" id="payCard">
+        <div class="sec-head"><h2 id="h-pay">Job pay</h2><span class="hint" id="paySub"></span></div>
+        <div class="alert" id="payAlert" role="status" hidden></div>
+        <div class="meter" id="meter">
+          <div class="gauge" id="gauge" data-state="none" aria-hidden="true">
+            <svg viewBox="0 0 240 132" focusable="false">
+              <path class="g-track" d="M24 120A96 96 0 0 1 216 120"/>
+              <path class="g-fill" id="gFill" d="M24 120A96 96 0 0 1 24 120" style="opacity:0"/>
+              <line class="g-tick" id="gTick" x1="120" y1="11" x2="120" y2="37"/>
+              <circle class="g-dot" id="gDot" cx="24" cy="120" r="9"/>
+            </svg>
+          </div>
+          <span class="g-goal" id="gGoal" aria-hidden="true"></span>
+          <div class="reading">
+            <span class="r-num" id="payNum">-</span>
+            <span class="r-unit">per hour</span>
+          </div>
+          <div class="g-scale" aria-hidden="true"><span class="g-min">$0</span><span class="g-max" id="gMax">$100</span></div>
+        </div>
+        <p class="verdict" id="verdict"></p>
+        <div class="need" id="needBox" hidden>
+          <p id="needText"></p>
+          <button type="button" class="btn sm" id="needBtn">Use this price</button>
+          <p class="fine" id="needFine"></p>
+        </div>
+        <dl class="stub" id="stub">
+          <div class="srow" id="rowPrice"><dt>Price you charge</dt><dd id="vPrice">-</dd></div>
+          <div class="srow" id="rowFee"><dt id="lFee">Payment fee</dt><dd id="vFee">-</dd></div>
+          <div class="srow" id="rowOverhead"><dt id="lOverhead">Overhead</dt><dd id="vOverhead">-</dd></div>
+          <div class="srow" id="rowChem"><dt>Chemicals and supplies</dt><dd id="vChem">-</dd></div>
+          <div class="srow" id="rowVehicle"><dt id="lVehicle">Vehicle</dt><dd id="vVehicle">-</dd></div>
+          <div class="srow" id="rowWear"><dt id="lWear">Machine wear</dt><dd id="vWear">-</dd></div>
+          <div class="srow" id="rowHelpers"><dt id="lHelpers">Helper pay</dt><dd id="vHelpers">-</dd></div>
+          <div class="srow" id="rowOther"><dt>Other costs</dt><dd id="vOther">-</dd></div>
+          <div class="srow total" id="rowProfit"><dt>Profit</dt><dd id="vProfit">-</dd></div>
+          <div class="srow sub" id="rowMargin"><dt>Profit margin</dt><dd id="vMargin">-</dd></div>
+          <div class="srow sub" id="rowHours"><dt>Hours you worked</dt><dd id="vHours">-</dd></div>
+        </dl>
+        <p class="hours-note" id="hoursNote"></p>
+        <div class="btn-row">
+          <button type="button" class="btn" id="copyBtn">Copy summary</button>
+          <button type="button" class="btn ghost" id="saveBtn">Save job</button>
+        </div>
+        <form class="save-form" id="saveForm" hidden>
+          <label class="lab" for="saveName">Name this job</label>
+          <div class="code-form">
+            <input class="ctl" id="saveName" type="text" maxlength="60" autocomplete="off" placeholder="For example: Miller driveway">
+            <button type="submit" class="btn">Save</button>
+          </div>
+        </form>
+      </div>
+    </aside>
+
+    <div class="more">
+      <section class="sec" aria-labelledby="h-long">
+        <div class="sec-head"><h2 id="h-long">If the job runs long</h2><span class="hint">Same price, more hours</span></div>
+        <div class="panel">
+          <div class="chart-wrap" id="longWrap">
+            <table class="wi">
+              <caption class="sr-only">What the job pays if it takes longer than planned</caption>
+              <thead><tr><th scope="col">Job takes</th><th scope="col">Profit</th><th scope="col">Per hour</th></tr></thead>
+              <tbody id="longBody"></tbody>
+            </table>
+          </div>
+          <p class="empty" id="longEmpty" hidden>Enter a price and the hours on site to see this.</p>
+        </div>
+      </section>
+
+      <section class="sec" aria-labelledby="h-price">
+        <div class="sec-head"><h2 id="h-price">If you change the price</h2><span class="hint" id="priceTableHint">Tap a price to use it</span></div>
+        <div class="panel">
+          <div class="chart-wrap" id="priceWrap">
+            <table class="wi">
+              <caption class="sr-only">What the job pays at different prices</caption>
+              <thead><tr><th scope="col">Price</th><th scope="col">Profit</th><th scope="col">Per hour</th></tr></thead>
+              <tbody id="priceBody"></tbody>
+            </table>
+          </div>
+          <p class="empty" id="priceEmpty" hidden>Enter a price and the hours on site to see this.</p>
+        </div>
+      </section>
+
+      <section class="sec" aria-labelledby="h-plan">
+        <div class="sec-head"><h2 id="h-plan">Your month</h2><span class="hint">If every job looked like this one</span></div>
+        <div class="panel">
+          <div class="grid2">
+            <div class="field"><label class="lab" for="jobsWeek">Jobs per week</label><div class="affix"><input id="jobsWeek" type="text" inputmode="numeric" autocomplete="off" placeholder="0"></div></div>
+            <div class="field"><label class="lab" for="weeksYear">Weeks per year</label><div class="affix"><input id="weeksYear" type="text" inputmode="numeric" autocomplete="off" placeholder="0"></div></div>
+          </div>
+          <dl class="ledger" id="planLedger">
+            <div><dt>Profit per week</dt><dd id="pWeek">-</dd></div>
+            <div><dt>Hours per week</dt><dd id="pHours">-</dd></div>
+            <div><dt>Profit per month</dt><dd id="pMonth">-</dd></div>
+            <div class="total"><dt>Profit per year</dt><dd id="pYear">-</dd></div>
+          </dl>
+          <p class="fine" id="planNote">This is before income tax and self employment tax, and it assumes you can book that many jobs like this one.</p>
+        </div>
+      </section>
+
+      <section class="sec" aria-labelledby="h-saved">
+        <div class="sec-head"><h2 id="h-saved">Saved jobs</h2><span class="hint">Kept on this device</span></div>
+        <div class="panel">
+          <p class="sv-total" id="savedTotal" hidden></p>
+          <div class="saved-list" id="savedList"></div>
+        </div>
+      </section>
+
+      <section class="sec" aria-labelledby="h-faq">
+        <div class="sec-head"><h2 id="h-faq">Common questions</h2></div>
+        <div class="panel faq" id="faq">
+          <details>
+            <summary>How do I work out what a pressure washing job paid per hour?</summary>
+            <p>Take what you charged and subtract everything the job cost you: chemicals, fuel and wear on the truck and machine, helpers' pay, payment fees and your share of overhead. What is left is your profit. Divide it by every hour you spent, including driving and setup, and you have your real hourly pay.</p>
+          </details>
+          <details>
+            <summary>Which costs should I count?</summary>
+            <p>Count anything you would not have spent without this job: chemicals and supplies, the miles you drive, wear on your machine, pay for helpers, card fees, dump fees and rentals. Then add overhead, which is the cost of running the business: insurance, software, ads, phone and accounting.</p>
+          </details>
+          <details>
+            <summary>How do I find my overhead percent?</summary>
+            <p>Add up what the business costs to run in a year, such as insurance, software, advertising, phone, accounting and storage. Divide that by your yearly sales. The result is the share of every job's price that goes to overhead.</p>
+          </details>
+          <details>
+            <summary>Should I count drive time and setup?</summary>
+            <p>Yes. You are on the clock for them even when nobody pays for them separately, and they are easy to forget. Leaving them out makes far away jobs and jobs with a long setup look better than they are.</p>
+          </details>
+          <details>
+            <summary>What pay per hour should I aim for?</summary>
+            <p>That is your call. It depends on your market, your costs and what you need to take home. Pick a number, enter it as your goal, and Rinse Rate works out the price that gets you there. Remember that what you earn here comes before income tax and self employment tax.</p>
+          </details>
+          <details>
+            <summary>Why is the price for my goal higher than my costs plus my pay?</summary>
+            <p>Card fees and overhead take a share of whatever you charge, so each extra dollar of price only keeps part of itself. Rinse Rate allows for that, along with the helper pay and machine wear that grow with the hours.</p>
+          </details>
+          <details>
+            <summary>Does Rinse Rate save my numbers?</summary>
+            <p>Only in your own browser, on this device. Nothing is sent anywhere. Clearing your browser data removes them.</p>
+          </details>
+        </div>
+      </section>
+
+      <details class="panel rates" id="mathBox">
+        <summary><span class="h2">How the math works</span><span class="hint">Tap to open</span></summary>
+        <div class="rates-body">
+          <p class="fine">Everyone on the job is on the clock for the whole time: hours on site, driving and setup. Your profit is the price minus every cost, and your pay per hour is that profit divided by those hours. Helpers are paid by the hour out of the costs, so what is left is yours.</p>
+          <div id="mathLines"></div>
+          <p class="fine">The price for your goal solves the same sum backwards. Fees and overhead are a share of the price, so the price is your goal pay plus the costs that do not depend on the price, divided by what is left of each dollar after fees and overhead.</p>
+        </div>
+      </details>
+
+      <div class="foot">
+        <p>Rinse Rate runs in your browser. What you type and the jobs you save stay on this device.</p>
+        <p>Estimates only. Your real numbers depend on your costs, and taxes come out of what is left. This is not tax or accounting advice.</p>
+        <p>Also from Xysti Software: <a href="https://sanjixysti-creator.github.io/rinse-quote/">Rinse Quote</a>, a free quote calculator for pressure washing jobs, and <a href="https://sanjixysti-creator.github.io/rinse-mix/">Rinse Mix</a>, a soft wash mix calculator.</p>
+        <p>Spotted a mistake in the math, or want something added? Email <span class="mail"></span> <button type="button" class="linkish mail-copy">Copy</button></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="bar" id="bar" aria-hidden="true">
+  <div class="b-cell"><div class="b-lab">Per hour</div><div class="b-amt" id="bAmtPay">-</div></div>
+  <div class="b-cell"><div class="b-lab">Profit</div><div class="b-amt" id="bAmtProfit">-</div></div>
+  <div class="b-cell"><div class="b-lab">Margin</div><div class="b-amt" id="bAmtMargin">-</div></div>
+</div>
+<div class="sr-only" id="srRead" role="status" aria-live="polite" aria-atomic="true"></div>
+<div class="sheet" id="sheet" role="dialog" aria-label="Copy text" hidden>
+  <p class="fine">Your browser blocked the copy button. Press and hold the text, then choose Copy.</p>
+  <textarea class="ctl" id="sheetText" rows="9" readonly aria-label="Text to copy"></textarea>
+  <button type="button" class="btn ghost sm" id="sheetClose">Done</button>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+(function () {
+  'use strict';
+
+  var STORE_KEY = 'rinse-rate-v1';
+  /* Shown to people who spot a mistake. */
+  var SUPPORT = 'fireseabrook2566@gmail.com';
+  /* The IRS business rate for 2026, in dollars a mile. It changes every year, so it is only the starting example. */
+  var IRS_PER_MILE = 0.725;
+
+  var MAX_MONEY = 10000000;
+  var MAX_HOURS = 1000;
+  var MAX_MIN = 100000;
+  var MAX_MILES = 100000;
+  var MAX_RATE = 100000;
+  var MAX_CREW = 50;
+  var MAX_SAVED = 50;
+  var MAX_JOBS_WEEK = 1000;
+  var MAX_WEEKS = 52;
+
+  var HOURS_CHIPS = [1, 2, 3, 4, 6, 8];
+  var CREW_CHIPS = [1, 2, 3, 4];
+  var GOAL_CHIPS = [30, 50, 75, 100];
+  var FEE_PRESETS = [
+    { label: 'None', pct: 0, fixed: 0 },
+    { label: 'Card 2.9% + $0.30', pct: 2.9, fixed: 0.3 }
+  ];
+  var LONG_STEPS = [
+    { k: 1, label: 'As planned' }, { k: 1.25, label: '25% longer' },
+    { k: 1.5, label: '50% longer' }, { k: 2, label: 'Twice as long' }
+  ];
+  var PRICE_STEPS = [
+    { k: 0.8, label: '20% less' }, { k: 0.9, label: '10% less' }, { k: 1, label: 'Your price' },
+    { k: 1.1, label: '10% more' }, { k: 1.2, label: '20% more' }
+  ];
+
+  /* Numbers that change with every job, numbers that rarely change, and the month planner. */
+  var JOB_FIELDS = ['price', 'onsiteH', 'crew', 'driveMin', 'miles', 'setupMin', 'chem', 'other'];
+  var USUAL_FIELDS = ['perMile', 'wearH', 'helperPay', 'overheadPct', 'feePct', 'feeFixed', 'goal'];
+  var PLAN_FIELDS = ['jobsWeek', 'weeksYear'];
+  var ALL_FIELDS = JOB_FIELDS.concat(USUAL_FIELDS, PLAN_FIELDS);
+  var LIMITS = {
+    price: MAX_MONEY, onsiteH: MAX_HOURS, crew: MAX_CREW, driveMin: MAX_MIN, miles: MAX_MILES, setupMin: MAX_MIN,
+    chem: MAX_MONEY, other: MAX_MONEY, perMile: MAX_RATE, wearH: MAX_RATE, helperPay: MAX_RATE,
+    overheadPct: 100, feePct: 100, feeFixed: MAX_MONEY, goal: MAX_RATE, jobsWeek: MAX_JOBS_WEEK, weeksYear: MAX_WEEKS
+  };
+
+  var state = null;
+  var syncers = [];
+  var chipSets = [];
+  var srReady = false;
+
+  function $(id) { return document.getElementById(id); }
+
+  /* ---------- numbers and formatting ---------- */
+  /* Reads "12.5", "12,5" (comma as the decimal mark) and "1,234". Anything that is not a number gives NaN. */
+  function parseNum(v) {
+    var s = String(v == null ? '' : v).trim().replace(/[^0-9.,\-]/g, '');
+    if (!s) return NaN;
+    if (s.indexOf(',') >= 0 && s.indexOf('.') < 0) {
+      s = /^-?\d{1,3}(,\d{3})+$/.test(s) ? s.replace(/,/g, '') : s.replace(',', '.');
+    } else {
+      s = s.replace(/,/g, '');
+    }
+    var n = parseFloat(s);
+    return isFinite(n) ? n : NaN;
+  }
+  /* Hours can be typed as 2.5, 2:30, 2h30, 2h 30m, 2h, 1.5 hours or 90m. */
+  function parseHours(v) {
+    var s = String(v == null ? '' : v).trim().toLowerCase();
+    var m = /^(\d+)\s*(?::|h|hr|hrs|hour|hours)\s*(\d{1,2})\s*(?:m|min|mins|minute|minutes)?$/.exec(s);
+    if (m) return parseInt(m[2], 10) < 60 ? parseInt(m[1], 10) + parseInt(m[2], 10) / 60 : NaN;
+    m = /^(\d+(?:[.,]\d+)?)\s*(?:m|min|mins|minute|minutes)$/.exec(s);
+    if (m) return parseNum(m[1]) / 60;
+    m = /^(\d+(?:[.,]\d+)?)\s*(?:h|hr|hrs|hour|hours)$/.exec(s);
+    if (m) return parseNum(m[1]);
+    /* A colon that did not make a clock time, like 2:75, is not a number of hours. */
+    if (s.indexOf(':') >= 0) return NaN;
+    return parseNum(s);
+  }
+  function nn(v, d) {
+    var n = parseNum(v);
+    return isFinite(n) ? Math.max(0, n) : (d == null ? 0 : d);
+  }
+  function fmtNum(n, max, min) {
+    return (isFinite(n) ? n : 0).toLocaleString('en-US', { minimumFractionDigits: min || 0, maximumFractionDigits: max == null ? 2 : max });
+  }
+  var USD = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+  var USD0 = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  var USD_COMPACT = null;
+  try { USD_COMPACT = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', notation: 'compact', maximumFractionDigits: 1 }); } catch (e) { USD_COMPACT = null; }
+  function money(n) { return USD.format(isFinite(n) ? n : 0); }
+  function money0(n) { return USD0.format(isFinite(n) ? n : 0); }
+  function moneyOrWhole(n) { return Math.abs(n - Math.round(n)) < 0.005 ? money0(n) : money(n); }
+  /* The big reading shows cents, until a number is so large that compact notation keeps it inside the gauge. */
+  function moneyReading(n) {
+    if (Math.abs(n) >= 1000000 && USD_COMPACT) return USD_COMPACT.format(n);
+    return money(n);
+  }
+  function neg(n) { return '-' + money(n); }
+  function pct1(x) { return fmtNum(x * 100, 1) + '%'; }
+  /* A margin far below zero is just "very bad". Spelling out every digit of it helps nobody. */
+  function pctText(x) { return x * 100 < -999.9 ? 'under -1,000%' : pct1(x); }
+  /* 3.8333 hours reads as 3 h 50 min. */
+  function hm(hours) {
+    var total = Math.round((isFinite(hours) ? hours : 0) * 60);
+    var h = Math.floor(total / 60), m = total % 60;
+    if (h === 0 && m === 0) return '0 h';
+    if (m === 0) return fmtNum(h, 0) + ' h';
+    if (h === 0) return m + ' min';
+    return fmtNum(h, 0) + ' h ' + m + ' min';
+  }
+  function plural(n, one, many) { return n + ' ' + (n === 1 ? one : many); }
+
+  /* ---------- state ---------- */
+  function defaults() {
+    return {
+      v: 1, example: true,
+      price: 300, onsiteH: 3, crew: 2, driveMin: 30, miles: 28, setupMin: 20, chem: 15, other: 0,
+      perMile: IRS_PER_MILE, wearH: 5, helperPay: 18, overheadPct: 10, feePct: 2.9, feeFixed: 0.3, goal: 50,
+      jobsWeek: 5, weeksYear: 48,
+      seq: 0, saved: []
+    };
+  }
+  function blankFields() {
+    var o = {};
+    ALL_FIELDS.forEach(function (k) { o[k] = 0; });
+    o.crew = 1;
+    return o;
+  }
+  function clampField(name, n) {
+    n = Math.min(LIMITS[name], Math.max(0, n));
+    if (name === 'crew') n = Math.max(1, Math.floor(n));
+    if (name === 'jobsWeek' || name === 'weeksYear') n = Math.floor(n);
+    return n;
+  }
+  /* Takes numbers from anything that was stored. A field that is missing or not a number falls back to base. */
+  function readFields(d, base) {
+    var out = {};
+    ALL_FIELDS.forEach(function (k) {
+      var n = d ? parseNum(d[k]) : NaN;
+      out[k] = isFinite(n) ? clampField(k, n) : base[k];
+    });
+    return out;
+  }
+  function sanitizeSaved(list) {
+    return (Array.isArray(list) ? list : []).filter(function (m) { return m && m.id; }).slice(0, MAX_SAVED).map(function (m) {
+      var f = readFields(m, blankFields());
+      f.id = String(m.id);
+      f.name = String(m.name || '').slice(0, 60);
+      f.ts = nn(m.ts);
+      return f;
+    });
+  }
+  function sanitize(d) {
+    var out = readFields(d, defaults());
+    out.v = 1;
+    out.example = d.example === true;
+    out.seq = Math.floor(nn(d.seq));
+    out.saved = sanitizeSaved(d.saved);
+    return out;
+  }
+  function load() {
+    try {
+      var raw = localStorage.getItem(STORE_KEY);
+      if (!raw) return null;
+      var d = JSON.parse(raw);
+      if (!d || d.v !== 1) return null;
+      return sanitize(d);
+    } catch (e) { return null; }
+  }
+  function save() { try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) { /* storage unavailable */ } }
+  var saveTimer;
+  function scheduleSave() { clearTimeout(saveTimer); saveTimer = setTimeout(save, 250); }
+  /* Saved jobs are written at once, and anything still waiting is written when the page is hidden or closed. */
+  function flushSave() { clearTimeout(saveTimer); save(); }
+  window.addEventListener('pagehide', flushSave);
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') flushSave(); });
+
+  function merge(a, b) {
+    var o = {};
+    Object.keys(a).forEach(function (k) { o[k] = a[k]; });
+    Object.keys(b).forEach(function (k) { o[k] = b[k]; });
+    return o;
+  }
+
+  /* ---------- the math ---------- */
+  /* s holds the fields above. Everyone on the job is on the clock for on site, drive and setup time. Machine wear only runs on site. Helpers are everyone but you.
+     Fees and overhead are shares of the price. Profit is the price minus all costs, and pay per hour is that profit over the hours. */
+  function compute(s) {
+    var onsite = s.onsiteH, drive = s.driveMin / 60, setup = s.setupMin / 60;
+    var hours = onsite + drive + setup;
+    var rate = (s.feePct + s.overheadPct) / 100;
+    var price = s.price;
+    var r = {
+      onsite: onsite, drive: drive, setup: setup, hours: hours,
+      haveHours: hours > 0, havePrice: price > 0, rate: rate, rateOk: rate < 1,
+      fee: price > 0 ? price * s.feePct / 100 + s.feeFixed : 0,
+      overhead: price * s.overheadPct / 100,
+      chem: s.chem, other: s.other,
+      vehicle: s.miles * s.perMile,
+      wear: onsite * s.wearH,
+      helpers: (s.crew - 1) * hours * s.helperPay
+    };
+    r.direct = r.chem + r.other + r.vehicle + r.wear + r.helpers;
+    r.costs = r.fee + r.overhead + r.direct;
+    r.profit = price - r.costs;
+    r.margin = price > 0 ? r.profit / price : NaN;
+    r.pay = hours > 0 ? r.profit / hours : NaN;
+    r.ok = r.haveHours && r.havePrice;
+    /* Costs that do not move with the price: everything but the percent shares. */
+    r.fixed = r.direct + s.feeFixed;
+    r.breakEven = r.rateOk ? r.fixed / (1 - rate) : NaN;
+    r.needed = r.rateOk && hours > 0 ? (s.goal * hours + r.fixed) / (1 - rate) : NaN;
+    return r;
+  }
+  function ceilDollar(x) { return Math.ceil(x - 1e-9); }
+
+  /* ---------- DOM helpers ---------- */
+  function h(tag, props, kids) {
+    var el = document.createElement(tag);
+    if (props) Object.keys(props).forEach(function (k) {
+      var v = props[k];
+      if (v == null || v === false) return;
+      if (k === 'class') el.className = v;
+      else if (k === 'text') el.textContent = v;
+      else el.setAttribute(k, v === true ? '' : v);
+    });
+    (kids || []).forEach(function (c) { if (c != null) el.appendChild(c); });
+    return el;
+  }
+  /* Selecting a field's text after it gets focus lets a tap replace the old number. It must only run if the field
+     still has focus, because select() can pull focus back to a field that was just tabbed away from. */
+  function selectAll(e) {
+    var el = e.target;
+    setTimeout(function () { if (document.activeElement === el) { try { el.select(); } catch (err) { /* ignore */ } } }, 0);
+  }
+  function bindNum(el, value, set) {
+    el.value = value();
+    syncers.push(function () { el.value = value(); });
+    el.addEventListener('input', function () { set(el.value); changed(); });
+    el.addEventListener('blur', function () { el.value = value(); });
+    el.addEventListener('focus', selectAll);
+  }
+  function syncStatic() { syncers.forEach(function (f) { f(); }); }
+
+  var toastTimer;
+  function toast(msg) {
+    var t = $('toast');
+    t.textContent = msg;
+    t.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.hidden = true; }, 3200);
+  }
+  function twoTap(btn, idle, armed, action) {
+    var on = false, t;
+    function off() { on = false; clearTimeout(t); btn.textContent = idle; }
+    btn.addEventListener('click', function () {
+      if (!on) { on = true; btn.textContent = armed; t = setTimeout(off, 3000); return; }
+      off();
+      action();
+    });
+  }
+  function copyFallback(text, okMsg) {
+    var sheet = $('sheet'), ta = $('sheetText');
+    ta.value = text;
+    sheet.hidden = false;
+    var ok = false;
+    try { ta.focus(); ta.select(); ok = document.execCommand('copy'); } catch (e) { ok = false; }
+    if (ok) { sheet.hidden = true; toast(okMsg); }
+  }
+  function copyText(text, okMsg) {
+    var p = null;
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) p = navigator.clipboard.writeText(text);
+    } catch (e) { p = null; }
+    if (!p) { copyFallback(text, okMsg); return; }
+    p.then(function () { toast(okMsg); }, function () { copyFallback(text, okMsg); });
+  }
+
+  /* Any edit by the person ends the example. */
+  function changed() { state.example = false; updateAll(); scheduleSave(); }
+
+  /* Screen readers hear one summary a moment after typing stops, not one per keystroke. */
+  var srTimer;
+  function queueSr(text) {
+    if (!srReady) return;
+    clearTimeout(srTimer);
+    srTimer = setTimeout(function () { $('srRead').textContent = text; }, 700);
+  }
+
+  /* ---------- quick-pick chips ---------- */
+  function chipRow(id, list, label, pick, isOn) {
+    var el = $(id);
+    el.textContent = '';
+    list.forEach(function (v, i) {
+      var b = h('button', { type: 'button', class: 'chip', 'aria-pressed': 'false', 'data-v': String(v), text: label(v, i) });
+      b.addEventListener('click', function () { pick(v, i); syncStatic(); changed(); });
+      el.appendChild(b);
+    });
+    chipSets.push({ id: id, el: el, isOn: isOn });
+  }
+  function paintChips() {
+    chipSets.forEach(function (c) {
+      Array.prototype.forEach.call(c.el.children, function (b, i) {
+        b.setAttribute('aria-pressed', c.isOn(parseFloat(b.getAttribute('data-v')), i) ? 'true' : 'false');
+      });
+    });
+  }
+  function close(a, b) { return Math.abs(a - b) < 1e-6; }
+
+  function buildChips() {
+    chipRow('hoursChips', HOURS_CHIPS, function (v) { return fmtNum(v, 0); },
+      function (v) { state.onsiteH = v; },
+      function (v) { return close(state.onsiteH, v); });
+    chipRow('crewChips', CREW_CHIPS, function (v) { return fmtNum(v, 0); },
+      function (v) { state.crew = v; },
+      function (v) { return state.crew === v; });
+    chipRow('goalChips', GOAL_CHIPS, function (v) { return '$' + v; },
+      function (v) { state.goal = v; },
+      function (v) { return close(state.goal, v); });
+    chipRow('feeChips', FEE_PRESETS.map(function (_, i) { return i; }), function (v, i) { return FEE_PRESETS[i].label; },
+      function (v, i) { state.feePct = FEE_PRESETS[i].pct; state.feeFixed = FEE_PRESETS[i].fixed; },
+      function (v, i) { return close(state.feePct, FEE_PRESETS[i].pct) && close(state.feeFixed, FEE_PRESETS[i].fixed); });
+  }
+
+  /* ---------- painting ---------- */
+  function verdictText(r) {
+    if (!r.ok || !(state.goal > 0)) return '';
+    var d = r.pay - state.goal;
+    if (Math.abs(d) < 0.005) return 'That is right on your ' + money(state.goal) + ' an hour goal.';
+    return 'That is ' + money(Math.abs(d)) + ' an hour ' + (d > 0 ? 'above' : 'under') + ' your ' + money(state.goal) + ' goal.';
+  }
+
+  function paintAlert(r) {
+    var box = $('payAlert');
+    var kind = '', msg = '';
+    if (!r.rateOk) {
+      kind = 'bad';
+      msg = 'Fees and overhead add up to ' + fmtNum(r.rate * 100, 2) + '% of the price. No price can cover your costs at that rate, so check those two numbers under Your usual numbers.';
+    } else if (!r.haveHours) {
+      kind = 'info';
+      msg = 'Enter the hours on site to see what the job pays per hour.';
+    } else if (!r.havePrice) {
+      kind = 'info';
+      msg = 'Enter what you charge to see what the job pays. The price for your goal is worked out below.';
+    } else if (r.profit < 0) {
+      kind = 'bad';
+      msg = 'You lose ' + money(-r.profit) + ' on this job. It costs more than you charge.';
+    } else if (state.crew > 1 && !(state.helperPay > 0)) {
+      kind = 'warn';
+      msg = 'You have ' + plural(state.crew - 1, 'helper', 'helpers') + ' on the job but pay them $0 an hour. If they are paid, add their pay under Your usual numbers.';
+    }
+    box.hidden = !kind;
+    box.className = 'alert' + (kind ? ' ' + kind : '');
+    box.textContent = '';
+    if (kind) box.appendChild(h('p', { text: msg }));
+  }
+
+  /* The gauge runs from $0 to twice the goal, so the goal sits at the top. Without a goal it runs to $100. */
+  var GAUGE = { cx: 120, cy: 120, r: 96 };
+  function gaugePoint(f) {
+    var t = Math.PI * (1 - f);
+    return { x: GAUGE.cx + GAUGE.r * Math.cos(t), y: GAUGE.cy - GAUGE.r * Math.sin(t) };
+  }
+  function paintGauge(r) {
+    var goal = state.goal, top = goal > 0 ? goal * 2 : 100;
+    var f = 0, st = 'none';
+    if (r.ok && isFinite(r.pay)) {
+      f = Math.max(0, Math.min(1, r.pay / top));
+      if (r.pay <= 0) st = 'bad';
+      else if (goal > 0) st = r.pay >= goal - 1e-9 ? 'good' : (r.pay >= goal * 0.7 ? 'warn' : 'bad');
+      else st = 'accent';
+    }
+    var g = $('gauge'), fill = $('gFill'), dot = $('gDot');
+    var p = f > 0 ? gaugePoint(Math.min(0.9995, f)) : { x: 24, y: 120 };
+    fill.setAttribute('d', 'M24 120A96 96 0 0 1 ' + p.x.toFixed(2) + ' ' + p.y.toFixed(2));
+    fill.style.opacity = f > 0 ? '1' : '0';
+    dot.setAttribute('cx', p.x.toFixed(2));
+    dot.setAttribute('cy', p.y.toFixed(2));
+    g.setAttribute('data-state', st);
+    g.setAttribute('data-f', f.toFixed(4));
+    $('gTick').style.display = goal > 0 ? '' : 'none';
+    $('gGoal').textContent = goal > 0 ? 'Goal ' + moneyOrWhole(goal) : '';
+    $('gMax').textContent = moneyOrWhole(top);
+  }
+
+  function paintReading(r) {
+    var n = $('payNum');
+    var t = r.ok ? moneyReading(r.pay) : '-';
+    n.textContent = t;
+    n.className = 'r-num' + (t.length >= 12 ? ' longer' : (t.length >= 9 ? ' long' : ''));
+  }
+
+  function paintNeed(r) {
+    var box = $('needBox');
+    var show = r.haveHours && r.rateOk;
+    box.hidden = !show;
+    if (!show) return;
+    var be = ceilDollar(r.breakEven), btn = $('needBtn');
+    if (state.goal > 0) {
+      var need = ceilDollar(r.needed);
+      var enough = r.havePrice && state.price >= r.needed - 1e-9;
+      var text;
+      if (!enough) text = 'To earn ' + money(state.goal) + ' an hour on this job, charge ' + money0(need) + '.';
+      else if (state.price >= need) text = 'Your price covers your goal. You could charge as little as ' + money0(need) + ' and still earn ' + money(state.goal) + ' an hour.';
+      else text = 'Your price covers your goal.';
+      $('needText').textContent = text;
+      btn.hidden = enough;
+      btn.textContent = 'Use ' + money0(need);
+      btn.setAttribute('data-price', String(need));
+      $('needFine').textContent = 'Rounded up to the next dollar. Break-even is ' + money0(be) + ', and below that you lose money.';
+    } else {
+      $('needText').textContent = 'Break-even price: ' + money0(be) + '. Below that you lose money.';
+      btn.hidden = true;
+      btn.removeAttribute('data-price');
+      $('needFine').textContent = 'Set a goal above to see the price that earns it.';
+    }
+  }
+
+  function setRow(id, show) { $(id).hidden = !show; }
+  function paintStub(r) {
+    var feeBits = [];
+    if (state.feePct > 0) feeBits.push(fmtNum(state.feePct, 2) + '%');
+    if (state.feeFixed > 0) feeBits.push(money(state.feeFixed));
+    $('lFee').textContent = 'Payment fee' + (feeBits.length ? ' (' + feeBits.join(' + ') + ')' : '');
+    $('lOverhead').textContent = 'Overhead (' + fmtNum(state.overheadPct, 2) + '%)';
+    $('lVehicle').textContent = 'Vehicle (' + fmtNum(state.miles, 1) + ' mi)';
+    $('lWear').textContent = 'Machine wear (' + hm(r.onsite) + ')';
+    $('lHelpers').textContent = 'Helper pay (' + (state.crew - 1) + ' x ' + hm(r.hours) + ')';
+
+    $('vPrice').textContent = r.havePrice ? money(state.price) : '-';
+    $('vFee').textContent = neg(r.fee);
+    $('vOverhead').textContent = neg(r.overhead);
+    $('vChem').textContent = neg(r.chem);
+    $('vVehicle').textContent = neg(r.vehicle);
+    $('vWear').textContent = neg(r.wear);
+    $('vHelpers').textContent = neg(r.helpers);
+    $('vOther').textContent = neg(r.other);
+    setRow('rowFee', r.fee >= 0.005);
+    setRow('rowOverhead', r.overhead >= 0.005);
+    setRow('rowChem', r.chem >= 0.005);
+    setRow('rowVehicle', r.vehicle >= 0.005);
+    setRow('rowWear', r.wear >= 0.005);
+    setRow('rowHelpers', r.helpers >= 0.005);
+    setRow('rowOther', r.other >= 0.005);
+
+    $('vProfit').textContent = r.ok ? money(r.profit) : '-';
+    $('vMargin').textContent = r.ok ? pctText(r.margin) : '-';
+    $('vHours').textContent = r.haveHours ? hm(r.hours) : '-';
+    var bits = [];
+    if (r.haveHours) {
+      bits.push(hm(r.onsite) + ' on site');
+      if (r.drive > 0) bits.push(hm(r.drive) + ' driving');
+      if (r.setup > 0) bits.push(hm(r.setup) + ' setup');
+    }
+    $('hoursNote').textContent = r.haveHours ? bits.join(', ') + '.' : '';
+  }
+
+  /* The pinned bar has three narrow cells, so long figures get a shorter form and a smaller size. */
+  function barMoney(n, cents) {
+    if (Math.abs(n) >= 1000000 && USD_COMPACT) return USD_COMPACT.format(n);
+    return cents && Math.abs(n) < 1000 ? money(n) : money0(n);
+  }
+  function barPct(x) { var p = x * 100; return p < -999 ? '<-999%' : fmtNum(p, 0) + '%'; }
+  function barSet(id, text) {
+    var el = $(id);
+    el.textContent = text;
+    el.className = 'b-amt' + (text.length >= 10 ? ' xs' : (text.length >= 8 ? ' sm' : ''));
+  }
+  function paintBar(r) {
+    barSet('bAmtPay', r.ok ? barMoney(r.pay, true) : '-');
+    barSet('bAmtProfit', r.ok ? barMoney(r.profit, false) : '-');
+    barSet('bAmtMargin', r.ok ? barPct(r.margin) : '-');
+  }
+
+  function paintTables(r) {
+    var ok = r.ok;
+    $('longWrap').hidden = !ok;
+    $('longEmpty').hidden = ok;
+    $('priceWrap').hidden = !ok;
+    $('priceEmpty').hidden = ok;
+    $('priceTableHint').textContent = ok ? 'Tap a price to use it' : '';
+    var lb = $('longBody'), pb = $('priceBody');
+    lb.textContent = '';
+    pb.textContent = '';
+    if (!ok) return;
+    LONG_STEPS.forEach(function (x) {
+      var q = compute(merge(state, { onsiteH: Math.min(MAX_HOURS, state.onsiteH * x.k) }));
+      lb.appendChild(h('tr', { class: x.k === 1 ? 'is-now' : null }, [
+        h('th', { scope: 'row' }, [document.createTextNode(x.label), h('span', { class: 'sub', text: hm(q.hours) })]),
+        h('td', { text: money0(q.profit) }),
+        h('td', { text: money(q.pay) })
+      ]));
+    });
+    var seen = {};
+    PRICE_STEPS.forEach(function (x) {
+      var now = x.k === 1;
+      var p = now ? state.price : Math.min(MAX_MONEY, Math.max(1, Math.round(state.price * x.k)));
+      if (!now && (p === state.price || seen[p])) return;
+      seen[p] = true;
+      var q = compute(merge(state, { price: p }));
+      var label = h('span', { class: 'sub', text: x.label });
+      var head;
+      if (now) {
+        head = h('th', { scope: 'row' }, [document.createTextNode(moneyOrWhole(p)), label]);
+      } else {
+        var btn = h('button', { type: 'button', class: 'pick', 'aria-label': 'Use ' + money0(p) + ' as the price', 'data-price': String(p) }, [document.createTextNode(money0(p)), label]);
+        btn.addEventListener('click', function () { state.price = p; syncStatic(); changed(); });
+        head = h('th', { scope: 'row' }, [btn]);
+      }
+      pb.appendChild(h('tr', { class: now ? 'is-now' : null }, [
+        head,
+        h('td', { text: money0(q.profit) }),
+        h('td', { text: money(q.pay) })
+      ]));
+    });
+  }
+
+  function paintPlanner(r) {
+    var ok = r.ok && state.jobsWeek > 0;
+    var week = r.profit * state.jobsWeek;
+    $('pWeek').textContent = ok ? money0(week) : '-';
+    $('pHours').textContent = ok ? hm(r.hours * state.jobsWeek) : '-';
+    $('pMonth').textContent = ok && state.weeksYear > 0 ? money0(week * state.weeksYear / 12) : '-';
+    $('pYear').textContent = ok && state.weeksYear > 0 ? money0(week * state.weeksYear) : '-';
+  }
+
+  function mline(text) { return h('p', { class: 'mline', text: text }); }
+  function paintMath(r) {
+    var box = $('mathLines');
+    box.textContent = '';
+    if (!r.haveHours) { box.appendChild(mline('Enter the hours on site to see the steps.')); return; }
+    box.appendChild(mline('Hours = ' + hm(r.onsite) + ' on site + ' + hm(r.drive) + ' driving + ' + hm(r.setup) + ' setup = ' + hm(r.hours) + ' (' + fmtNum(r.hours, 2) + ' h)'));
+    box.appendChild(mline('Costs = fee ' + money(r.fee) + ' + overhead ' + money(r.overhead) + ' + chemicals ' + money(r.chem) + ' + other ' + money(r.other) +
+      ' + vehicle ' + money(r.vehicle) + ' + machine wear ' + money(r.wear) + ' + helper pay ' + money(r.helpers) + ' = ' + money(r.costs)));
+    if (!r.havePrice) { box.appendChild(mline('Enter what you charge to see the profit and the pay per hour.')); }
+    else {
+      box.appendChild(mline('Profit = ' + money(state.price) + ' - ' + money(r.costs) + ' = ' + money(r.profit)));
+      box.appendChild(mline('Pay per hour = ' + money(r.profit) + ' ÷ ' + fmtNum(r.hours, 2) + ' h = ' + money(r.pay)));
+    }
+    if (r.rateOk) {
+      box.appendChild(mline('Costs that do not move with the price = ' + money(r.direct) + ' + ' + money(state.feeFixed) + ' fixed fee = ' + money(r.fixed)));
+      box.appendChild(mline('Break-even price = ' + money(r.fixed) + ' ÷ (1 - ' + fmtNum(r.rate, 4) + ') = ' + money(r.breakEven)));
+      if (state.goal > 0) {
+        box.appendChild(mline('Price for your goal = (' + money(state.goal) + ' × ' + fmtNum(r.hours, 2) + ' h + ' + money(r.fixed) + ') ÷ (1 - ' + fmtNum(r.rate, 4) + ') = ' + money(r.needed) +
+          ', rounded up to ' + money0(ceilDollar(r.needed))));
+      }
+    }
+  }
+
+  function paintButtons(r) {
+    $('copyBtn').disabled = !r.ok;
+    $('saveBtn').disabled = !r.ok;
+    if (!r.ok) $('saveForm').hidden = true;
+  }
+
+  function paintExample() { $('exampleNote').hidden = !state.example; }
+
+  function srSummary(r) {
+    if (!r.ok) return '';
+    var t = 'You earn ' + money(r.pay) + ' per hour. ';
+    var v = verdictText(r);
+    if (v) t += v + ' ';
+    t += 'Profit ' + money(r.profit) + ', ' + pctText(r.margin) + ' of the price.';
+    if (r.rateOk && state.goal > 0) t += ' Price for your goal: ' + money0(ceilDollar(r.needed)) + '.';
+    return t;
+  }
+
+  function updateAll() {
+    var r = compute(state);
+    paintExample();
+    paintAlert(r);
+    $('paySub').textContent = r.haveHours ? hm(r.onsite) + ' on site, ' + plural(state.crew, 'person', 'people') : '';
+    paintGauge(r);
+    paintReading(r);
+    $('verdict').textContent = verdictText(r);
+    paintNeed(r);
+    paintStub(r);
+    paintBar(r);
+    paintTables(r);
+    paintPlanner(r);
+    paintMath(r);
+    paintChips();
+    paintButtons(r);
+    renderSavedText();
+    queueSr(srSummary(r));
+  }
+
+  /* ---------- copy sheet ---------- */
+  function sheetText(r) {
+    var L = ['Job pay check, from Rinse Rate'];
+    L.push('Price: ' + money(state.price));
+    var t = hm(r.onsite) + ' on site';
+    if (r.drive > 0) t += ', ' + hm(r.drive) + ' driving';
+    if (r.setup > 0) t += ', ' + hm(r.setup) + ' setup';
+    L.push('Time: ' + t + ' (' + hm(r.hours) + ' in all), ' + plural(state.crew, 'person', 'people'));
+    if (r.fee >= 0.005) L.push('Payment fee: ' + neg(r.fee));
+    if (r.overhead >= 0.005) L.push('Overhead: ' + neg(r.overhead));
+    if (r.chem >= 0.005) L.push('Chemicals and supplies: ' + neg(r.chem));
+    if (r.vehicle >= 0.005) L.push('Vehicle: ' + neg(r.vehicle));
+    if (r.wear >= 0.005) L.push('Machine wear: ' + neg(r.wear));
+    if (r.helpers >= 0.005) L.push('Helper pay: ' + neg(r.helpers));
+    if (r.other >= 0.005) L.push('Other costs: ' + neg(r.other));
+    L.push('Profit: ' + money(r.profit) + ' (' + pctText(r.margin) + ' of the price)');
+    L.push('Pay per hour: ' + money(r.pay));
+    if (r.rateOk && state.goal > 0) L.push('Goal: ' + money(state.goal) + ' per hour, which takes a price of ' + money0(ceilDollar(r.needed)));
+    return L.join('\n');
+  }
+  function copySummary() {
+    var r = compute(state);
+    if (!r.ok) return;
+    copyText(sheetText(r), 'Summary copied.');
+  }
+
+  /* ---------- saved jobs ---------- */
+  function savedLine(m) {
+    var r = compute(m);
+    if (!r.ok) return { r: r, sum: 'Not enough numbers to work out the pay.', out: '' };
+    return {
+      r: r,
+      sum: moneyOrWhole(m.price) + ' job, ' + hm(r.hours) + ', ' + plural(m.crew, 'person', 'people'),
+      out: money(r.pay) + ' an hour, profit ' + money(r.profit)
+    };
+  }
+  function renderSaved() {
+    var box = $('savedList');
+    box.textContent = '';
+    if (!state.saved.length) {
+      box.appendChild(h('p', { class: 'empty', text: 'No saved jobs yet. Tap Save job on your result to keep one here.' }));
+      renderSavedText();
+      return;
+    }
+    state.saved.forEach(function (m) {
+      var use = h('button', { type: 'button', class: 'btn sm', text: 'Use this job' });
+      use.addEventListener('click', function () { useJob(m); });
+      var del = h('button', { type: 'button', class: 'btn ghost sm', text: 'Delete' });
+      twoTap(del, 'Delete', 'Tap again to delete', function () {
+        state.saved = state.saved.filter(function (x) { return x !== m; });
+        renderSaved();
+        flushSave();
+      });
+      box.appendChild(h('article', { class: 'saved', 'data-id': m.id }, [
+        h('strong', { class: 'sv-name', text: m.name || 'Saved job' }),
+        h('p', { class: 'sv-sum' }),
+        h('p', { class: 'sv-out' }),
+        h('div', { class: 'row-actions' }, [use, del])
+      ]));
+    });
+    renderSavedText();
+  }
+  /* The saved list is re-worded in one place so the summary line always matches the rows. */
+  function renderSavedText() {
+    var rows = $('savedList').querySelectorAll('.saved');
+    var profit = 0, hours = 0, n = 0;
+    Array.prototype.forEach.call(rows, function (row, i) {
+      var m = state.saved[i];
+      if (!m) return;
+      var s = savedLine(m);
+      row.querySelector('.sv-sum').textContent = s.sum;
+      row.querySelector('.sv-out').textContent = s.out;
+      if (s.r.ok) { profit += s.r.profit; hours += s.r.hours; n += 1; }
+    });
+    var tot = $('savedTotal');
+    tot.hidden = !(n > 0);
+    tot.textContent = n > 0
+      ? plural(n, 'job', 'jobs') + ': ' + money(profit) + ' profit over ' + hm(hours) + ', ' + money(profit / hours) + ' an hour on average.'
+      : '';
+  }
+  function saveJob(name) {
+    var r = compute(state);
+    if (!r.ok) { toast('Enter a price and the hours before saving.'); return; }
+    if (state.saved.length >= MAX_SAVED) { toast('You can keep ' + MAX_SAVED + ' jobs. Delete one to save another.'); return; }
+    state.seq += 1;
+    var label = String(name || '').trim().slice(0, 60) || (moneyOrWhole(state.price) + ' job, ' + hm(r.hours));
+    var rec = { id: 'j' + state.seq, name: label, ts: Date.now() };
+    ALL_FIELDS.forEach(function (k) { rec[k] = state[k]; });
+    state.saved.unshift(rec);
+    $('saveForm').hidden = true;
+    $('saveName').value = '';
+    renderSaved();
+    flushSave();
+    toast('Saved ' + label + '.');
+  }
+  function useJob(m) {
+    ALL_FIELDS.forEach(function (k) { state[k] = m[k]; });
+    state.example = false;
+    syncStatic();
+    updateAll();
+    flushSave();
+    toast('Loaded ' + (m.name || 'saved job') + '.');
+    try {
+      if (window.matchMedia && window.matchMedia('(max-width: 899px)').matches) {
+        var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        $('h-pay').scrollIntoView({ block: 'start', behavior: reduce ? 'auto' : 'smooth' });
+      }
+    } catch (e) { /* scrolling is a nicety */ }
+  }
+
+  /* ---------- resets ---------- */
+  function clearJob() {
+    var wasExample = state.example;
+    JOB_FIELDS.forEach(function (k) {
+      if (k !== 'crew') state[k] = 0;
+      else if (wasExample) state.crew = 1;
+    });
+    state.example = false;
+    syncStatic();
+    updateAll();
+    scheduleSave();
+    toast('Job cleared.');
+  }
+  function resetUsual() {
+    var b = defaults();
+    USUAL_FIELDS.forEach(function (k) { state[k] = b[k]; });
+    syncStatic();
+    changed();
+    toast('Usual numbers reset.');
+  }
+
+  function fillSupport() {
+    Array.prototype.forEach.call(document.querySelectorAll('.mail'), function (el) { el.textContent = SUPPORT; });
+    Array.prototype.forEach.call(document.querySelectorAll('.mail-copy'), function (b) {
+      b.addEventListener('click', function () { copyText(SUPPORT, 'Email address copied.'); });
+    });
+  }
+
+  function bindStatic() {
+    function money2(k) {
+      return function () { return state[k] > 0 ? fmtNum(state[k], 2, 2) : ''; };
+    }
+    function setter(k, parse) {
+      return function (v) {
+        var n = (parse || parseNum)(v);
+        state[k] = clampField(k, isFinite(n) ? Math.max(0, n) : 0);
+      };
+    }
+    bindNum($('price'), money2('price'), setter('price'));
+    bindNum($('onsite'), function () { return state.onsiteH > 0 ? fmtNum(state.onsiteH, 3) : ''; }, setter('onsiteH', parseHours));
+    bindNum($('crew'), function () { return fmtNum(state.crew, 0); }, setter('crew'));
+    bindNum($('driveMin'), function () { return state.driveMin > 0 ? fmtNum(state.driveMin, 1) : ''; }, setter('driveMin'));
+    bindNum($('miles'), function () { return state.miles > 0 ? fmtNum(state.miles, 1) : ''; }, setter('miles'));
+    bindNum($('setupMin'), function () { return state.setupMin > 0 ? fmtNum(state.setupMin, 1) : ''; }, setter('setupMin'));
+    bindNum($('chem'), money2('chem'), setter('chem'));
+    bindNum($('other'), money2('other'), setter('other'));
+    bindNum($('goal'), function () { return fmtNum(state.goal, 2, 2); }, setter('goal'));
+    bindNum($('perMile'), function () { return state.perMile > 0 ? fmtNum(state.perMile, 3, 2) : ''; }, setter('perMile'));
+    bindNum($('wearH'), money2('wearH'), setter('wearH'));
+    bindNum($('helperPay'), money2('helperPay'), setter('helperPay'));
+    bindNum($('overheadPct'), function () { return state.overheadPct > 0 ? fmtNum(state.overheadPct, 2) : ''; }, setter('overheadPct'));
+    bindNum($('feePct'), function () { return state.feePct > 0 ? fmtNum(state.feePct, 2) : ''; }, setter('feePct'));
+    bindNum($('feeFixed'), money2('feeFixed'), setter('feeFixed'));
+    bindNum($('jobsWeek'), function () { return state.jobsWeek > 0 ? fmtNum(state.jobsWeek, 0) : ''; }, setter('jobsWeek'));
+    bindNum($('weeksYear'), function () { return state.weeksYear > 0 ? fmtNum(state.weeksYear, 0) : ''; }, setter('weeksYear'));
+
+    $('exampleClear').addEventListener('click', clearJob);
+    twoTap($('clearBtn'), 'Clear this job', 'Tap again to clear', clearJob);
+    twoTap($('usualResetBtn'), 'Reset my usual numbers', 'Tap again to reset', resetUsual);
+    $('needBtn').addEventListener('click', function () {
+      var p = parseFloat($('needBtn').getAttribute('data-price'));
+      if (!isFinite(p)) return;
+      state.price = clampField('price', p);
+      syncStatic();
+      changed();
+    });
+    $('copyBtn').addEventListener('click', copySummary);
+    $('saveBtn').addEventListener('click', function () {
+      var f = $('saveForm');
+      f.hidden = !f.hidden;
+      if (!f.hidden) $('saveName').focus();
+    });
+    $('saveForm').addEventListener('submit', function (e) { e.preventDefault(); saveJob($('saveName').value); });
+    $('sheetClose').addEventListener('click', function () { $('sheet').hidden = true; });
+  }
+
+  state = load() || defaults();
+  fillSupport();
+  buildChips();
+  bindStatic();
+  renderSaved();
+  updateAll();
+  srReady = true;
+  queueSr(srSummary(compute(state)));
+})();
+</script>
