@@ -90,10 +90,9 @@
   .pricing .note { margin-top: 14px; font-size: 12px; color: var(--muted); }
 
   .more { padding: 34px 0; border-top: 1px solid var(--line); }
-  .more .grid { grid-template-columns: repeat(auto-fit, minmax(230px, 380px)); }
-  .card.link { display: block; color: inherit; text-decoration: none; }
+  .card.link { display: flex; flex-direction: column; color: inherit; text-decoration: none; }
   .card.link:hover, .card.link:focus-visible { border-color: var(--signal); }
-  .card.link .go { display: inline-block; margin-top: 10px; font-size: 13px; font-weight: 700; color: var(--signal); }
+  .card.link .go { margin-top: auto; padding-top: 10px; font-size: 13px; font-weight: 700; color: var(--signal); }
 
   footer {
     padding: 30px 0 44px; border-top: 1px solid var(--line);
@@ -185,6 +184,16 @@
         <h3>Rinse Quote</h3>
         <p>A free quote calculator for pressure washing jobs. Add surfaces, extras and tax, then copy the quote to text your customer.</p>
         <span class="go">Open Rinse Quote</span>
+      </a>
+      <a class="card link" href="rinse-mix/">
+        <h3>Rinse Mix</h3>
+        <p>A free soft wash mix calculator. Enter your batch size, strength and SH percent to get how much SH, water and surfactant to add.</p>
+        <span class="go">Open Rinse Mix</span>
+      </a>
+      <a class="card link" href="gpu-check/">
+        <h3>Used GPU Check</h3>
+        <p>A free checker for used graphics card listings. Answer a few questions for a scam risk score and a price check before you pay.</p>
+        <span class="go">Open Used GPU Check</span>
       </a>
     </div>
   </section>
