@@ -58,7 +58,7 @@ def main():
     problems = []
     if '@@' in out:
         problems.append('unreplaced placeholder')
-    if re.search('[—–]', out):
+    if re.search('[\u2014\u2013]', out):
         problems.append('dash character found')
     if '<script' in out:
         problems.append('script found')

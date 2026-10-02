@@ -360,7 +360,7 @@ with sync_playwright() as p:
     eq('robots.txt allows everything and names the sitemap',
        robots.split(), ['User-agent:', '*', 'Allow:', '/', 'Sitemap:', LIVE + 'sitemap.xml'])
     for f in ('sitemap.xml', 'robots.txt', '404.html'):
-        eq('%s has no em or en dash' % f, bool(re.search('[—–]', (ROOT / f).read_text(encoding='utf-8'))), False)
+        eq('%s has no em or en dash' % f, bool(re.search('[\u2014\u2013]', (ROOT / f).read_text(encoding='utf-8'))), False)
     ctx, pg = new('')
     eq('sitemap.xml is served as xml', (pg.request.get(BASE + 'sitemap.xml').status, 'xml' in pg.request.get(BASE + 'sitemap.xml').headers.get('content-type', '')), (200, True))
     eq('robots.txt is served as text', (pg.request.get(BASE + 'robots.txt').status, pg.request.get(BASE + 'robots.txt').headers.get('content-type', '').startswith('text/plain')), (200, True))
