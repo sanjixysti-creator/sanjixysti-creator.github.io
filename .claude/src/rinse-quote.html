@@ -297,7 +297,7 @@ details.rates { display: block; }
 .b-lab { font-size: 12px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); }
 .b-amt { font: 800 34px/1 var(--font-display); font-variant-numeric: tabular-nums; }
 .sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; display: grid; gap: 10px; max-width: 640px; margin-inline: auto; padding: 16px 16px calc(16px + env(safe-area-inset-bottom, 0px)); background: var(--surface); border-top: 1px solid var(--line-strong); box-shadow: var(--shadow-up); }
-.toast { position: fixed; left: 50%; bottom: calc(92px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 50; max-width: calc(100% - 32px); padding: 10px 16px; border-radius: 999px; background: var(--ink); color: var(--surface); font-size: 14px; font-weight: 600; text-align: center; box-shadow: var(--shadow-pop); }
+.toast { position: fixed; left: 50%; bottom: calc(92px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 50; max-width: calc(100% - 32px); padding: 10px 16px; border-radius: 999px; background: var(--ink); color: var(--surface); font-size: 14px; font-weight: 600; text-align: center; box-shadow: var(--shadow-pop); pointer-events: none; }
 
 @media (min-width: 900px) {
   body { padding-block: 24px 40px; }
@@ -500,6 +500,7 @@ details.rates { display: block; }
 
       <div class="foot">
         <p>Rinse Quote runs in your browser. Your rates and quotes stay on this device.</p>
+        <p>Also from <a href="https://sanjixysti-creator.github.io/">Xysti Software</a>: <a href="https://sanjixysti-creator.github.io/rinse-rate/">Rinse Rate</a>, a calculator that shows what a pressure washing job really paid per hour, and <a href="https://sanjixysti-creator.github.io/rinse-mix/">Rinse Mix</a>, a soft wash mix calculator.</p>
         <p>Questions, or trouble with a Pro code? Email <span class="mail"></span> <button type="button" class="linkish mail-copy">Copy</button></p>
       </div>
     </div>

@@ -628,6 +628,7 @@ with sync_playwright() as p:
         page.wait_for_timeout(60)
         eq('message copy puts the text on the clipboard', read_copied(page), page.text_content('#msgText'))
         eq('message copy toast', toast(page), 'Message copied.')
+        eq('a tap under the toast reaches the page', page.evaluate("(() => { const t = document.getElementById('toast'); const r = t.getBoundingClientRect(); const e = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return !!e && !t.contains(e); })()"), True)
 
     with section('links'):
         apply(page, {}, card='RX 9070 XT')

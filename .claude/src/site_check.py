@@ -168,8 +168,18 @@ with sync_playwright() as p:
     # ------------------------------------------------------------------ files that must not change
     eq('privacy.html is byte for byte what the store listing points at',
        sha((ROOT / 'privacy.html').read_bytes()), sha(subprocess.check_output(['git', '-C', str(ROOT), 'show', 'HEAD:privacy.html'])))
-    changed = subprocess.check_output(['git', '-C', str(ROOT), 'status', '--porcelain', 'rinse-quote', 'rinse-mix', 'gpu-check']).decode().strip()
-    eq('the three tools are untouched', changed, '')
+    TOOLS = ('rinse-quote', 'rinse-mix', 'rinse-rate', 'gpu-check')
+    for tool in TOOLS:
+        eq('%s holds exactly the four standard files' % tool, sorted(os.listdir(ROOT / tool)),
+           ['apple-touch-icon.png', 'index.html', 'og.png', 'privacy.html'])
+        page = (ROOT / tool / 'index.html').read_text(encoding='utf-8')
+        eq('%s has no em or en dash' % tool, bool(re.search('[\u2014\u2013]', page)), False)
+        links = sorted(set(re.findall(r'<a href="(https://sanjixysti-creator\.github\.io/[^"#?]*)"', page)))
+        def target(u):
+            rel = u[len(LIVE):]
+            return (ROOT / rel / 'index.html') if (rel == '' or rel.endswith('/')) else (ROOT / rel)
+        eq('%s: every link to this site goes to a page that exists' % tool, [u for u in links if not target(u).exists()], [])
+        eq('%s links back to the home page' % tool, LIVE in links, True)
     for rel in ('index.html', 'tuner/index.html'):
         txt = (ROOT / rel).read_text(encoding='utf-8')
         eq('%s has no em or en dash' % rel, bool(re.search('[\u2014\u2013]', txt)), False)

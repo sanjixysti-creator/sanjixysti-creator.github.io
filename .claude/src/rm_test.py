@@ -569,6 +569,7 @@ with sync_playwright() as p:
             'Water: 37.61 gal (top up to 50 gal)',
             'Surfactant (1 fl oz per gal): 50 fl oz']))
         eq('toast on copy', toast(page), 'Mix copied.')
+        eq('a tap under the toast reaches the page', page.evaluate("(() => { const t = document.getElementById('toast'); const r = t.getBoundingClientRect(); const e = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return !!e && !t.contains(e); })()"), True)
         tap(page, '#unitMetric')
         page.wait_for_timeout(60)
         text = copied(page)
@@ -921,6 +922,8 @@ with sync_playwright() as p:
             eq('mailto anchor', pgm.get_attribute('a.mail', 'href'), 'mailto:' + SUPPORT)
             eq('privacy link', pgm.get_attribute('.foot a[href="privacy.html"]', 'href'), 'privacy.html')
             eq('rinse quote link', pgm.get_attribute('.foot a[href*="rinse-quote"]', 'href'), 'https://sanjixysti-creator.github.io/rinse-quote/')
+            eq('rinse rate link', pgm.get_attribute('.foot a[href*="rinse-rate"]', 'href'), 'https://sanjixysti-creator.github.io/rinse-rate/')
+            eq('home link', pgm.get_attribute('.foot a[href="https://sanjixysti-creator.github.io/"]', 'href'), 'https://sanjixysti-creator.github.io/')
             eq('maker line', 'Made by Xysti Software' in txt(pgm, '.foot'), True)
             cm.close()
 

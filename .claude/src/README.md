@@ -31,7 +31,8 @@ Tests:
   independent reference code, layout at many widths, contrast, tap sizes, keyboard, storage, share
   tags). rate_test.py takes a couple of minutes.
 - site_check.py: checks the home page, the 404 page, the sitemap, the /tuner/ page and the files that
-  must never change.
+  must never change. It also checks that each tool folder holds the four standard files and that its
+  links to other pages on this site all point at pages that exist.
 - tuner_check.py, iosfs_check.py, gpu_smoke.py, rate_smoke.py, rm_states.py, hub_shots.py,
   gpu_shots2.py, shots_rate.py, ticket_shot.py: smaller checks and screenshot helpers.
 - live_smoke.py, live_smoke2.py, live_smoke3.py: run against the live site after a push. They compare

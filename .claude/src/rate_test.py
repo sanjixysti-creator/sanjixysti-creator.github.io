@@ -749,6 +749,7 @@ with sync_playwright() as p:
         eq('clear empties the job', pg2.input_value('#price'), '')
         eq('clear keeps the crew', pg2.input_value('#crew'), '3')
         eq('clear toast', toast(pg2), 'Job cleared.')
+        eq('a tap under the toast reaches the page', pg2.evaluate("(() => { const t = document.getElementById('toast'); const r = t.getBoundingClientRect(); const e = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return !!e && !t.contains(e); })()"), True)
         eq('clear button label back', txt(pg2, '#clearBtn'), 'Clear this job')
         c2.close()
 
@@ -1690,6 +1691,7 @@ with sync_playwright() as p:
             eq('privacy link', pgm.get_attribute('.foot a[href="privacy.html"]', 'href'), 'privacy.html')
             eq('rinse quote link', pgm.get_attribute('.foot a[href*="rinse-quote"]', 'href'), 'https://sanjixysti-creator.github.io/rinse-quote/')
             eq('rinse mix link', pgm.get_attribute('.foot a[href*="rinse-mix"]', 'href'), 'https://sanjixysti-creator.github.io/rinse-mix/')
+            eq('home link', pgm.get_attribute('.foot a[href="https://sanjixysti-creator.github.io/"]', 'href'), 'https://sanjixysti-creator.github.io/')
             eq('maker line', 'Made by Xysti Software' in txt(pgm, '.foot'), True)
             eq('no robots block', pgm.evaluate("document.querySelectorAll('meta[name=robots]').length"), 0)
             cm.close()

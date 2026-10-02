@@ -283,7 +283,7 @@ details.rates { display: block; }
 .b-amt.xs { font-size: 19px; }
 .sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; max-width: 640px; margin-inline: auto; padding: 16px 16px calc(16px + env(safe-area-inset-bottom, 0px)); background: var(--surface); border-top: 1px solid var(--line-strong); box-shadow: var(--shadow-up); }
 textarea.ctl { height: auto; padding: 12px; font: 400 16px/1.45 var(--font-mono); resize: vertical; }
-.toast { position: fixed; left: 50%; bottom: calc(92px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 50; max-width: calc(100% - 32px); padding: 10px 16px; border-radius: 999px; background: var(--ink); color: var(--surface); font-size: 14px; font-weight: 600; text-align: center; box-shadow: var(--shadow-pop); }
+.toast { position: fixed; left: 50%; bottom: calc(92px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 50; max-width: calc(100% - 32px); padding: 10px 16px; border-radius: 999px; background: var(--ink); color: var(--surface); font-size: 14px; font-weight: 600; text-align: center; box-shadow: var(--shadow-pop); pointer-events: none; }
 
 @media (min-width: 900px) {
   body { padding-block: 24px 40px; }
@@ -564,7 +564,7 @@ textarea.ctl { height: auto; padding: 12px; font: 400 16px/1.45 var(--font-mono)
       <div class="foot">
         <p>Rinse Rate runs in your browser. What you type and the jobs you save stay on this device.</p>
         <p>Estimates only. Your real numbers depend on your costs, and taxes come out of what is left. This is not tax or accounting advice.</p>
-        <p>Also from Xysti Software: <a href="https://sanjixysti-creator.github.io/rinse-quote/">Rinse Quote</a>, a free quote calculator for pressure washing jobs, and <a href="https://sanjixysti-creator.github.io/rinse-mix/">Rinse Mix</a>, a soft wash mix calculator.</p>
+        <p>Also from <a href="https://sanjixysti-creator.github.io/">Xysti Software</a>: <a href="https://sanjixysti-creator.github.io/rinse-quote/">Rinse Quote</a>, a free quote calculator for pressure washing jobs, and <a href="https://sanjixysti-creator.github.io/rinse-mix/">Rinse Mix</a>, a soft wash mix calculator.</p>
         <p>Spotted a mistake in the math, or want something added? Email <a class="mail" href="mailto:fireseabrook2566@gmail.com"></a> <button type="button" class="linkish mail-copy">Copy</button></p>
         <p>Made by Xysti Software. <a href="privacy.html">Privacy</a></p>
       </div>

@@ -158,7 +158,12 @@ with section('source hygiene'):
     eq('no dialogs', bool(re.search(r'\b(alert|confirm|prompt)\(', src)), False)
     eq('no external scripts', re.findall(r'<script[^>]*\bsrc=', src), [])
     hosts = set(re.findall(r'https?://([a-z0-9.\-]+)', src))
-    eq('only allowed hosts', sorted(hosts - {'fonts.googleapis.com', 'fonts.gstatic.com', 'buy.stripe.com'}), [])
+    eq('only allowed hosts', sorted(hosts - {'fonts.googleapis.com', 'fonts.gstatic.com', 'buy.stripe.com', 'sanjixysti-creator.github.io'}), [])
+    # The site's own address may only appear as the target of a plain link to one of its pages, never in a request.
+    site_urls = set(re.findall(r'https://sanjixysti-creator\.github\.io/[A-Za-z0-9\-/._]*', src))
+    site_links = set(re.findall(r'<a href="(https://sanjixysti-creator\.github\.io/[A-Za-z0-9\-/._]*)"', src))
+    eq('the site address is only used in plain links', sorted(site_urls - site_links), [])
+    eq('links to the other tools', sorted(site_links), ['https://sanjixysti-creator.github.io/', 'https://sanjixysti-creator.github.io/rinse-mix/', 'https://sanjixysti-creator.github.io/rinse-rate/'])
 
     if STANDALONE:
         eq('built: doctype first', built.lstrip().lower().startswith('<!doctype html>'), True)
@@ -265,6 +270,7 @@ with sync_playwright() as p:
         has('copy total', cp, 'Total: $877.50')
         has('copy valid', cp, 'Valid until')
         eq('copy toast', toast(page), 'Quote copied. Paste it into a text or email.')
+        eq('a tap under the toast reaches the page', page.evaluate("(() => { const t = document.getElementById('toast'); const r = t.getBoundingClientRect(); const e = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2); return !!e && !t.contains(e); })()"), True)
         page.evaluate('window.__copied = null')
         tap(page, '#barCopy')
         page.wait_for_timeout(80)

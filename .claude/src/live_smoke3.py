@@ -94,6 +94,12 @@ with sync_playwright() as p:
         pg.wait_for_url(ROOT + path)
         eq('hub opens %s' % path, pg.title(), title)
         ctx.close()
+    for path in ('rinse-quote/', 'rinse-mix/', 'rinse-rate/', 'gpu-check/'):
+        ctx, pg = new(path)
+        pg.locator('.foot a[href="https://sanjixysti-creator.github.io/"]').click()
+        pg.wait_for_url(ROOT)
+        eq('%s links back to the hub' % path, pg.title(), TITLES[''])
+        ctx.close()
     ctx, pg = new('tuner/')
     pg.locator('header nav a', has_text='All tools').click()
     pg.wait_for_url(ROOT)
