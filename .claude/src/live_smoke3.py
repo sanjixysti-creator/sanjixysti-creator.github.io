@@ -27,6 +27,7 @@ TITLES = {
     'rinse-quote/': 'Rinse Quote: Free Pressure Washing Quote Calculator',
     'rinse-mix/': 'Rinse Mix: Free Soft Wash Mix Calculator',
     'rinse-rate/': 'Rinse Rate: Pressure Washing Job Profit Calculator',
+    'drive-rate/': 'Drive Rate: Is This Delivery Offer Worth It? Free Calculator',
     'gpu-check/': 'Used GPU Check: Free Risk and Price Checker',
 }
 
@@ -52,6 +53,7 @@ with sync_playwright() as p:
     for rel in ('index.html', 'og.png', 'apple-touch-icon.png', 'tuner/index.html', 'privacy.html',
                 'rinse-quote/index.html', 'rinse-quote/privacy.html', 'rinse-mix/index.html', 'rinse-mix/privacy.html',
                 'rinse-rate/index.html', 'rinse-rate/privacy.html', 'rinse-rate/og.png', 'rinse-rate/apple-touch-icon.png',
+                'drive-rate/index.html', 'drive-rate/privacy.html', 'drive-rate/og.png', 'drive-rate/apple-touch-icon.png',
                 'gpu-check/index.html', 'gpu-check/privacy.html', '404.html', 'sitemap.xml', 'robots.txt'):
         url = ROOT + ('?v=bytes' if rel == 'index.html' else rel)
         r = pg.request.get(url)
@@ -63,7 +65,7 @@ with sync_playwright() as p:
     # the hidden notes are not served anywhere
     for u in ('.claude/CLAUDE.md', 'claude/CLAUDE.md', 'CLAUDE.md', '.claude/', '.claude'):
         eq('%s is not public' % u, pg.request.get(ROOT + u + '?x=1').status, 404)
-    eq('no notes text leaks into any page', any('Notes for Claude' in pg.request.get(ROOT + u).text() for u in ('', 'tuner/', 'rinse-quote/', 'rinse-mix/', 'rinse-rate/', 'gpu-check/')), False)
+    eq('no notes text leaks into any page', any('Notes for Claude' in pg.request.get(ROOT + u).text() for u in ('', 'tuner/', 'rinse-quote/', 'rinse-mix/', 'rinse-rate/', 'drive-rate/', 'gpu-check/')), False)
     ctx.close()
 
     # 2. each page loads cleanly
@@ -78,7 +80,7 @@ with sync_playwright() as p:
         ctx, pg = new('', scheme=scheme)
         faces = pg.evaluate('''async () => { const o = []; for (const f of [...document.fonts]) { try { await f.load(); o.push(f.status); } catch (e) { o.push('ERR'); } } return o; }''')
         eq('hub fonts loaded (%s)' % scheme, faces, ['loaded'] * 3)
-        eq('hub rows (%s)' % scheme, pg.eval_on_selector_all('.row h3 a', 'els => els.map(e => e.textContent.trim())'), ['Rinse Quote', 'Rinse Mix', 'Rinse Rate', 'Used GPU Check', 'Tuner for YouTube'])
+        eq('hub rows (%s)' % scheme, pg.eval_on_selector_all('.row h3 a', 'els => els.map(e => e.textContent.trim())'), ['Rinse Quote', 'Rinse Mix', 'Rinse Rate', 'Drive Rate', 'Used GPU Check', 'Tuner for YouTube'])
         og = pg.evaluate('''() => new Promise(res => { const i = new Image(); i.onload = () => res([i.naturalWidth, i.naturalHeight]); i.onerror = () => res(null); i.src = document.querySelector('meta[property="og:image"]').content; })''')
         eq('hub share image loads at 1200x630 (%s)' % scheme, og, [1200, 630])
         eq('hub canonical', pg.get_attribute('link[rel=canonical]', 'href'), ROOT)
@@ -87,14 +89,14 @@ with sync_playwright() as p:
         ctx.close()
 
     # 4. click through from the hub to every tool and back by the site's own links
-    for i, path in enumerate(['rinse-quote/', 'rinse-mix/', 'rinse-rate/', 'gpu-check/', 'tuner/']):
+    for i, path in enumerate(['rinse-quote/', 'rinse-mix/', 'rinse-rate/', 'drive-rate/', 'gpu-check/', 'tuner/']):
         title = TITLES[path]
         ctx, pg = new('')
         pg.locator('.row h3 a').nth(i).click()
         pg.wait_for_url(ROOT + path)
         eq('hub opens %s' % path, pg.title(), title)
         ctx.close()
-    for path in ('rinse-quote/', 'rinse-mix/', 'rinse-rate/', 'gpu-check/'):
+    for path in ('rinse-quote/', 'rinse-mix/', 'rinse-rate/', 'drive-rate/', 'gpu-check/'):
         ctx, pg = new(path)
         pg.locator('.foot a[href="https://sanjixysti-creator.github.io/"]').click()
         pg.wait_for_url(ROOT)
@@ -123,7 +125,7 @@ with sync_playwright() as p:
     # 6. Rinse Rate works end to end from the live site, with real typing
     ctx, pg = new('rinse-rate/')
     eq('rate opens on its example job', (pg.inner_text('#payNum'), pg.inner_text('#needText')),
-       ('$36.97', 'To earn $50.00 an hour on this job, charge $358.'))
+       ('$36.71', 'To earn $50.00 an hour on this job, charge $359.'))
     pg.click('#exampleClear')
     pg.fill('#price', '450'); pg.fill('#onsite', '4'); pg.fill('#chem', '20')
     pg.wait_for_timeout(200)
@@ -139,9 +141,30 @@ with sync_playwright() as p:
     eq('rate canonical', pg.get_attribute('link[rel=canonical]', 'href'), ROOT + 'rinse-rate/')
     ctx.close()
 
+    # 6b. Drive Rate works end to end from the live site, with real typing
+    ctx, pg = new('drive-rate/')
+    eq('drive opens on its example offer', (pg.text_content('#vWord').strip(), pg.inner_text('#vHour'), pg.inner_text('#needVal')),
+       ('Pass', '$8.88', '$12.25'))
+    pg.click('#exampleClear')
+    pg.wait_for_timeout(150)
+    eq('drive starts blank', pg.text_content('#vWord').strip(), 'Add an offer')
+    pg.fill('#pay', '12'); pg.fill('#miles', '3'); pg.fill('#minutes', '20')
+    pg.wait_for_timeout(250)
+    eq('drive reads a typed offer', (pg.text_content('#vWord').strip(), pg.inner_text('#vHour'), pg.inner_text('#vMile'), pg.inner_text('#needVal')),
+       ('Take it', '$32.99', '$4.00', '$7.68'))
+    eq('drive has no sideways scroll', pg.evaluate('document.documentElement.scrollWidth <= document.documentElement.clientWidth'), True)
+    pg.screenshot(path=D + '/live-drive.png')
+    ctx.close()
+    ctx, pg = new('drive-rate/', scheme='dark')
+    pg.screenshot(path=D + '/live-drive-dark.png')
+    og = pg.evaluate('''() => new Promise(res => { const i = new Image(); i.onload = () => res([i.naturalWidth, i.naturalHeight]); i.onerror = () => res(null); i.src = document.querySelector('meta[property="og:image"]').content; })''')
+    eq('drive share image loads at 1200x630', og, [1200, 630])
+    eq('drive canonical', pg.get_attribute('link[rel=canonical]', 'href'), ROOT + 'drive-rate/')
+    ctx.close()
+
     # 7. the sitemap lists it, and a missing address still gets the not-found page
     ctx, pg = new('')
-    eq('sitemap lists rinse-rate', ROOT + 'rinse-rate/' in pg.request.get(ROOT + 'sitemap.xml?x=1').text(), True)
+    eq('sitemap lists rinse-rate and drive-rate', [ROOT + 'rinse-rate/' in pg.request.get(ROOT + 'sitemap.xml?x=1').text(), ROOT + 'drive-rate/' in pg.request.get(ROOT + 'sitemap.xml?x=2').text()], [True, True])
     r = pg.request.get(ROOT + 'no/such/page/at/this/depth')
     eq('a missing address answers 404 with the page', (r.status, 'Nothing here.' in r.text()), (404, True))
     ctx.close()

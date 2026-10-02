@@ -354,7 +354,7 @@ textarea.ctl { height: auto; padding: 12px; font: 400 16px/1.45 var(--font-mono)
             <div class="field"><label class="lab" for="perMile">Cost per mile</label><div class="affix"><span class="pre">$</span><input id="perMile" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00" aria-describedby="mileHint"></div></div>
             <div class="field"><label class="lab" for="wearH">Machine wear per hour</label><div class="affix"><span class="pre">$</span><input id="wearH" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00" aria-describedby="wearHint"></div></div>
           </div>
-          <p class="fine" id="mileHint">Many owners start from the IRS business rate, which is 72.5 cents a mile for 2026 and changes every year.</p>
+          <p class="fine" id="mileHint">Many owners start from the IRS business rate, which is 76 cents a mile from July 1, 2026 and changes every year.</p>
           <p class="fine" id="wearHint">Machine wear is counted for the hours on site. It covers fuel for the machine, pump kits, hoses and nozzles.</p>
           <div class="grid2">
             <div class="field"><label class="lab" for="helperPay">Helper pay per hour</label><div class="affix"><span class="pre">$</span><input id="helperPay" type="text" inputmode="decimal" autocomplete="off" placeholder="0.00" aria-describedby="helperHint"></div></div>
@@ -557,8 +557,8 @@ textarea.ctl { height: auto; padding: 12px; font: 400 16px/1.45 var(--font-mono)
   var STORE_KEY = 'rinse-rate-v1';
   /* Shown to people who spot a mistake. */
   var SUPPORT = 'fireseabrook2566@gmail.com';
-  /* The IRS business rate for 2026, in dollars a mile. It changes every year, so it is only the starting example. */
-  var IRS_PER_MILE = 0.725;
+  /* The IRS business rate since July 1, 2026, in dollars a mile (72.5 cents before that). It changes every year, so it is only the starting example. */
+  var IRS_PER_MILE = 0.76;
 
   var MAX_MONEY = 10000000;
   var MAX_HOURS = 1000;

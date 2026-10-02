@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Build the standalone Rinse Rate site from the artifact fragment.
+"""Build the standalone Drive Rate site from the fragment.
 
-Input : rinse-rate.html (the artifact fragment, source of truth)
-Output: site/rinse-rate/index.html   (calculator, fonts inlined, no external requests)
-        site/rinse-rate/privacy.html (short privacy page)
-Images (og.png, apple-touch-icon.png) are made by build_images_rate.py.
+Input : drive-rate.html (the fragment, source of truth)
+Output: site/drive-rate/index.html   (calculator, fonts inlined, no external requests)
+        site/drive-rate/privacy.html (short privacy page)
+Images (og.png, apple-touch-icon.png) are made by build_images_drive.py.
 Shares the font pipeline with build_site.py (Rinse Quote) and leaves that file untouched.
 """
 import base64
@@ -16,49 +16,52 @@ import sys
 from build_site import APP_FONTS, PRIVACY_FONTS, SKELETON_CSS, font_faces
 
 HERE = pathlib.Path(__file__).resolve().parent
-SRC = HERE / 'rinse-rate.html'
-OUT = HERE / 'site' / 'rinse-rate'
+SRC = HERE / 'drive-rate.html'
+OUT = HERE / 'site' / 'drive-rate'
 
-SITE_URL = 'https://sanjixysti-creator.github.io/rinse-rate/'
-TITLE = 'Rinse Rate: Pressure Washing Job Profit Calculator'
-DESC = ('Free pressure washing job profit calculator. Enter your price, hours, drive time and costs to see '
-        'what the job paid per hour and what to charge for your goal.')
-OG_DESC = 'Free pressure washing job profit calculator. See what a job really paid per hour, and what to charge. No signup.'
-OG_ALT = ('Rinse Rate, a free pressure washing job profit calculator, next to a sample result: a 300 dollar job that '
-          'paid 36.71 dollars an hour, and a price of 359 dollars to reach a 50 dollar an hour goal.')
+SITE_URL = 'https://sanjixysti-creator.github.io/drive-rate/'
+TITLE = 'Drive Rate: Is This Delivery Offer Worth It? Free Calculator'
+DESC = ('Free offer checker for DoorDash, Uber Eats, Instacart and rideshare drivers. See net pay per hour after '
+        'car costs, get a clear verdict, and log your day.')
+OG_DESC = ('Is this delivery offer worth it? See what it pays per hour after your car costs, with a clear verdict '
+           'and a day log. Free, no signup.')
+# The numbers in this text are the app's own first-visit example (checked by drive_test.py).
+OG_ALT = ('Drive Rate, a free delivery and rideshare offer calculator, next to a sample result: a 6.50 dollar offer '
+          'that nets 8.88 dollars an hour after car costs, with the verdict Pass and 12.25 dollars needed to meet the goals.')
 MAKER = 'Xysti Software'
 UPDATED = 'October 2026'
 
-ORANGE = '#C2410C'
-BG_LIGHT, BG_DARK = '#F1ECE5', '#17110C'
+RED = '#BE123C'
+BG_LIGHT, BG_DARK = '#ECEEF1', '#0B0C0F'
+
+# Outside addresses a built page may link to. Everything else is refused.
+ALLOWED_LINKS = ('https://sanjixysti-creator.github.io/', 'https://docs.github.com/', 'https://www.irs.gov/')
 
 # Same dash characters the tests look for, written without typing them.
 DASHES = ''.join(chr(c) for c in (0x2014, 0x2013, 0x2212))
 
-ARC_D = 'M6 28a14 14 0 0 1 28 0'
-NEEDLE_D = 'M20 28L27.5 15.5'
+EDGE_D = 'M8.5 35L16.5 5M31.5 35L23.5 5'
+DASH_D = 'M20 30.5v4.5M20 21.5v5M20 14.5v3.5M20 8.5v2.5'
 
 # One place for the mark so the favicon, the touch icon, the link preview and the privacy page agree.
 MARK_SVG = (
     '<svg viewBox="0 0 40 40" aria-hidden="true" focusable="false">'
-    f'<path class="mk-arc" d="{ARC_D}" fill="none" stroke-width="4.4" stroke-linecap="round"/>'
-    f'<path class="mk-needle" d="{NEEDLE_D}" fill="none" stroke-width="3.4" stroke-linecap="round"/>'
-    '<circle class="mk-hub" cx="20" cy="28" r="3.8"/></svg>'
+    f'<path class="mk-edge" d="{EDGE_D}" fill="none" stroke-width="4" stroke-linecap="round"/>'
+    f'<path class="mk-line" d="{DASH_D}" fill="none" stroke-width="3.2" stroke-linecap="round"/></svg>'
 )
 
-# The same art on the orange ground (favicon, touch icon, hub tile). Centered on its own bounds.
-MARK_ON_ORANGE = (
-    '<g transform="translate(2 .4) scale(.9)">'
-    f'<path d="{ARC_D}" fill="none" stroke="#fff" stroke-width="4.4" stroke-linecap="round"/>'
-    f'<path d="{NEEDLE_D}" fill="none" stroke="#FFD9BF" stroke-width="3.4" stroke-linecap="round"/>'
-    '<circle cx="20" cy="28" r="3.8" fill="#fff"/></g>'
+# The same art on the red ground (favicon, touch icon, hub tile). Its box is centred on (20, 20) already.
+MARK_ON_RED = (
+    '<g transform="translate(2 2) scale(.9)">'
+    f'<path d="{EDGE_D}" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/>'
+    f'<path d="{DASH_D}" fill="none" stroke="#FFD1DC" stroke-width="3.2" stroke-linecap="round"/></g>'
 )
 
 
 def favicon_data_uri():
     svg = (
         '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40">'
-        f'<rect width="40" height="40" rx="9" fill="{ORANGE}"/>{MARK_ON_ORANGE}</svg>'
+        f'<rect width="40" height="40" rx="9" fill="{RED}"/>{MARK_ON_RED}</svg>'
     )
     return 'data:image/svg+xml;base64,' + base64.b64encode(svg.encode()).decode('ascii')
 
@@ -82,7 +85,7 @@ def head_tags(title, desc, url, og=True):
         oa = html.escape(OG_ALT, quote=True)
         tags += [
             '<meta property="og:type" content="website">',
-            '<meta property="og:site_name" content="Rinse Rate">',
+            '<meta property="og:site_name" content="Drive Rate">',
             f'<meta property="og:title" content="{t}">',
             f'<meta property="og:description" content="{od}">',
             f'<meta property="og:url" content="{url}">',
@@ -115,6 +118,8 @@ def build_index():
     leftover = re.sub(r'<link [^>]*>', '', leftover)
     if leftover.strip():
         sys.exit('unexpected content in fragment head: ' + repr(leftover.strip()[:120]))
+    if body.count('<script>') != 1 or body.count('</script>') != 1:
+        sys.exit('expected exactly one script block')
 
     # Support address becomes a real mailto link on this standalone page (fillSupport still sets its text).
     sup = re.search(r"var SUPPORT = '([^']+)';", body)
@@ -135,7 +140,7 @@ def build_index():
     body = body.replace(foot_old, foot_new)
 
     noscript = ('<noscript><p style="padding:16px;font:16px/1.45 system-ui,sans-serif">'
-                'Rinse Rate needs JavaScript. Turn it on in your browser settings, then reload this page.</p></noscript>')
+                'Drive Rate needs JavaScript. Turn it on in your browser settings, then reload this page.</p></noscript>')
 
     return (
         '<!doctype html>\n<html lang="en">\n<head>\n'
@@ -147,20 +152,20 @@ def build_index():
 
 PRIVACY_CSS = """
 :root {
-  --bg: #F1ECE5; --surface: #FFFFFF; --ink: #2A1A10; --muted: #65503F; --line: #DCCFC1;
-  --accent: #C2410C; --on-accent: #FFFFFF; --accent-ink: #B03A0A;
+  --bg: #ECEEF1; --surface: #FFFFFF; --ink: #16181D; --muted: #545968; --line: #D3D6DE;
+  --accent: #BE123C; --on-accent: #FFFFFF; --accent-ink: #A50F34;
   --font-display: 'Big Shoulders Display', 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
   --font-body: 'Public Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #17110C; --surface: #211812; --ink: #F5EBE1; --muted: #BBA796; --line: #3D3025;
-    --accent: #FF9248; --on-accent: #2B1100; --accent-ink: #FF9248; color-scheme: dark;
+    --bg: #0B0C0F; --surface: #15171C; --ink: #EDEEF2; --muted: #A4A8B5; --line: #2A2D36;
+    --accent: #FF7A95; --on-accent: #2A0610; --accent-ink: #FF8FA6; color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #17110C; --surface: #211812; --ink: #F5EBE1; --muted: #BBA796; --line: #3D3025;
-  --accent: #FF9248; --on-accent: #2B1100; --accent-ink: #FF9248; color-scheme: dark;
+  --bg: #0B0C0F; --surface: #15171C; --ink: #EDEEF2; --muted: #A4A8B5; --line: #2A2D36;
+  --accent: #FF7A95; --on-accent: #2A0610; --accent-ink: #FF8FA6; color-scheme: dark;
 }
 *, *::before, *::after { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
@@ -177,9 +182,8 @@ a { color: var(--accent-ink); text-underline-offset: 3px; }
 .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .brand { display: inline-flex; align-items: center; gap: 10px; color: var(--ink); text-decoration: none; }
 .brand svg { width: 34px; height: 34px; flex: none; }
-.brand .mk-arc { stroke: var(--accent); }
-.brand .mk-needle { stroke: var(--ink); }
-.brand .mk-hub { fill: var(--ink); }
+.brand .mk-edge { stroke: var(--ink); }
+.brand .mk-line { stroke: var(--accent); }
 .brand span { font: 800 26px/1 var(--font-display); letter-spacing: 0.02em; text-transform: uppercase; }
 .back { font-size: 14px; font-weight: 600; }
 .doc { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 22px 18px; display: grid; gap: 22px; min-width: 0; }
@@ -196,29 +200,30 @@ def build_privacy(support):
     body = f"""
 <div class="page">
   <div class="top">
-    <a class="brand" href="./" aria-label="Rinse Rate home">{MARK_SVG}<span>Rinse Rate</span></a>
+    <a class="brand" href="./" aria-label="Drive Rate home">{MARK_SVG}<span>Drive Rate</span></a>
     <a class="back" href="./">Back to the calculator</a>
   </div>
   <main class="doc">
     <div>
       <h1>Privacy policy</h1>
-      <p class="updated">Rinse Rate, last updated {UPDATED}</p>
+      <p class="updated">Drive Rate, last updated {UPDATED}</p>
     </div>
 
     <section>
       <h2>The short version</h2>
-      <p>Rinse Rate has no accounts, no ads, no analytics and no cookies of its own. The numbers you type into the calculator and the jobs you save stay in your browser, on your own device. They are never sent to us.</p>
+      <p>Drive Rate has no accounts, no ads, no analytics and no cookies of its own. The offers you check, your car and goal numbers, your daily log and your saved days stay in your browser, on your own device. They are never sent to us or to anyone else. Drive Rate does not ask for your location and does not connect to any delivery or rideshare account.</p>
     </section>
 
     <section>
       <h2>What is stored on your device</h2>
       <ul>
-        <li>The price, hours, crew size, drive and cost numbers for the job you are working on</li>
-        <li>Your usual numbers: mileage rate, machine wear, helper pay, overhead percent, payment fee and your pay per hour goal</li>
-        <li>The jobs per week and weeks per year you enter for the monthly estimate</li>
-        <li>The jobs you save, including the names you give them</li>
+        <li>The offer you are checking: pay, tip, miles, minutes, waiting time, the trip back and the app you pick</li>
+        <li>Your car numbers: fuel prices, mileage, maintenance, depreciation and other costs per mile, or the cost per mile you type in</li>
+        <li>Your goals: the lowest net pay per hour, the lowest gross pay per mile and your tax set-aside percentage</li>
+        <li>Today's log: the offers you log, with their pay, miles, minutes, app and any note you write, and the hours and miles you type over the totals</li>
+        <li>Your saved days: the date, number of offers, gross pay, miles, hours and net of each day, for up to 60 days</li>
       </ul>
-      <p style="margin-top:10px">This lives in your browser's local storage for this site. Clearing your browser data removes it, and a different browser or device starts empty.</p>
+      <p style="margin-top:10px">This lives in your browser's local storage for this site. Clearing your browser data removes it, and a different browser or device starts empty. If your browser blocks storage, Drive Rate still works, but nothing is kept after you close the page.</p>
     </section>
 
     <section>
@@ -226,18 +231,20 @@ def build_privacy(support):
       <ul>
         <li>No analytics, tracking pixels or advertising</li>
         <li>No outside fonts or scripts. The fonts are built into the page, so loading it does not contact any font service</li>
-        <li>No sending of your jobs anywhere. Copying a summary puts text on your clipboard, and what you do with it next is up to you</li>
+        <li>No lookups while you use it. The IRS mileage rate shown on the page is written into the page, so it does not fetch anything and it can go out of date until the page is updated</li>
+        <li>No sending of your offers or your log anywhere. Copying a summary puts text on your clipboard, and what you do with it next is up to you</li>
       </ul>
+      <p style="margin-top:10px">A few links lead to irs.gov. Those pages open only when you tap a link, and then the IRS site sees your visit under its own policies.</p>
     </section>
 
     <section>
       <h2>Hosting</h2>
-      <p>Rinse Rate is hosted on GitHub Pages. Like any web host, GitHub may log technical details such as your IP address and browser type when you load the page, under <a href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement">GitHub's privacy statement</a>. We add no tracking of our own on top of that.</p>
+      <p>Drive Rate is hosted on GitHub Pages. Like any web host, GitHub may log technical details such as your IP address and browser type when you load the page, under <a href="https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement">GitHub's privacy statement</a>. We add no tracking of our own on top of that.</p>
     </section>
 
     <section>
       <h2>Estimates only</h2>
-      <p>Rinse Rate does arithmetic on the numbers you give it. It cannot know your real costs, taxes or insurance, so treat the results as a guide, and ask an accountant about anything that matters.</p>
+      <p>Drive Rate does arithmetic on the numbers you give it. It cannot know your real costs, your taxes or your insurance, so treat the results as a guide. It is not tax or financial advice, so ask a tax professional about anything that matters. Drive Rate is not affiliated with or endorsed by any delivery or rideshare company, and their names belong to their owners.</p>
     </section>
 
     <section>
@@ -254,8 +261,8 @@ def build_privacy(support):
 """
     return (
         '<!doctype html>\n<html lang="en">\n<head>\n'
-        + head_tags('Privacy Policy - Rinse Rate',
-                    'How Rinse Rate handles your data: it stays in your browser, on your device.',
+        + head_tags('Privacy Policy - Drive Rate',
+                    'How Drive Rate handles your data: it stays in your browser, on your device.',
                     SITE_URL + 'privacy.html', og=False)
         + '\n<style>\n' + SKELETON_CSS + '\n' + font_faces(PRIVACY_FONTS) + '\n' + PRIVACY_CSS + '</style>\n'
         + '</head>\n<body>' + body + '</body>\n</html>\n'
@@ -275,9 +282,9 @@ def main():
             problems.append(f'{name}: dash character found')
         if '@@' in text:
             problems.append(f'{name}: unreplaced placeholder')
-        # Nothing may be fetched from another site. Only mailto links and docs links to GitHub are allowed to leave.
+        # Nothing may be fetched from another site. Only mailto links and a few reference links are allowed to leave.
         for url in re.findall(r'(?:src|href)="(https?://[^"]*)"', text):
-            if not url.startswith(('https://sanjixysti-creator.github.io/', 'https://docs.github.com/')):
+            if not url.startswith(ALLOWED_LINKS):
                 problems.append(f'{name}: outside address {url}')
     if len(re.findall(r'<h1[ >]', index)) != 1:
         problems.append('index.html: expected exactly one h1')
@@ -289,6 +296,7 @@ def main():
         p = OUT / name
         text = p.read_text(encoding='utf-8')
         print(f'{name}: {p.stat().st_size / 1024:.1f} KB, dash characters: {sum(text.count(c) for c in DASHES)}')
+    print('title length', len(TITLE), 'description length', len(DESC), 'og description length', len(OG_DESC))
 
 
 if __name__ == '__main__':

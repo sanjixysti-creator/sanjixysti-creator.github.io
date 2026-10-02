@@ -7,18 +7,20 @@ folder, so GitHub Pages does not publish it, but the repo is public: never put s
 ## What is here
 
 Tool pages (edit these, never the built index.html files):
-- rinse-quote.html, rinse-mix.html, rinse-rate.html, gpu-check.html: one fragment per tool. Each is the
-  whole app (markup, CSS, JavaScript) with no head tags.
+- rinse-quote.html, rinse-mix.html, rinse-rate.html, drive-rate.html, gpu-check.html: one fragment per
+  tool. Each is the whole app (markup, CSS, JavaScript) with no head tags.
 
 Builders:
 - build_site.py: shared helpers (font embedding, base CSS) and the Rinse Quote build.
-- build_mix.py, build_gpu.py, build_rate.py: Rinse Mix, Used GPU Check and Rinse Rate. Each wraps its
+- build_mix.py, build_gpu.py, build_rate.py, build_drive.py: Rinse Mix, Used GPU Check, Rinse Rate and
+  Drive Rate. Each wraps its
   fragment into a full page with title, description, share tags, favicon, embedded fonts, and writes
   index.html plus privacy.html to site/<tool>/. Each refuses to build if it finds a dash character or a
   broken link.
-- build_images.py, build_images_mix.py, build_images_gpu.py, build_images_rate.py: draw og.png
-  (1200x630) and apple-touch-icon.png (180x180) for each tool into site/<tool>/. The Rinse Rate preview
-  contains a real screenshot of the built result card, so run build_rate.py before build_images_rate.py.
+- build_images.py, build_images_mix.py, build_images_gpu.py, build_images_rate.py, build_images_drive.py:
+  draw og.png (1200x630) and apple-touch-icon.png (180x180) for each tool into site/<tool>/. The Rinse
+  Rate and Drive Rate previews contain a real screenshot of the built result, so run the matching build
+  script before its build_images script.
 - hub.src.html, hub_icons.py, build_hub.py, build_images_hub.py: the home page. These write straight
   into the site repo root (index.html, og.png, apple-touch-icon.png). Run build_images_hub.py first.
 - 404.src.html, build_404.py: the page GitHub Pages shows for an address that does not exist
@@ -27,14 +29,14 @@ Builders:
 - fonts_build/package.json and package-lock.json: the font packages that get subset and embedded.
 
 Tests:
-- rq_test.py, rm_test.py, rate_test.py, gpu_test.py: full test suites for each tool (maths against
-  independent reference code, layout at many widths, contrast, tap sizes, keyboard, storage, share
-  tags). rate_test.py takes a couple of minutes.
+- rq_test.py, rm_test.py, rate_test.py, drive_test.py, gpu_test.py: full test suites for each tool (maths
+  against independent reference code, layout at many widths, contrast, tap sizes, keyboard, storage,
+  share tags). rate_test.py and drive_test.py take a few minutes each.
 - site_check.py: checks the home page, the 404 page, the sitemap, the /tuner/ page and the files that
   must never change. It also checks that each tool folder holds the four standard files and that its
   links to other pages on this site all point at pages that exist.
 - tuner_check.py, iosfs_check.py, gpu_smoke.py, rate_smoke.py, rm_states.py, hub_shots.py,
-  gpu_shots2.py, shots_rate.py, ticket_shot.py: smaller checks and screenshot helpers.
+  gpu_shots2.py, shots_rate.py, shots_drive.py, ticket_shot.py: smaller checks and screenshot helpers.
 - live_smoke.py, live_smoke2.py, live_smoke3.py: run against the live site after a push. They compare
   what GitHub serves with the local files, byte for byte. live_smoke3.py is the current one: it covers
   the home page, all five pages, the hidden folder and the not-found page. Older ones are kept for history.
@@ -57,6 +59,7 @@ Build one tool (output lands in ~/work/site/<tool>/):
     python3 build_mix.py   && python3 build_images_mix.py    # Rinse Mix
     python3 build_gpu.py   && python3 build_images_gpu.py    # Used GPU Check
     python3 build_rate.py  && python3 build_images_rate.py   # Rinse Rate
+    python3 build_drive.py && python3 build_images_drive.py  # Drive Rate
 
 Build the home page, the not-found page, the sitemap and robots.txt (these write into $SITE_REPO).
 The tool folders must already be in the repo first, because these builders check that every link
@@ -79,6 +82,8 @@ so a rebuilt page may differ from the live one by a few bytes while looking iden
     GPU_STANDALONE=$PWD/site/gpu-check/index.html  python3 gpu_test.py
     python3 rate_test.py                    # Rinse Rate fragment
     RATE_STANDALONE=$PWD/site/rinse-rate/index.html python3 rate_test.py
+    python3 drive_test.py                   # Drive Rate fragment
+    DRIVE_STANDALONE=$PWD/site/drive-rate/index.html python3 drive_test.py
     python3 site_check.py                   # home page, 404, sitemap, /tuner/, untouched files (reads $SITE_REPO)
 
 Every script prints failures and ends with a pass count. Zero failures is the bar before a push.
@@ -96,7 +101,7 @@ Google font requests, so text-fit checks are only meaningful on the built page w
 
 ## Add a new tool
 
-Build its fragment, builders and tests the way the existing ones are done (Rinse Rate is the newest
+Build its fragment, builders and tests the way the existing ones are done (Drive Rate is the newest
 example), then wire it in:
 1. hub_icons.py: add its tile art. hub.src.html: add a row (keep the order you want).
 2. build_hub.py: update the expected row count. build_images_hub.py: add it to ROWS.
@@ -109,10 +114,24 @@ Also add its privacy page to the footer list on the hub and update .claude/CLAUD
 
 ## Yearly upkeep
 
-- Rinse Rate starts its per mile cost from the IRS business mileage rate (72.5 cents for 2026). It is
-  the IRS_PER_MILE value near the top of the script in rinse-rate.html, and the sentence under the
-  mileage field names the rate and the year. Each January look up the new rate, change both, rebuild,
-  run rate_test.py on the built page, and ship. The page's UPDATED date in build_rate.py moves with it.
+The IRS business mileage rate shows up in two tools. It is set each January, and the IRS can change it
+mid year too (it did in July 2026, from 72.5 to 76 cents). Look at
+https://www.irs.gov/tax-professionals/standard-mileage-rates each January and again around July.
+
+- Rinse Rate starts its per mile cost from that rate (76 cents since July 1, 2026). It is the
+  IRS_PER_MILE value near the top of the script in rinse-rate.html, and the sentence under the mileage
+  field names the rate and when it started. Changing it moves every number of the example job:
+  rate_test.py has those readings written out (pay per hour, profit, price for the goal, the two tables),
+  build_rate.py repeats two of them in OG_ALT, and live_smoke3.py repeats them too. Recompute them with
+  the exact reference model in rate_test.py, rebuild with build_rate.py and build_images_rate.py, run
+  rate_test.py on the built page, and ship.
+- Drive Rate keeps a dated table, IRS_RATES, with IRS_LAST_YEAR and IRS_AS_OF at the top of the maths
+  block in drive-rate.html (ref_rate and the irs tests in drive_test.py repeat it). Each January add the
+  new year's row at the top and move IRS_LAST_YEAR and IRS_AS_OF, rebuild, and run drive_test.py on the
+  built page. After December 31 of IRS_LAST_YEAR the page tells people its rates are out of date by
+  itself. Its starting car numbers (gas price, mpg and so on) are illustrative defaults: look at the gas
+  price once a year, and rerun build_images_drive.py after changing the example offer.
+- The UPDATED date in build_rate.py and build_drive.py moves with these changes.
 
 ## Things that are not stored here on purpose
 

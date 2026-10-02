@@ -1,7 +1,7 @@
 """Icon art shared by the hub page, its share image and its home screen icon.
 
-The four web tools reuse the exact art from their own favicons so the hub shows the same tiles people
-see in their browser tabs (site_check.py compares the Rinse Rate tile with that page's favicon).
+The five web tools reuse the exact art from their own favicons so the hub shows the same tiles people
+see in their browser tabs (site_check.py compares the Rinse Rate and Drive Rate tiles with those pages' favicons).
 Tuner's tile follows the three-bar mark on its page.
 All art lives in a 40 x 40 box with a rounded square ground.
 """
@@ -35,6 +35,14 @@ RINSE_RATE = (
     '<path d="M6 28a14 14 0 0 1 28 0" fill="none" stroke="#fff" stroke-width="4.4" stroke-linecap="round"/>'
     '<path d="M20 28L27.5 15.5" fill="none" stroke="#FFD9BF" stroke-width="3.4" stroke-linecap="round"/>'
     '<circle cx="20" cy="28" r="3.8" fill="#fff"/></g>',
+)
+
+# Two road edges with a dashed centre line. Same markup as MARK_ON_RED in build_drive.py (the favicon).
+DRIVE_RATE = (
+    '#BE123C',
+    '<g transform="translate(2 2) scale(.9)">'
+    '<path d="M8.5 35L16.5 5M31.5 35L23.5 5" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/>'
+    '<path d="M20 30.5v4.5M20 21.5v5M20 14.5v3.5M20 8.5v2.5" fill="none" stroke="#FFD1DC" stroke-width="3.2" stroke-linecap="round"/></g>',
 )
 
 GPU_CHECK = (

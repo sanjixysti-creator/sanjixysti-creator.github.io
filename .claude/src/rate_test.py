@@ -201,7 +201,7 @@ def overflow(page, w):
 # Written separately from the page code: exact fractions, no shared helpers. Every number the page shows
 # is compared with these, to within the rounding the page applies.
 DEFAULT = dict(price=300, onsiteH=3, crew=2, driveMin=30, miles=28, setupMin=20, chem=15, other=0,
-               perMile=0.725, wearH=5, helperPay=18, overheadPct=10, feePct=2.9, feeFixed=0.3, goal=50,
+               perMile=0.76, wearH=5, helperPay=18, overheadPct=10, feePct=2.9, feeFixed=0.3, goal=50,
                jobsWeek=5, weeksYear=48)
 IDS = dict(price='price', onsiteH='onsite', crew='crew', driveMin='driveMin', miles='miles', setupMin='setupMin', chem='chem', other='other',
            goal='goal', perMile='perMile', wearH='wearH', helperPay='helperPay', overheadPct='overheadPct', feePct='feePct', feeFixed='feeFixed',
@@ -543,7 +543,7 @@ def rand_job(rnd):
         setupMin=pick(0.15, lambda: rnd.choice([10, 15, 20, 30, 45, 60, rnd.randint(1, 120)])),
         chem=pick(0.2, lambda: round(rnd.uniform(0, 250), 2)),
         other=pick(0.6, lambda: round(rnd.uniform(0, 400), 2)),
-        perMile=rnd.choice([0, 0.725, 0.67, round(rnd.uniform(0.2, 1.2), 3)]),
+        perMile=rnd.choice([0, 0.76, 0.67, round(rnd.uniform(0.2, 1.2), 3)]),
         wearH=rnd.choice([0, 5, round(rnd.uniform(0, 25), 2)]),
         helperPay=rnd.choice([0, 18, 15, round(rnd.uniform(10, 40), 2)]),
         overheadPct=rnd.choice([0, 10, round(rnd.uniform(0, 35), 2)]),
@@ -619,23 +619,23 @@ with sync_playwright() as p:
         page.screenshot(path=D + '/rate-phone.png', full_page=True)
         page.screenshot(path=D + '/rate-light-top.png')
         page.locator('#payCard').screenshot(path=D + '/rate-light-card.png')
-        eq('pay reading', txt(page, '#payNum'), '$36.97')
+        eq('pay reading', txt(page, '#payNum'), '$36.71')
         eq('per hour unit', txt(page, '.r-unit'), 'per hour')
         eq('pay sub', txt(page, '#paySub'), '3 h on site, 2 people')
-        eq('verdict', txt(page, '#verdict'), 'That is $13.03 an hour under your $50.00 goal.')
-        eq('need text', txt(page, '#needText'), 'To earn $50.00 an hour on this job, charge $358.')
-        eq('need button', txt(page, '#needBtn'), 'Use $358')
-        eq('need fine print', txt(page, '#needFine'), 'Rounded up to the next dollar. Break-even is $138, and below that you lose money.')
+        eq('verdict', txt(page, '#verdict'), 'That is $13.29 an hour under your $50.00 goal.')
+        eq('need text', txt(page, '#needText'), 'To earn $50.00 an hour on this job, charge $359.')
+        eq('need button', txt(page, '#needBtn'), 'Use $359')
+        eq('need fine print', txt(page, '#needFine'), 'Rounded up to the next dollar. Break-even is $139, and below that you lose money.')
         eq('no alert on the example', alert(page), ('', ''))
         eq('stub rows', stub_rows(page), [
             ['Price you charge', '$300.00'], ['Payment fee (2.9% + $0.30)', '-$9.00'], ['Overhead (10%)', '-$30.00'],
-            ['Chemicals and supplies', '-$15.00'], ['Vehicle (28 mi)', '-$20.30'], ['Machine wear (3 h)', '-$15.00'],
-            ['Helper pay (1 x 3 h 50 min)', '-$69.00'], ['Profit', '$141.70'], ['Profit margin', '47.2%'], ['Hours you worked', '3 h 50 min']])
+            ['Chemicals and supplies', '-$15.00'], ['Vehicle (28 mi)', '-$21.28'], ['Machine wear (3 h)', '-$15.00'],
+            ['Helper pay (1 x 3 h 50 min)', '-$69.00'], ['Profit', '$140.72'], ['Profit margin', '46.9%'], ['Hours you worked', '3 h 50 min']])
         eq('other costs row hidden at zero', page.is_visible('#rowOther'), False)
         eq('hours note', txt(page, '#hoursNote'), '3 h on site, 30 min driving, 20 min setup.')
         g = gauge(page)
         eq('gauge state', g['state'], 'warn')
-        near('gauge fraction', g['f'], 36.9652 / 100, 0.0001)
+        near('gauge fraction', g['f'], 36.7096 / 100, 0.0001)
         eq('gauge goal label', g['goal'], 'Goal $50')
         eq('gauge max label', g['max'], '$100')
         eq('gauge tick shown', g['tick'], '')
@@ -645,7 +645,7 @@ with sync_playwright() as p:
         eq('gauge arc path', g['path'], 'M24 120A96 96 0 0 1 %.2f %.2f' % (ex, ey))
         near('gauge dot x', g['cx'], ex, 0.011)
         near('gauge dot y', g['cy'], ey, 0.011)
-        eq('bar values', (txt(page, '#bAmtPay'), txt(page, '#bAmtProfit'), txt(page, '#bAmtMargin')), ('$36.97', '$142', '47%'))
+        eq('bar values', (txt(page, '#bAmtPay'), txt(page, '#bAmtProfit'), txt(page, '#bAmtMargin')), ('$36.71', '$141', '47%'))
         eq('bar labels', page.evaluate("[...document.querySelectorAll('#bar .b-lab')].map(e => e.textContent.trim())"), ['Per hour', 'Profit', 'Margin'])
         eq('bar visible on phone', page.is_visible('#bar'), True)
         eq('bar hidden from AT', page.get_attribute('#bar', 'aria-hidden'), 'true')
@@ -658,14 +658,14 @@ with sync_playwright() as p:
         eq('inputs', {i: page.input_value('#' + i) for i in ('price', 'onsite', 'crew', 'driveMin', 'miles', 'setupMin', 'chem', 'other', 'goal',
                                                               'perMile', 'wearH', 'helperPay', 'overheadPct', 'feePct', 'feeFixed', 'jobsWeek', 'weeksYear')},
            {'price': '300.00', 'onsite': '3', 'crew': '2', 'driveMin': '30', 'miles': '28', 'setupMin': '20', 'chem': '15.00', 'other': '', 'goal': '50.00',
-            'perMile': '0.725', 'wearH': '5.00', 'helperPay': '18.00', 'overheadPct': '10', 'feePct': '2.9', 'feeFixed': '0.30', 'jobsWeek': '5', 'weeksYear': '48'})
+            'perMile': '0.76', 'wearH': '5.00', 'helperPay': '18.00', 'overheadPct': '10', 'feePct': '2.9', 'feeFixed': '0.30', 'jobsWeek': '5', 'weeksYear': '48'})
         eq('long table', [r[:4] for r in long_rows(page)], [
-            ['As planned', '3 h 50 min', '$142', '$36.97'], ['25% longer', '4 h 35 min', '$124', '$27.15'],
-            ['50% longer', '5 h 20 min', '$107', '$20.10'], ['Twice as long', '6 h 50 min', '$73', '$10.64']])
+            ['As planned', '3 h 50 min', '$141', '$36.71'], ['25% longer', '4 h 35 min', '$123', '$26.94'],
+            ['50% longer', '5 h 20 min', '$106', '$19.92'], ['Twice as long', '6 h 50 min', '$72', '$10.50']])
         eq('price table', [r[:4] for r in price_rows(page)], [
-            ['$240', '20% less', '$89', '$23.33'], ['$270', '10% less', '$116', '$30.15'], ['$300', 'Your price', '$142', '$36.97'],
-            ['$330', '10% more', '$168', '$43.78'], ['$360', '20% more', '$194', '$50.60']])
-        eq('planner', (txt(page, '#pWeek'), txt(page, '#pHours'), txt(page, '#pMonth'), txt(page, '#pYear')), ('$709', '19 h 10 min', '$2,834', '$34,008'))
+            ['$240', '20% less', '$88', '$23.08'], ['$270', '10% less', '$115', '$29.89'], ['$300', 'Your price', '$141', '$36.71'],
+            ['$330', '10% more', '$167', '$43.53'], ['$360', '20% more', '$193', '$50.34']])
+        eq('planner', (txt(page, '#pWeek'), txt(page, '#pHours'), txt(page, '#pMonth'), txt(page, '#pYear')), ('$704', '19 h 10 min', '$2,814', '$33,773'))
         eq('saved list starts empty', 'No saved jobs yet' in txt(page, '#savedList'), True)
         eq('saved total hidden', page.is_visible('#savedTotal'), False)
         eq('save form hidden', page.is_visible('#saveForm'), False)
@@ -678,12 +678,12 @@ with sync_playwright() as p:
         lines = page.evaluate("[...document.querySelectorAll('#mathLines p')].map(p => p.textContent.trim())")
         eq('math line count', len(lines), 7)
         eq('hours line', lines[0], 'Hours = 3 h on site + 30 min driving + 20 min setup = 3 h 50 min (3.83 h)')
-        eq('costs line', lines[1], 'Costs = fee $9.00 + overhead $30.00 + chemicals $15.00 + other $0.00 + vehicle $20.30 + machine wear $15.00 + helper pay $69.00 = $158.30')
-        eq('profit line', lines[2], 'Profit = $300.00 - $158.30 = $141.70')
-        eq('pay line', lines[3], 'Pay per hour = $141.70 %s 3.83 h = $36.97' % DIVIDE)
-        eq('fixed line', lines[4], 'Costs that do not move with the price = $119.30 + $0.30 fixed fee = $119.60')
-        eq('break-even line', lines[5], 'Break-even price = $119.60 %s (1 - 0.129) = %s' % (DIVIDE, usd(r0['breakEven'])))
-        eq('goal line', lines[6], 'Price for your goal = ($50.00 %s 3.83 h + $119.60) %s (1 - 0.129) = %s, rounded up to $358' % (TIMES, DIVIDE, usd(r0['needed'])))
+        eq('costs line', lines[1], 'Costs = fee $9.00 + overhead $30.00 + chemicals $15.00 + other $0.00 + vehicle $21.28 + machine wear $15.00 + helper pay $69.00 = $159.28')
+        eq('profit line', lines[2], 'Profit = $300.00 - $159.28 = $140.72')
+        eq('pay line', lines[3], 'Pay per hour = $140.72 %s 3.83 h = $36.71' % DIVIDE)
+        eq('fixed line', lines[4], 'Costs that do not move with the price = $120.28 + $0.30 fixed fee = $120.58')
+        eq('break-even line', lines[5], 'Break-even price = $120.58 %s (1 - 0.129) = %s' % (DIVIDE, usd(r0['breakEven'])))
+        eq('goal line', lines[6], 'Price for your goal = ($50.00 %s 3.83 h + $120.58) %s (1 - 0.129) = %s, rounded up to $359' % (TIMES, DIVIDE, usd(r0['needed'])))
         eq('math text has no dash look-alikes', [c for c in DASHES if c in txt(page, '#mathLines')], [])
         page.evaluate("document.getElementById('mathBox').open = false")
 
@@ -707,7 +707,7 @@ with sync_playwright() as p:
         put(page, '#price', '300')
         page.wait_for_timeout(60)
         eq('banner stays gone', page.is_visible('#exampleNote'), False)
-        eq('back to the example numbers', txt(page, '#payNum'), '$36.97')
+        eq('back to the example numbers', txt(page, '#payNum'), '$36.71')
 
     with section('start blank'):
         c2, pg2 = new_page(browser)
@@ -717,7 +717,7 @@ with sync_playwright() as p:
         eq('job fields are empty', [pg2.input_value('#' + i) for i in ('price', 'onsite', 'driveMin', 'miles', 'setupMin', 'chem', 'other')], [''] * 7)
         eq('crew goes back to one', pg2.input_value('#crew'), '1')
         eq('crew chip', pressed(pg2, 'crewChips'), ['1'])
-        eq('usual numbers stay', (pg2.input_value('#goal'), pg2.input_value('#perMile'), pg2.input_value('#helperPay')), ('50.00', '0.725', '18.00'))
+        eq('usual numbers stay', (pg2.input_value('#goal'), pg2.input_value('#perMile'), pg2.input_value('#helperPay')), ('50.00', '0.76', '18.00'))
         eq('info message', alert(pg2), ('info', 'Enter the hours on site to see what the job pays per hour.'))
         eq('reading dashes', (txt(pg2, '#payNum'), txt(pg2, '#bAmtPay'), txt(pg2, '#vProfit'), txt(pg2, '#vMargin'), txt(pg2, '#vHours')), ('-', '-', '-', '-', '-'))
         eq('price note hidden', pg2.is_visible('#needBox'), False)
@@ -787,7 +787,7 @@ with sync_playwright() as p:
         eq('losing job gauge', (gauge(pg4)['state'], gauge(pg4)['f']), ('bad', 0.0))
         eq('losing job reading is negative', txt(pg4, '#payNum').startswith('-$'), True)
         eq('losing job stub profit is negative', txt(pg4, '#vProfit').startswith('-$'), True)
-        eq('losing job still says what to charge', txt(pg4, '#needText'), 'To earn $50.00 an hour on this job, charge $358.')
+        eq('losing job still says what to charge', txt(pg4, '#needText'), 'To earn $50.00 an hour on this job, charge $359.')
         eq('verify() agrees on a losing job', verify(pg4, dict(DEFAULT, price=100)), [])
         pg4.screenshot(path=D + '/rate-error.png')
         put(pg4, '#price', '300')
@@ -825,16 +825,16 @@ with sync_playwright() as p:
         kind, msg = alert(pg4)
         eq('no price kind', kind, 'info')
         eq('no price text', msg, 'Enter what you charge to see what the job pays. The price for your goal is worked out below.')
-        eq('price note still helps with no price', txt(pg4, '#needText'), 'To earn $50.00 an hour on this job, charge $358.')
-        eq('use button sets the price', (pg4.is_visible('#needBtn'), txt(pg4, '#needBtn')), (True, 'Use $358'))
+        eq('price note still helps with no price', txt(pg4, '#needText'), 'To earn $50.00 an hour on this job, charge $359.')
+        eq('use button sets the price', (pg4.is_visible('#needBtn'), txt(pg4, '#needBtn')), (True, 'Use $359'))
         tap(pg4, '#needBtn')
         pg4.wait_for_timeout(60)
-        eq('price filled in', pg4.input_value('#price'), '358.00')
+        eq('price filled in', pg4.input_value('#price'), '359.00')
         eq('now it reaches the goal', alert(pg4), ('', ''))
         eq('goal reached or beaten', mnum(txt(pg4, '#payNum')) >= 50, True)
         eq('verdict says above', txt(pg4, '#verdict').startswith('That is ') and ' above your $50.00 goal.' in txt(pg4, '#verdict'), True)
         eq('gauge is good', gauge(pg4)['state'], 'good')
-        eq('price note now says it covers the goal', txt(pg4, '#needText'), 'Your price covers your goal. You could charge as little as $358 and still earn $50.00 an hour.')
+        eq('price note now says it covers the goal', txt(pg4, '#needText'), 'Your price covers your goal. You could charge as little as $359 and still earn $50.00 an hour.')
         eq('use button hidden when the price is enough', pg4.is_visible('#needBtn'), False)
         # a price a little under the rounded figure but over the exact one
         r_need = float(ref(DEFAULT)['needed'])
@@ -842,11 +842,11 @@ with sync_playwright() as p:
         eq('price between the exact figure and the rounded one', txt(pg4, '#needText'), 'Your price covers your goal.')
         eq('no button there either', pg4.is_visible('#needBtn'), False)
         put(pg4, '#price', '%.2f' % (r_need - 0.05))
-        eq('just under the exact figure still asks for more', txt(pg4, '#needText'), 'To earn $50.00 an hour on this job, charge $358.')
+        eq('just under the exact figure still asks for more', txt(pg4, '#needText'), 'To earn $50.00 an hour on this job, charge $359.')
 
         put(pg4, '#price', '300')
         put(pg4, '#goal', '0')
-        eq('goal off: price note', txt(pg4, '#needText'), 'Break-even price: $138. Below that you lose money.')
+        eq('goal off: price note', txt(pg4, '#needText'), 'Break-even price: $139. Below that you lose money.')
         eq('goal off: no button', pg4.is_visible('#needBtn'), False)
         eq('goal off: fine print', txt(pg4, '#needFine'), 'Set a goal above to see the price that earns it.')
         eq('goal off: no verdict', txt(pg4, '#verdict'), '')
@@ -859,12 +859,12 @@ with sync_playwright() as p:
         pg4.wait_for_timeout(60)
         eq('goal chip sets the goal', pg4.input_value('#goal'), '75.00')
         eq('goal chip pressed', pressed(pg4, 'goalChips'), ['$75'])
-        eq('goal 75 verdict', txt(pg4, '#verdict'), 'That is $38.03 an hour under your $75.00 goal.')
+        eq('goal 75 verdict', txt(pg4, '#verdict'), 'That is $38.29 an hour under your $75.00 goal.')
         eq('goal 75 gauge is bad (under 70%)', gauge(pg4)['state'], 'bad')
-        put(pg4, '#goal', '36.97')
+        put(pg4, '#goal', '36.71')
         eq('almost on the goal is above or right on', alert(pg4)[0], '')
-        put(pg4, '#goal', '36.9652')
-        eq('exactly on the goal wording', txt(pg4, '#verdict') in ('That is right on your $36.97 an hour goal.', 'That is $0.00 an hour under your $36.97 goal.', 'That is $0.00 an hour above your $36.97 goal.'), True)
+        put(pg4, '#goal', '36.7095')
+        eq('exactly on the goal wording', txt(pg4, '#verdict') in ('That is right on your $36.71 an hour goal.', 'That is $0.00 an hour under your $36.71 goal.', 'That is $0.00 an hour above your $36.71 goal.'), True)
         c4.close()
 
     # ------------------------------------------------------------ 5 gauge states and geometry
@@ -982,7 +982,7 @@ with sync_playwright() as p:
         tap(pg6, '#usualResetBtn')
         pg6.wait_for_timeout(60)
         eq('usual numbers restored', [pg6.input_value('#' + i) for i in ('perMile', 'wearH', 'helperPay', 'overheadPct', 'feePct', 'feeFixed', 'goal')],
-           ['0.725', '5.00', '18.00', '10', '2.9', '0.30', '50.00'])
+           ['0.76', '5.00', '18.00', '10', '2.9', '0.30', '50.00'])
         eq('job numbers kept by reset', (pg6.input_value('#other'), pg6.input_value('#miles'), pg6.input_value('#onsite')), ('40.00', '12.5', '2.5'))
         eq('reset toast', toast(pg6), 'Usual numbers reset.')
         # comma as the decimal mark, thousands separators, stray characters
@@ -1014,12 +1014,12 @@ with sync_playwright() as p:
             'Payment fee: -$9.00',
             'Overhead: -$30.00',
             'Chemicals and supplies: -$15.00',
-            'Vehicle: -$20.30',
+            'Vehicle: -$21.28',
             'Machine wear: -$15.00',
             'Helper pay: -$69.00',
-            'Profit: $141.70 (47.2% of the price)',
-            'Pay per hour: $36.97',
-            'Goal: $50.00 per hour, which takes a price of $358']))
+            'Profit: $140.72 (46.9% of the price)',
+            'Pay per hour: $36.71',
+            'Goal: $50.00 per hour, which takes a price of $359']))
         eq('copy toast', toast(pg7), 'Summary copied.')
         eq('copied text has no dash look-alikes', [c for c in DASHES if c in pg7.evaluate('window.__copied')], [])
         open_all(pg7)
@@ -1113,8 +1113,8 @@ with sync_playwright() as p:
         eq('saved toast', toast(pg10), 'Saved Miller driveway.')
         eq('saved name', txt(pg10, '#savedList .sv-name'), 'Miller driveway')
         eq('saved summary', txt(pg10, '#savedList .sv-sum'), '$300 job, 3 h 50 min, 2 people')
-        eq('saved output', txt(pg10, '#savedList .sv-out'), '$36.97 an hour, profit $141.70')
-        eq('total line', txt(pg10, '#savedTotal'), '1 job: $141.70 profit over 3 h 50 min, $36.97 an hour on average.')
+        eq('saved output', txt(pg10, '#savedList .sv-out'), '$36.71 an hour, profit $140.72')
+        eq('total line', txt(pg10, '#savedTotal'), '1 job: $140.72 profit over 3 h 50 min, $36.71 an hour on average.')
 
         put(pg10, '#price', '450')
         put(pg10, '#goal', '80')
@@ -1131,7 +1131,7 @@ with sync_playwright() as p:
         pg10.wait_for_timeout(80)
         eq('use job restores the price', pg10.input_value('#price'), '300.00')
         eq('use job restores the goal it was saved with', pg10.input_value('#goal'), '50.00')
-        eq('use job reading', txt(pg10, '#payNum'), '$36.97')
+        eq('use job reading', txt(pg10, '#payNum'), '$36.71')
         eq('use job toast', toast(pg10), 'Loaded Miller driveway.')
 
         pg10.wait_for_timeout(300)
@@ -1154,7 +1154,7 @@ with sync_playwright() as p:
         pg10.wait_for_timeout(80)
         eq('deleted', pg10.evaluate("document.querySelectorAll('#savedList .saved').length"), 1)
         eq('the older job remains', txt(pg10, '#savedList .sv-name'), 'Miller driveway')
-        eq('total line follows', txt(pg10, '#savedTotal'), '1 job: $141.70 profit over 3 h 50 min, $36.97 an hour on average.')
+        eq('total line follows', txt(pg10, '#savedTotal'), '1 job: $140.72 profit over 3 h 50 min, $36.71 an hour on average.')
         pg10.reload()
         pg10.wait_for_timeout(250)
         eq('delete survives a reload', pg10.evaluate("document.querySelectorAll('#savedList .saved').length"), 1)
@@ -1248,7 +1248,7 @@ with sync_playwright() as p:
     with section('storage unavailable'):
         n_err = len(errs)
         c16, pg16 = new_page(browser, stub=STUB_NO_STORAGE)
-        eq('page works with storage blocked', txt(pg16, '#payNum'), '$36.97')
+        eq('page works with storage blocked', txt(pg16, '#payNum'), '$36.71')
         put(pg16, '#price', '320')
         eq('edits still work', txt(pg16, '#payNum'), usd(ref(dict(DEFAULT, price=320))['pay']))
         tap(pg16, '#saveBtn')
@@ -1264,7 +1264,7 @@ with sync_playwright() as p:
            ('status', 'polite', 'true'))
         pg17.wait_for_timeout(1000)
         eq('summary of the example', txt(pg17, '#srRead'),
-           'You earn $36.97 per hour. That is $13.03 an hour under your $50.00 goal. Profit $141.70, 47.2% of the price. Price for your goal: $358.')
+           'You earn $36.71 per hour. That is $13.29 an hour under your $50.00 goal. Profit $140.72, 46.9% of the price. Price for your goal: $359.')
         before = txt(pg17, '#srRead')
         pg17.locator('#price').click()
         pg17.wait_for_timeout(60)
@@ -1274,7 +1274,7 @@ with sync_playwright() as p:
         pg17.wait_for_timeout(900)
         r17 = ref(dict(DEFAULT, price=9999))
         eq('announced once typing stops', txt(pg17, '#srRead'),
-           'You earn %s per hour. That is %s an hour above your $50.00 goal. Profit %s, %s of the price. Price for your goal: $358.' % (
+           'You earn %s per hour. That is %s an hour above your $50.00 goal. Profit %s, %s of the price. Price for your goal: $359.' % (
                usd(r17['pay']), usd(float(r17['pay']) - 50), usd(r17['profit']), '%.1f%%' % (float(r17['margin']) * 100)))
         put(pg17, '#price', '')
         pg17.wait_for_timeout(900)

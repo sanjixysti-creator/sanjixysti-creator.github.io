@@ -54,6 +54,7 @@ def main():
               .replace('@@TILE_RQ@@', ic.tile_svg(ic.RINSE_QUOTE))
               .replace('@@TILE_RM@@', ic.tile_svg(ic.RINSE_MIX))
               .replace('@@TILE_RATE@@', ic.tile_svg(ic.RINSE_RATE))
+              .replace('@@TILE_DRIVE@@', ic.tile_svg(ic.DRIVE_RATE))
               .replace('@@TILE_GPU@@', ic.tile_svg(ic.GPU_CHECK))
               .replace('@@TILE_TUNER@@', ic.tile_svg(ic.TUNER)))
     problems = []
@@ -63,8 +64,8 @@ def main():
         problems.append('dash character found')
     if '<script' in out:
         problems.append('script found')
-    if len(re.findall(r'<li class="row"', out)) != 5:
-        problems.append('expected five rows')
+    if len(re.findall(r'<li class="row"', out)) != 6:
+        problems.append('expected six rows')
     # Served for any depth, so no link may be relative. Only root-absolute paths, mailto and data: are allowed.
     for href in re.findall(r'(?:href|src)="([^"]*)"', out):
         if not (href.startswith('/') and not href.startswith('//')) and not href.startswith(('mailto:', 'data:')):

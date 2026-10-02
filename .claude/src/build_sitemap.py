@@ -19,6 +19,7 @@ PAGES = [
     ('rinse-quote/', 'rinse-quote/index.html'),
     ('rinse-mix/', 'rinse-mix/index.html'),
     ('rinse-rate/', 'rinse-rate/index.html'),
+    ('drive-rate/', 'drive-rate/index.html'),
     ('gpu-check/', 'gpu-check/index.html'),
     ('tuner/', 'tuner/index.html'),
 ]
