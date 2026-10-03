@@ -100,6 +100,13 @@ with sync_playwright() as p:
         ctx.close()
     for path in ('rinse-quote/', 'rinse-mix/', 'rinse-rate/', 'drive-rate/', 'gpu-check/', 'grime-time/'):
         ctx, pg = new(path)
+        if path == 'grime-time/':
+            # a first visit opens straight into the tutorial job, which covers the page: leave the job (two taps) to reach the board and its footer
+            pg.wait_for_timeout(1000)
+            pg.click('#pauseBtn')
+            pg.click('#leaveBtn')
+            pg.click('#leaveBtn')
+            pg.wait_for_timeout(500)
         pg.locator('.foot a[href="https://sanjixysti-creator.github.io/"]').click()
         pg.wait_for_url(ROOT)
         eq('%s links back to the hub' % path, pg.title(), TITLES[''])
