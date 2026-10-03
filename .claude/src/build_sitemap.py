@@ -22,6 +22,7 @@ PAGES = [
     ('drive-rate/', 'drive-rate/index.html'),
     ('gpu-check/', 'gpu-check/index.html'),
     ('tuner/', 'tuner/index.html'),
+    ('grime-time/', 'grime-time/index.html'),
 ]
 
 

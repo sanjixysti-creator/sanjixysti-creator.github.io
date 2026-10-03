@@ -17,6 +17,7 @@ This repo is the public site https://sanjixysti-creator.github.io/ (GitHub Pages
 - /rinse-rate/ : pressure washing job profit calculator, free. Shows what a job really paid per hour and what to charge to hit an hourly goal. Its per mile cost starts from the IRS mileage rate, which changes every January (see Yearly upkeep in .claude/src/README.md).
 - /drive-rate/ : delivery and rideshare offer calculator, free. Shows what an offer really pays per hour after car costs, gives a Take it, Borderline or Pass verdict against the driver's own goals, and keeps a day log. Its car cost can use the IRS mileage rate from a dated table, which changes every January and sometimes mid year (see Yearly upkeep in .claude/src/README.md).
 - /gpu-check/ : used graphics card listing checker, free. It does not scan marketplaces. It scores a listing from the user's answers and opens search links.
+- /grime-time/ : Grime Time, a free pressure washing game (spray grime off jobs, upgrade the rig, hire a crew, Franchise reset). No ads, no sign up, no Pro tier. Progress is saved in localStorage (key grime-time-v1) with Export and Import save. Test hooks (window.__grime) exist only when the address ends in #test. Its og.png is a real screenshot with random sparkles. Notes: .claude/src/grime-time-notes.md.
 - /404.html : the page GitHub Pages shows for any address that does not exist. Every link in it is root-absolute because it is served at any depth. It is marked noindex.
 - /sitemap.xml and /robots.txt : made by .claude/src/build_sitemap.py. Add a new tool to its PAGES list.
 Each tool folder holds index.html (one self-contained file), privacy.html, og.png (1200x630) and apple-touch-icon.png.
@@ -29,7 +30,7 @@ Each tool folder holds index.html (one self-contained file), privacy.html, og.pn
 - Do not add a .nojekyll file. Without Jekyll, this dot folder would become public.
 
 ## Source files
-The pages are built from source files saved in .claude/src/, which is hidden from the site like this file. Start with .claude/src/README.md: it explains how to restore the build folder, rebuild each page, run the test suites and ship a change. Edit the fragments (rinse-quote.html, rinse-mix.html, rinse-rate.html, drive-rate.html, gpu-check.html) and hub.src.html, never the built index.html files, and copy changed sources back into .claude/src/ in the same commit. A rebuild from these sources was checked to reproduce every live page byte for byte. The real Pro unlock code is not stored in the repo.
+The pages are built from source files saved in .claude/src/, which is hidden from the site like this file. Start with .claude/src/README.md: it explains how to restore the build folder, rebuild each page, run the test suites and ship a change. Edit the fragments (rinse-quote.html, rinse-mix.html, rinse-rate.html, drive-rate.html, gpu-check.html, grime-time.html) and hub.src.html, never the built index.html files, and copy changed sources back into .claude/src/ in the same commit. A rebuild from these sources was checked to reproduce every live file byte for byte, except Grime Time's og.png (a real screenshot with random sparkles: a rebuild looks the same but differs by a few hundred bytes). The real Pro unlock code is not stored in the repo.
 
 ## Commits
 End commit messages with the Co-Authored-By and Claude-Session lines the session gives.

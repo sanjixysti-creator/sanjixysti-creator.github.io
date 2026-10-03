@@ -81,7 +81,7 @@ body {
 .row h3 a:focus-visible { outline: none; }
 .row h3 a:focus-visible::after { outline: 3px solid var(--focus); outline-offset: -3px; }
 .row p { margin: 0; }
-.body p { margin-top: 8px; max-width: 52ch; font-size: 16px; line-height: 1.5; }
+.body p { margin-top: 8px; max-width: 52ch; font-size: 16px; line-height: 1.5; text-wrap: pretty; }
 .meta { grid-area: meta; font-size: 14px; line-height: 1.4; color: var(--muted); }
 .meta span { display: block; }
 .meta .type { color: var(--ink); font-weight: 600; }
@@ -133,7 +133,7 @@ body {
   <main>
     <section class="intro" aria-labelledby="top-h">
       <h1 id="top-h">Small tools for specific jobs.</h1>
-      <p class="lead">Free calculators, checkers and browser add-ons. No accounts, and what you type stays in your browser.</p>
+      <p class="lead">Free calculators, checkers, a game and browser add-ons. No accounts, and what you type stays in your browser.</p>
     </section>
 
     <section aria-labelledby="tools-h">
@@ -187,6 +187,14 @@ body {
           </div>
           <p class="meta"><span class="type">Chrome extension</span><span>Free, with an optional Pro upgrade</span></p>
         </li>
+        <li class="row" style="--tool:#A21CAF;--tool-dark:#E879F9">
+          @@TILE_GRIME@@
+          <div class="body">
+            <h3><a href="grime-time/">Grime Time</a></h3>
+            <p>Blast the grime off driveways, decks and cars with a spray wand, then upgrade your rig and hire a crew that earns while you are away.</p>
+          </div>
+          <p class="meta"><span class="type">Web game</span><span>Free</span></p>
+        </li>
       </ul>
     </section>
   </main>
@@ -206,6 +214,7 @@ body {
         <li><a href="drive-rate/privacy.html">Drive Rate</a></li>
         <li><a href="gpu-check/privacy.html">Used GPU Check</a></li>
         <li><a href="privacy.html">Tuner for YouTube</a></li>
+        <li><a href="grime-time/privacy.html">Grime Time</a></li>
       </ul>
     </nav>
     <p class="legal">&copy; 2026 Xysti Software. This page sets no cookies and runs no analytics.</p>

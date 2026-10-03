@@ -9,18 +9,22 @@ folder, so GitHub Pages does not publish it, but the repo is public: never put s
 Tool pages (edit these, never the built index.html files):
 - rinse-quote.html, rinse-mix.html, rinse-rate.html, drive-rate.html, gpu-check.html: one fragment per
   tool. Each is the whole app (markup, CSS, JavaScript) with no head tags.
+- grime-time.html: the Grime Time game, built the same way (one fragment). Its pure economy and wash
+  code sits between the PURE-BEGIN and PURE-END comments, so Node can load it for the simulator and the
+  tests. grime-time-notes.md explains its text, pacing, save format, economy and what was never tested.
 
 Builders:
 - build_site.py: shared helpers (font embedding, base CSS) and the Rinse Quote build.
-- build_mix.py, build_gpu.py, build_rate.py, build_drive.py: Rinse Mix, Used GPU Check, Rinse Rate and
-  Drive Rate. Each wraps its
+- build_mix.py, build_gpu.py, build_rate.py, build_drive.py, build_grime.py: Rinse Mix, Used GPU Check,
+  Rinse Rate, Drive Rate and Grime Time. Each wraps its
   fragment into a full page with title, description, share tags, favicon, embedded fonts, and writes
   index.html plus privacy.html to site/<tool>/. Each refuses to build if it finds a dash character or a
   broken link.
-- build_images.py, build_images_mix.py, build_images_gpu.py, build_images_rate.py, build_images_drive.py:
-  draw og.png (1200x630) and apple-touch-icon.png (180x180) for each tool into site/<tool>/. The Rinse
-  Rate and Drive Rate previews contain a real screenshot of the built result, so run the matching build
-  script before its build_images script.
+- build_images.py, build_images_mix.py, build_images_gpu.py, build_images_rate.py, build_images_drive.py,
+  build_images_grime.py: draw og.png (1200x630) and apple-touch-icon.png (180x180) for each tool into
+  site/<tool>/. The Rinse Rate, Drive Rate and Grime Time previews contain a real screenshot of the built
+  result, so run the matching build script before its build_images script. The Grime Time screenshot has
+  random sparkles, so a rebuilt og.png looks the same but is not byte identical to the published one.
 - hub.src.html, hub_icons.py, build_hub.py, build_images_hub.py: the home page. These write straight
   into the site repo root (index.html, og.png, apple-touch-icon.png). Run build_images_hub.py first.
 - 404.src.html, build_404.py: the page GitHub Pages shows for an address that does not exist
@@ -29,9 +33,12 @@ Builders:
 - fonts_build/package.json and package-lock.json: the font packages that get subset and embedded.
 
 Tests:
-- rq_test.py, rm_test.py, rate_test.py, drive_test.py, gpu_test.py: full test suites for each tool (maths
-  against independent reference code, layout at many widths, contrast, tap sizes, keyboard, storage,
-  share tags). rate_test.py and drive_test.py take a few minutes each.
+- rq_test.py, rm_test.py, rate_test.py, drive_test.py, gpu_test.py, grime_test.py: full test suites for
+  each tool (maths against independent reference code, layout at many widths, contrast, tap sizes,
+  keyboard, storage, share tags). rate_test.py and drive_test.py take a few minutes each, and
+  grime_test.py about 4 to 5 minutes.
+- grime_sim.js and livebot.js: the Grime Time pacing simulator (node grime_sim.js pace 2 1 0) and the
+  bot that grime_test.py plays the live page with. Both need Node.
 - site_check.py: checks the home page, the 404 page, the sitemap, the /tuner/ page and the files that
   must never change. It also checks that each tool folder holds the four standard files and that its
   links to other pages on this site all point at pages that exist.
@@ -39,7 +46,7 @@ Tests:
   gpu_shots2.py, shots_rate.py, shots_drive.py, ticket_shot.py: smaller checks and screenshot helpers.
 - live_smoke.py, live_smoke2.py, live_smoke3.py: run against the live site after a push. They compare
   what GitHub serves with the local files, byte for byte. live_smoke3.py is the current one: it covers
-  the home page, all five pages, the hidden folder and the not-found page. Older ones are kept for history.
+  the home page, every tool page, the hidden folder and the not-found page. Older ones are kept for history.
 
 ## Restore and rebuild
 
@@ -49,6 +56,7 @@ Work in a scratch folder, not inside the repo.
     mkdir -p ~/work && cp -r "$SITE_REPO"/.claude/src/. ~/work/ && cd ~/work
     (cd fonts_build && npm install)
     pip install --break-system-packages fonttools brotli playwright pillow   # only if missing
+    node --version    # Node 18 or newer is needed by grime_test.py and grime_sim.js
 
 Playwright needs a Chromium. The scripts try the default install first, then
 /opt/pw-browsers/chromium-1194/chrome-linux/chrome. Change that path if the version differs.
@@ -60,6 +68,7 @@ Build one tool (output lands in ~/work/site/<tool>/):
     python3 build_gpu.py   && python3 build_images_gpu.py    # Used GPU Check
     python3 build_rate.py  && python3 build_images_rate.py   # Rinse Rate
     python3 build_drive.py && python3 build_images_drive.py  # Drive Rate
+    python3 build_grime.py && python3 build_images_grime.py  # Grime Time
 
 Build the home page, the not-found page, the sitemap and robots.txt (these write into $SITE_REPO).
 The tool folders must already be in the repo first, because these builders check that every link
@@ -84,6 +93,9 @@ so a rebuilt page may differ from the live one by a few bytes while looking iden
     RATE_STANDALONE=$PWD/site/rinse-rate/index.html python3 rate_test.py
     python3 drive_test.py                   # Drive Rate fragment
     DRIVE_STANDALONE=$PWD/site/drive-rate/index.html python3 drive_test.py
+    python3 grime_test.py                   # Grime Time fragment
+    GRIME_STANDALONE=$PWD/site/grime-time/index.html python3 grime_test.py
+    GRIME_SECTIONS=math,pace python3 grime_test.py   # a subset (names are listed in grime-time-notes.md)
     python3 site_check.py                   # home page, 404, sitemap, /tuner/, untouched files (reads $SITE_REPO)
 
 Every script prints failures and ends with a pass count. Zero failures is the bar before a push.
@@ -101,8 +113,8 @@ Google font requests, so text-fit checks are only meaningful on the built page w
 
 ## Add a new tool
 
-Build its fragment, builders and tests the way the existing ones are done (Drive Rate is the newest
-example), then wire it in:
+Build its fragment, builders and tests the way the existing ones are done (Grime Time is the newest
+example, and the only game), then wire it in:
 1. hub_icons.py: add its tile art. hub.src.html: add a row (keep the order you want).
 2. build_hub.py: update the expected row count. build_images_hub.py: add it to ROWS.
 3. 404.src.html: add a row with root-absolute links (build_404.py checks the row count too).
@@ -132,6 +144,21 @@ https://www.irs.gov/tax-professionals/standard-mileage-rates each January and ag
   itself. Its starting car numbers (gas price, mpg and so on) are illustrative defaults: look at the gas
   price once a year, and rerun build_images_drive.py after changing the example offer.
 - The UPDATED date in build_rate.py and build_drive.py moves with these changes.
+- Grime Time quotes no rates, prices or dates, so it has nothing to update each year. The UPDATED date
+  in build_grime.py is its privacy page date: move it when that policy text changes.
+
+## If ads are ever added
+
+Every tool says it has no ads, so adding ads means editing those claims in the same change:
+- each tool's privacy.html (rinse-quote, rinse-mix, rinse-rate, drive-rate, gpu-check, grime-time) says
+  "no ads" in The short version and "No analytics, tracking pixels or advertising" under what the page
+  does not do. They are written by build_site.py, build_mix.py, build_gpu.py, build_rate.py,
+  build_drive.py and build_grime.py.
+- Grime Time's page footer and its og and twitter description (OG_DESC in build_grime.py) say "no ads".
+- The home page footer says it sets no cookies and runs no analytics, which an ad network would break.
+Find them all with: grep -rniE "no ads|advertising|no cookies|no analytics" . (from the repo root).
+Grime Time already has no-op hooks for a game portal's ad breaks (portalBreak and portalRewarded), see
+grime-time-notes.md.
 
 ## Things that are not stored here on purpose
 

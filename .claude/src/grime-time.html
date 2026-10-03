@@ -1,0 +1,3208 @@
+<title>Grime Time</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Layout concept: the page is a pressure washing van. A job board of ticket cards, a wash view that fills the screen,
+   and a shop and crew ledger that look like the trade: fuchsia for the brand, gold for money, murky olive for dirt. */
+:root {
+  --bg: #F5F1F9;
+  --surface: #FFFFFF;
+  --inset: #F9F6FC;
+  --ink: #1D1230;
+  --muted: #5A4A6D;
+  --line: #DDD2EA;
+  --line-strong: #85719C;
+  --accent: #A21CAF;
+  --on-accent: #FFFFFF;
+  --accent-soft: #F6DDF8;
+  --gold: #FFC83D;
+  --on-gold: #2B1B00;
+  --gold-ink: #7A4B00;
+  --good: #17703F;
+  --bad: #B3261E;
+  --bad-soft: #FADAD7;
+  --shadow-up: 0 -6px 20px rgb(29 18 48 / 0.12);
+  --shadow-pop: 0 8px 24px rgb(29 18 48 / 0.26);
+  --glass: rgba(16, 8, 28, 0.9);
+  --glass-line: rgba(255, 255, 255, 0.16);
+  --on-glass: #F7EEFC;
+  --glass-muted: #C9B3DB;
+  --font-display: 'Big Shoulders Display', 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;
+  --font-body: 'Public Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #120A1D;
+    --surface: #1C1230;
+    --inset: #160E26;
+    --ink: #F3EAFA;
+    --muted: #BBA6D1;
+    --line: #33224B;
+    --line-strong: #7A62A0;
+    --accent: #E879F9;
+    --on-accent: #2A0832;
+    --accent-soft: #3B1747;
+    --gold-ink: #FFD23F;
+    --good: #6FD69A;
+    --bad: #FF9A92;
+    --bad-soft: #451B18;
+    --shadow-up: 0 -1px 0 rgb(0 0 0 / 0.4);
+    --shadow-pop: 0 8px 24px rgb(0 0 0 / 0.55);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #120A1D;
+  --surface: #1C1230;
+  --inset: #160E26;
+  --ink: #F3EAFA;
+  --muted: #BBA6D1;
+  --line: #33224B;
+  --line-strong: #7A62A0;
+  --accent: #E879F9;
+  --on-accent: #2A0832;
+  --accent-soft: #3B1747;
+  --gold-ink: #FFD23F;
+  --good: #6FD69A;
+  --bad: #FF9A92;
+  --bad-soft: #451B18;
+  --shadow-up: 0 -1px 0 rgb(0 0 0 / 0.4);
+  --shadow-pop: 0 8px 24px rgb(0 0 0 / 0.55);
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+html.locked { overflow: hidden; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font: 400 16px/1.45 var(--font-body);
+  padding-inline: 16px;
+  padding-block: 16px 40px;
+  -webkit-font-smoothing: antialiased;
+}
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+button:disabled { cursor: not-allowed; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+h1, h2, h3, p, ul, ol, dl, dd { margin: 0; }
+.sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0; }
+
+.app { max-width: 920px; margin-inline: auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+
+/* Masthead */
+.masthead { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; column-gap: 12px; align-items: center; }
+.tools { grid-column: 3; grid-row: 1 / 3; display: flex; gap: 6px; }
+.mark { width: 44px; height: 44px; flex: none; grid-row: 1 / 3; }
+.masthead h1 { font: 800 32px/1 var(--font-display); letter-spacing: 0.02em; text-transform: uppercase; }
+.tagline { color: var(--muted); font-size: 14px; }
+
+.mark .mk-fan { fill: var(--accent); fill-opacity: 0.9; }
+.mark .mk-wand { stroke: var(--ink); }
+.mark .mk-drop { fill: var(--accent); }
+
+/* Status bar on the board */
+.statbar { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; align-items: stretch; }
+.stat { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px; display: grid; gap: 2px; min-width: 0; align-content: center; }
+.s-lab { font-size: 11px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.s-val { font: 800 26px/1 var(--font-display); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.s-val.sm { font-size: 21px; }
+.s-val.xs { font-size: 17px; }
+.stat.cash .s-val { color: var(--gold-ink); }
+.icon-btn { width: 48px; min-height: 48px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); display: grid; place-items: center; padding: 0; color: var(--ink); }
+.icon-btn svg { width: 24px; height: 24px; }
+.icon-btn[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); }
+
+/* Tabs */
+.tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; padding: 4px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; }
+.tab { min-height: 46px; border-radius: 10px; border: 0; background: transparent; font-weight: 700; font-size: 15px; color: var(--muted); padding: 0 4px; white-space: nowrap; }
+.tab[aria-selected="true"] { background: var(--accent); color: var(--on-accent); }
+.tab .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--gold); margin-left: 6px; vertical-align: middle; }
+.tabpanel { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; min-width: 0; }
+
+.sec-title { font: 700 20px/1.1 var(--font-display); letter-spacing: 0.06em; text-transform: uppercase; }
+.hint { color: var(--muted); font-size: 13px; }
+.fine { color: var(--muted); font-size: 13px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; min-width: 0; }
+.alert { display: grid; gap: 10px; justify-items: start; padding: 12px 14px; border-radius: 12px; background: var(--accent-soft); font-size: 14px; line-height: 1.4; border: 1px solid var(--accent); }
+.alert.bad { background: var(--bad-soft); border-color: var(--bad); }
+.alert strong { font-weight: 700; }
+
+/* Buttons */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 52px; padding: 0 20px; border-radius: 12px; border: 1px solid transparent; background: var(--accent); color: var(--on-accent); font-weight: 700; font-size: 16px; text-decoration: none; }
+.btn:hover:not(:disabled) { filter: brightness(1.07); }
+.btn:active:not(:disabled) { transform: translateY(1px); }
+.btn.ghost { background: transparent; border-color: var(--line-strong); color: var(--ink); }
+.btn.gold { background: var(--gold); color: var(--on-gold); }
+.btn.sm { min-height: 44px; padding: 0 14px; font-size: 15px; }
+.btn:disabled { background: var(--inset); color: var(--muted); border-color: var(--line); }
+.btn.ghost:disabled { background: transparent; }
+.btn-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
+.btn-row.set-acts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.set-acts #resetBtn { grid-column: 1 / -1; }
+.linkish { background: none; border: 0; padding: 0; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; text-align: left; }
+.linkish.mail-copy { display: inline-flex; align-items: center; min-height: 40px; min-width: 56px; padding: 0 10px; margin: -8px 0; }
+
+/* Job cards */
+.jobs { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
+.job { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 12px; align-items: center; text-align: left; padding: 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; min-height: 96px; width: 100%; min-width: 0; }
+button.job:hover { border-color: var(--accent); }
+.job.locked { background: var(--inset); border-style: dashed; border-color: var(--line-strong); }
+.j-thumb { position: relative; width: 96px; height: 72px; border-radius: 8px; overflow: hidden; background: #2B1F3C; }
+.j-thumb canvas { display: block; width: 100%; height: 100%; }
+.job.locked .j-thumb canvas { filter: grayscale(1) brightness(0.55); }
+.j-lock { position: absolute; inset: 0; display: grid; place-items: center; color: #fff; }
+.j-lock svg { width: 26px; height: 26px; }
+.j-body { display: grid; gap: 3px; min-width: 0; }
+.j-name { font: 800 21px/1.05 var(--font-display); letter-spacing: 0.02em; text-transform: uppercase; overflow-wrap: anywhere; }
+.j-meta { display: flex; flex-wrap: wrap; gap: 2px 10px; color: var(--muted); font-size: 13px; align-items: center; }
+.j-pay { color: var(--gold-ink); font-weight: 700; }
+.j-need { color: var(--ink); font-size: 13px; font-weight: 600; }
+.stars { display: inline-flex; gap: 2px; align-items: center; }
+.star { width: 15px; height: 15px; }
+.star path { fill: var(--line-strong); }
+.star.on path { fill: #F2A900; }
+:root[data-theme="dark"] .star path { fill: #3C5F6C; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .star path { fill: #3C5F6C; } }
+:root[data-theme="dark"] .star.on path { fill: #FFD23F; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .star.on path { fill: #FFD23F; } }
+
+/* Shop rows */
+.rows { display: grid; gap: 10px; }
+.row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 12px; align-items: center; padding: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; min-width: 0; }
+.row.owned { background: var(--inset); }
+.r-main { display: grid; gap: 3px; min-width: 0; }
+.r-name { font: 800 21px/1.05 var(--font-display); letter-spacing: 0.02em; text-transform: uppercase; }
+.r-desc { color: var(--muted); font-size: 13px; }
+.r-lv { display: flex; gap: 3px; flex-wrap: wrap; margin-top: 2px; }
+.pip { width: 10px; height: 10px; border-radius: 3px; background: var(--line); }
+.pip.on { background: var(--accent); }
+.buy { min-width: 108px; min-height: 52px; padding: 0 10px; border-radius: 12px; border: 1px solid transparent; background: var(--gold); color: var(--on-gold); font-weight: 800; display: grid; gap: 0; place-items: center; line-height: 1.1; }
+.buy small { font-weight: 600; font-size: 11px; opacity: 0.85; }
+.buy .amt { font: 800 21px/1 var(--font-display); }
+.buy:disabled { background: var(--inset); color: var(--muted); border-color: var(--line); }
+.owned-tag { font-weight: 700; color: var(--good); font-size: 14px; padding: 0 8px; }
+.crew-btns { display: grid; gap: 6px; }
+.sumbar { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.sum { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; display: grid; gap: 2px; min-width: 0; }
+.sum .v { font: 800 24px/1 var(--font-display); overflow-wrap: anywhere; }
+.list { padding-left: 20px; display: grid; gap: 4px; font-size: 15px; }
+.cols2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.swatches { display: flex; flex-wrap: wrap; gap: 8px; }
+.sw { width: 48px; height: 48px; border-radius: 50%; border: 3px solid var(--line-strong); padding: 0; }
+.sw[aria-pressed="true"] { border-color: var(--ink); box-shadow: 0 0 0 3px var(--accent); }
+.sw:disabled { opacity: 0.4; }
+
+/* How to play, about, footer */
+.how, .about { display: grid; gap: 8px; }
+.how ol { padding-left: 22px; display: grid; gap: 6px; max-width: 64ch; }
+.about p { max-width: 64ch; }
+.foot { color: var(--muted); font-size: 13px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; max-width: 64ch; }
+.foot a { color: var(--ink); font-weight: 600; text-underline-offset: 3px; }
+.mail { overflow-wrap: anywhere; user-select: all; -webkit-user-select: all; color: var(--ink); font-weight: 600; }
+
+/* Wash view: a full screen fixed layer with the scene between a top strip and the nozzle dock */
+.wash { position: fixed; inset: 0; z-index: 30; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; background: #0D0715; color: var(--on-glass); padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px); user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.w-top { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px; padding: 8px 10px; align-items: stretch; }
+.glass { background: var(--glass); border: 1px solid var(--glass-line); border-radius: 14px; color: var(--on-glass); }
+.hud-btn { width: 48px; min-height: 48px; border-radius: 14px; display: grid; place-items: center; padding: 0; }
+.hud-btn svg { width: 24px; height: 24px; }
+.w-prog { padding: 6px 12px 7px; display: grid; gap: 3px; min-width: 0; align-content: center; }
+.w-name { font: 700 14px/1.1 var(--font-display); letter-spacing: 0.08em; text-transform: uppercase; color: var(--glass-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.w-bar { position: relative; height: 18px; border-radius: 9px; background: #2A1B3E; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.12); }
+.w-bar > span:first-child { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: linear-gradient(90deg, #22D3EE, #67E8F9); border-radius: 9px; }
+.w-pct { position: absolute; inset: 0; display: grid; place-items: center; font: 800 13px/1 var(--font-display); letter-spacing: 0.06em; color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7); }
+.w-sub { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; font-weight: 600; color: var(--on-glass); white-space: nowrap; }
+.w-sub span { overflow: hidden; text-overflow: ellipsis; }
+.w-flow { color: #FFD23F; }
+.w-pay { display: grid; grid-template-rows: auto auto; align-content: center; justify-items: center; padding: 4px 12px; min-width: 76px; }
+.w-pay .lab { font-size: 11px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--glass-muted); }
+.w-pay .val { font: 800 26px/1 var(--font-display); color: #FFD23F; white-space: nowrap; }
+.w-pay .val.sm { font-size: 21px; }
+.w-pay .val.xs { font-size: 17px; }
+.w-stage { position: relative; overflow: hidden; min-height: 0; background: #150C22; }
+.w-stage canvas { position: absolute; display: block; }
+.w-stage #cWet, .w-stage #cFoam { visibility: hidden; pointer-events: none; }
+#cFx { touch-action: none; outline-offset: -4px; cursor: crosshair; }
+.w-hint { position: absolute; left: 50%; top: 10px; transform: translateX(-50%); z-index: 3; max-width: calc(100% - 24px); padding: 9px 16px; border-radius: 999px; font-size: 15px; font-weight: 700; text-align: center; pointer-events: none; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35); }
+.w-hint.warn { background: #3B1B12; border-color: #FF8A4C; }
+.w-tut { position: absolute; left: 50%; bottom: 3%; transform: translateX(-50%); z-index: 3; width: min(86%, 340px); padding: 14px 16px; border-radius: 18px; text-align: center; pointer-events: none; display: grid; gap: 4px; box-shadow: 0 10px 28px rgba(0, 0, 0, 0.4); }
+.w-tut b { font: 800 26px/1.05 var(--font-display); letter-spacing: 0.03em; text-transform: uppercase; color: #F0ABFC; }
+.w-tut span { font-size: 15px; font-weight: 600; }
+.w-dock { padding: 6px 10px 10px; display: grid; gap: 8px; justify-items: center; }
+.w-tank { width: min(100%, 380px); height: 8px; border-radius: 4px; background: #2A1B3E; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.12); }
+.w-tank > span { display: block; height: 100%; width: 100%; background: #38BDF8; transform-origin: left center; }
+.w-tank.dry > span { background: #FF8A4C; }
+.tips { display: flex; gap: 6px; justify-content: center; width: 100%; max-width: 420px; }
+.tipbtn { flex: 1 1 0; min-width: 44px; max-width: 66px; min-height: 62px; border-radius: 16px; border: 2px solid var(--glass-line); background: var(--glass); color: var(--on-glass); display: grid; justify-items: center; align-content: center; gap: 3px; padding: 4px 2px; position: relative; }
+.tipbtn .dot { width: var(--d, 22px); height: var(--d, 22px); border-radius: 50%; background: var(--c, #fff); box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.14); }
+.tipbtn.soapdot .dot { border: 2px dashed #fff; }
+.tipbtn .lab { font-size: 11px; font-weight: 700; line-height: 1; letter-spacing: 0.02em; white-space: nowrap; color: var(--on-glass); }
+.tipbtn[aria-pressed="true"] { border-color: #E879F9; background: #3B1747; box-shadow: 0 0 0 2px rgba(232, 121, 249, 0.4); }
+.tipbtn.pulse { animation: pulse 0.9s ease-in-out infinite; }
+.tipbtn .key { position: absolute; top: 3px; right: 5px; font-size: 9px; font-weight: 700; color: var(--glass-muted); display: none; }
+@media (hover: hover) and (pointer: fine) { .tipbtn .key { display: block; } }
+.tipbtn.surf .dot { background: radial-gradient(circle at 50% 50%, #FFD23F 0 28%, #A21CAF 30% 100%); width: 26px; height: 26px; }
+@keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); box-shadow: 0 0 0 5px rgba(255, 210, 63, 0.45); } }
+.w-pause { position: absolute; inset: 0; z-index: 6; display: grid; place-items: center; background: rgba(10, 5, 18, 0.76); padding: 16px; }
+.w-pause .card { width: min(100%, 340px); padding: 18px; display: grid; gap: 10px; background: var(--surface); color: var(--ink); border-radius: 18px; }
+.w-pause h2 { font: 800 28px/1 var(--font-display); letter-spacing: 0.03em; text-transform: uppercase; }
+.w-flash { position: absolute; inset: 0; z-index: 2; pointer-events: none; background: #fff; opacity: 0; }
+
+/* Result card with the before and after slider */
+.modal { position: fixed; inset: 0; z-index: 40; display: flex; overflow-y: auto; background: rgba(10, 5, 18, 0.82); padding: 14px; }
+.modal > .card { margin: auto; width: min(100%, 520px); background: var(--surface); color: var(--ink); border-radius: 18px; padding: 16px; display: grid; gap: 12px; box-shadow: var(--shadow-pop); min-width: 0; }
+.modal h2 { font: 800 30px/1 var(--font-display); letter-spacing: 0.03em; text-transform: uppercase; }
+.r-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.r-stars .star { width: 30px; height: 30px; }
+.ba { container-type: inline-size; position: relative; width: min(100%, calc(34vh * var(--arn, 0.56))); margin-inline: auto; aspect-ratio: var(--ar, 0.56); border-radius: 12px; overflow: hidden; touch-action: pan-y; cursor: ew-resize; --pos: 50%; background: #0E222A; border: 1px solid var(--line-strong); }
+.ba canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.ba .after { clip-path: inset(0 0 0 var(--pos)); }
+.ba-line { position: absolute; top: 0; bottom: 0; left: var(--pos); width: 0; border-left: 3px solid #fff; box-shadow: 0 0 8px rgba(0, 0, 0, 0.6); pointer-events: none; }
+.ba-knob { position: absolute; top: 50%; left: 0; width: 40px; height: 40px; margin: -20px 0 0 -20px; border-radius: 50%; background: #fff; border: 3px solid #A21CAF; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5); display: grid; place-items: center; }
+.ba-knob::before, .ba-knob::after { content: ""; position: absolute; top: 50%; width: 0; height: 0; margin-top: -5px; border: 5px solid transparent; }
+.ba-knob::before { left: 5px; border-right-color: #A21CAF; border-left-width: 0; }
+.ba-knob::after { right: 5px; border-left-color: #A21CAF; border-right-width: 0; }
+.ba-tag { position: absolute; top: 8px; padding: 4px 10px; border-radius: 999px; background: var(--glass); color: var(--on-glass); font: 800 14px/1 var(--font-display); letter-spacing: 0.1em; text-transform: uppercase; pointer-events: none; }
+.ba-tag.b { left: 8px; }
+.ba-tag.a { right: 8px; }
+/* A small picture (short phones): smaller tags so Before and After never touch */
+@container (max-width: 200px) {
+  .ba-tag { top: 6px; padding: 3px 7px; font-size: 11px; letter-spacing: 0.07em; }
+  .ba-tag.b { left: 6px; }
+  .ba-tag.a { right: 6px; }
+}
+@container (max-width: 135px) {
+  .ba-tag { font-size: 10px; padding: 3px 6px; letter-spacing: 0.05em; }
+}
+@container (max-width: 100px) {
+  .ba-tag.a { top: auto; bottom: 6px; }
+}
+.r-rows { display: grid; gap: 0; font: 400 15px/1.35 var(--font-mono); }
+.r-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 12px; align-items: baseline; padding: 6px 0; }
+.r-row dt { display: flex; align-items: baseline; gap: 8px; min-width: 0; color: var(--muted); }
+.r-row dt::after { content: ""; flex: 1 1 12px; min-width: 12px; border-bottom: 1.5px dotted var(--line-strong); transform: translateY(-3px); }
+.r-row dd { text-align: right; font-weight: 500; white-space: nowrap; }
+.r-row.total { margin-top: 6px; padding-top: 10px; border-top: 2px solid var(--ink); }
+.r-row.total dt { color: var(--ink); }
+.r-row.total dd { font: 800 28px/1 var(--font-display); color: var(--gold-ink); }
+.r-row .why { display: block; font: 400 12px/1.3 var(--font-body); color: var(--muted); }
+.r-note { font-size: 14px; color: var(--muted); }
+.field { display: grid; gap: 6px; }
+.lab { font-size: 12px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); }
+.ctl { width: 100%; min-width: 0; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--inset); color: var(--ink); }
+textarea.ctl { font: 400 16px/1.45 var(--font-mono); resize: vertical; min-height: 96px; }
+.switch { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; min-height: 52px; padding: 6px 0; border-top: 1px solid var(--line); }
+.switch:first-of-type { border-top: 0; }
+.tog { min-width: 64px; min-height: 44px; border-radius: 999px; border: 2px solid var(--line-strong); background: var(--inset); font-weight: 700; padding: 0 12px; }
+.tog[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+
+/* Copy sheet and toast */
+.sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; max-width: 640px; margin-inline: auto; padding: 16px 16px calc(16px + env(safe-area-inset-bottom, 0px)); background: var(--surface); color: var(--ink); border-top: 1px solid var(--line-strong); box-shadow: var(--shadow-up); }
+.toast { position: fixed; left: 50%; bottom: calc(110px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 70; max-width: calc(100% - 32px); padding: 10px 16px; border-radius: 999px; background: var(--ink); color: var(--surface); font-size: 14px; font-weight: 600; text-align: center; box-shadow: var(--shadow-pop); pointer-events: none; }
+
+/* Added states: locked tip, unaffordable buttons, result notes, segmented control, pay pop */
+.r-btns { grid-template-columns: 1.5fr 1fr 1fr; }
+.r-btns .btn { padding: 0 8px; }
+.r-row { padding: 4px 0; }
+@media (orientation: landscape) and (max-height: 560px) {
+  .modal > .card.res { width: min(100%, 860px); grid-template-columns: auto minmax(0, 1fr); column-gap: 18px; align-items: start; }
+  .card.res .r-head { grid-column: 1 / -1; }
+  .card.res .ba { grid-column: 1; grid-row: 2 / 6; width: min(100%, calc(62vh * var(--arn, 0.56))); }
+  .card.res .r-rows, .card.res .r-note, .card.res .r-btns { grid-column: 2; }
+}
+
+/* Short phones: a tighter result card so the title, picture, numbers and buttons all show without scrolling */
+@media (max-height: 700px) and (orientation: portrait) {
+  .modal { padding: 8px; }
+  .modal > .card { padding: 12px; gap: 8px; }
+  .modal h2 { font-size: 24px; }
+  .r-stars .star { width: 26px; height: 26px; }
+  .ba { width: min(100%, calc(27vh * var(--arn, 0.56))); }
+  .r-rows { font-size: 14px; }
+  .r-row { padding: 2px 0; }
+  .r-row .why, .r-row dd.why { font-size: 11.5px; line-height: 1.25; }
+  .r-row.total { margin-top: 4px; padding-top: 6px; }
+  .r-row.total dd { font-size: 24px; }
+  .r-note { font-size: 13px; }
+}
+@media (max-height: 600px) and (orientation: portrait) {
+  .ba { width: min(100%, calc(23vh * var(--arn, 0.56))); }
+}
+.tipbtn.locked { opacity: 0.62; }
+.tipbtn .lk { position: absolute; top: 3px; right: 4px; width: 14px; height: 14px; color: var(--glass-muted); }
+.tipbtn .lk svg { width: 14px; height: 14px; display: block; }
+.buy[aria-disabled="true"], .btn[aria-disabled="true"] { background: var(--inset); color: var(--muted); border-color: var(--line); cursor: not-allowed; }
+.btn.ghost[aria-disabled="true"] { background: transparent; }
+.r-row dd.why { grid-column: 1 / -1; text-align: left; white-space: normal; font: 400 12px/1.3 var(--font-body); color: var(--muted); }
+.seg { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.seg .btn[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.crew-note { margin-top: -4px; }
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.calm) .w-pay .val.bump { animation: bump 0.28s ease-out; }
+  @keyframes bump { 0% { transform: scale(1); } 40% { transform: scale(1.22); } 100% { transform: scale(1); } }
+}
+@media (min-width: 700px) {
+  body { padding-block: 24px 56px; }
+  .statbar { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .toast { bottom: 24px; }
+}
+/* A phone on its side: the nozzle dock moves to the right edge so the scene keeps its height */
+@media (orientation: landscape) and (max-height: 560px) {
+  .wash { grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto minmax(0, 1fr); }
+  .w-top { grid-column: 1; grid-row: 1; }
+  .w-stage { grid-column: 1; grid-row: 2; }
+  .w-dock { grid-column: 2; grid-row: 1 / 3; align-content: center; padding: 8px 10px; }
+  .tips { flex-direction: column; width: auto; max-width: none; }
+  .tipbtn { flex: none; width: 58px; min-height: 52px; max-width: none; }
+  .w-tank { width: 58px; }
+  .w-tut { bottom: 6%; width: min(72%, 440px); padding: 8px 14px; }
+  .w-tut b { font-size: 20px; }
+  .w-tut span { font-size: 13px; }
+}
+/* A very short screen on its side: two columns of nozzle buttons so all of them fit above the bottom edge */
+@media (orientation: landscape) and (max-height: 340px) {
+  .w-dock { padding: 6px 8px; gap: 6px; }
+  .tips { display: grid; grid-template-columns: repeat(2, 56px); gap: 4px; }
+  .tipbtn { width: 56px; min-height: 46px; }
+  .w-tank { width: 116px; }
+}
+@media (max-width: 359px) {
+  body { padding-inline: 12px; }
+  .w-dock { padding-inline: 4px; }
+  .tips { gap: 4px; }
+  .tipbtn { padding-inline: 0; }
+  .tipbtn .lab { font-size: 10px; letter-spacing: 0; }
+  .masthead h1 { font-size: 28px; }
+  .s-val { font-size: 22px; }
+  .s-val.sm { font-size: 18px; }
+  .s-val.xs { font-size: 15px; }
+  .statbar { gap: 6px; }
+  .icon-btn { width: 44px; }
+  .job { grid-template-columns: 80px minmax(0, 1fr); }
+  .j-thumb { width: 80px; height: 60px; }
+  .tab { font-size: 13px; }
+  .buy { min-width: 92px; }
+  .w-prog { padding-inline: 8px; }
+  .w-pay { min-width: 64px; padding-inline: 8px; }
+  .w-pay .val { font-size: 22px; }
+  .tips { gap: 4px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .btn, .tab, .tipbtn, .buy { transition: background-color 0.12s, border-color 0.12s, filter 0.12s, transform 0.12s; }
+  .w-hint, .w-tut { transition: opacity 0.35s; }
+  .w-bar > span:first-child { transition: width 0.12s linear; }
+}
+html.calm .tipbtn.pulse { animation: none; box-shadow: 0 0 0 4px rgba(255, 210, 63, 0.55); }
+@media (prefers-reduced-motion: reduce) { .tipbtn.pulse { animation: none; box-shadow: 0 0 0 4px rgba(255, 210, 63, 0.55); } }
+</style>
+
+<div class="app" id="app">
+  <header class="masthead">
+    <svg class="mark" viewBox="0 0 40 40" aria-hidden="true" focusable="false">
+      <path class="mk-fan" d="M20.5 20.5L38 13.5A19 19 0 0 0 27 2.5Z"/>
+      <path class="mk-wand" d="M5 35L15.5 24.5" fill="none" stroke-width="4.6" stroke-linecap="round"/>
+      <path class="mk-wand" d="M14 26L19 21" fill="none" stroke-width="7" stroke-linecap="round"/>
+      <circle class="mk-drop" cx="33.5" cy="23" r="1.9"/>
+      <circle class="mk-drop" cx="29" cy="28.5" r="1.4"/>
+      <circle class="mk-drop" cx="36.5" cy="29" r="1.2"/>
+    </svg>
+    <h1>Grime Time</h1>
+    <p class="tagline">Blast the grime. Build the business.</p>
+    <div class="tools">
+      <button type="button" class="icon-btn" id="muteBtn" aria-pressed="false" aria-label="Sound on">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path id="muteWave" d="M16.2 9.2a4 4 0 0 1 0 5.6M18.8 6.6a8 8 0 0 1 0 10.8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path id="muteX" d="M16 9.5l5 5M21 9.5l-5 5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" hidden/></svg>
+        </button>
+      <button type="button" class="icon-btn" id="setBtn" aria-label="Settings">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 7h9M19 7h1M4 17h1M11 17h9" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="16" cy="7" r="2.6" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="8" cy="17" r="2.6" fill="none" stroke="currentColor" stroke-width="2.2"/></svg>
+        </button>
+    </div>
+  </header>
+
+  <main class="board" id="board">
+    <div class="tabpanel">
+      <section class="statbar" aria-label="Your business">
+        <div class="stat cash"><span class="s-lab">Cash</span><span class="s-val" id="sMoney">$0</span></div>
+        <div class="stat"><span class="s-lab">Income</span><span class="s-val" id="sRate">$0/s</span></div>
+        <div class="stat"><span class="s-lab">Stars</span><span class="s-val" id="sStars">0/24</span></div>
+      </section>
+
+      <div class="alert" id="backNote" hidden>
+        <p id="backText"></p>
+        <button type="button" class="btn sm" id="backOk">Nice</button>
+      </div>
+
+      <div class="tabs" role="tablist" aria-label="Sections" id="tabs">
+        <button type="button" class="tab" role="tab" id="tb-jobs" aria-controls="tab-jobs" aria-selected="true">Jobs</button>
+        <button type="button" class="tab" role="tab" id="tb-rig" aria-controls="tab-rig" aria-selected="false" tabindex="-1">Rig</button>
+        <button type="button" class="tab" role="tab" id="tb-crew" aria-controls="tab-crew" aria-selected="false" tabindex="-1">Crew</button>
+        <button type="button" class="tab" role="tab" id="tb-fran" aria-controls="tab-fran" aria-selected="false" tabindex="-1">Franchise</button>
+      </div>
+
+      <section class="tabpanel" role="tabpanel" id="tab-jobs" aria-labelledby="tb-jobs">
+        <div class="jobs" id="jobList"></div>
+        <button type="button" class="btn ghost sm" id="rewardBtn" hidden>Bonus</button>
+      </section>
+      <section class="tabpanel" role="tabpanel" id="tab-rig" aria-labelledby="tb-rig" hidden>
+        <h2 class="sec-title">Rig upgrades</h2>
+        <div class="rows" id="upList"></div>
+        <h2 class="sec-title">Gear</h2>
+        <div class="rows" id="gearList"></div>
+      </section>
+      <section class="tabpanel" role="tabpanel" id="tab-crew" aria-labelledby="tb-crew" hidden>
+        <div class="sumbar">
+          <div class="sum"><span class="lab">Crew pays</span><span class="v" id="cRate">$0/s</span></div>
+          <div class="sum"><span class="lab">Away cap</span><span class="v" id="cCap">4 h</span></div>
+        </div>
+        <p class="fine" id="cNote">Your crew keeps earning while this page is open, and while you are away, up to the away cap.</p>
+        <div class="rows" id="crewList"></div>
+        <h2 class="sec-title">Trucks</h2>
+        <div class="rows" id="truckList"></div>
+      </section>
+      <section class="tabpanel" role="tabpanel" id="tab-fran" aria-labelledby="tb-fran" hidden>
+        <div class="panel" id="franPanel"></div>
+      </section>
+    </div>
+  </main>
+
+  <section class="how" aria-labelledby="h-how">
+    <h2 class="sec-title" id="h-how">How to play</h2>
+    <ol>
+      <li>Press and drag to spray. On a touch screen the spray lands a little above your finger so you can see it. With a keyboard, move the nozzle with the arrow keys or WASD and hold Space to spray.</li>
+      <li>Dirt comes in layers. Dust comes off with any tip, thick crust needs a narrow, strong tip or soap first. When nothing comes off you will see sparks and a hint.</li>
+      <li>Pick your tip. Red is tiny and brutal, then yellow, green and white, which is wide and gentle. Red can scuff wood and siding if you linger.</li>
+      <li>Keep spraying without lifting to build your flow bonus. A job finishes at 96 percent clean. Scrub the tough spots by hand for the cleanliness bonus.</li>
+      <li>Spend cash on rig upgrades, gear and crew. Crew earns while you are away. A Franchise restarts the business for a permanent income boost.</li>
+    </ol>
+  </section>
+
+  <section class="about" aria-labelledby="h-about">
+    <h2 class="sec-title" id="h-about">About</h2>
+    <p>Grime Time is a free pressure washing game for your browser. Blast layers of grime off driveways, decks, cars and more, get paid, upgrade your rig and hire a crew. Finish a job, then slide between the before and after and share the picture. It is made by Xysti Software, which also builds free calculators for real pressure washing businesses.</p>
+  </section>
+
+  <footer class="foot">
+    <p>Grime Time runs in your browser, with no ads, no sign up and no tracking.</p>
+    <p>Your progress saves on this device only. Clearing your browser data erases it, so use Export save in Settings to keep a copy or to move to another device.</p>
+    <p>Also from <a href="https://sanjixysti-creator.github.io/">Xysti Software</a>: <a href="https://sanjixysti-creator.github.io/rinse-quote/">Rinse Quote</a>, a free quote calculator for people who run a real pressure washing business.</p>
+    <p>Spotted a bug, or want something added? Email <span class="mail"></span> <button type="button" class="linkish mail-copy">Copy</button></p>
+  </footer>
+</div>
+
+<div class="wash" id="wash" hidden>
+  <div class="w-top">
+    <button type="button" class="glass hud-btn" id="pauseBtn" aria-label="Pause">
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 5v14M16 5v14" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round"/></svg>
+    </button>
+    <div class="glass w-prog">
+      <div class="w-name" id="wName">Job</div>
+      <div class="w-bar"><span id="wFill"></span><span class="w-pct" id="wPct">0%</span></div>
+      <div class="w-sub"><span id="wTough">Tough spots 0%</span><span class="w-flow" id="wFlow">Flow x1.0</span></div>
+    </div>
+    <div class="glass w-pay"><span class="lab">Job pay</span><span class="val" id="wPay">$0</span></div>
+  </div>
+  <div class="w-stage" id="stage">
+    <canvas id="cScene" aria-hidden="true"></canvas>
+    <canvas id="cDirt" aria-hidden="true"></canvas>
+    <canvas id="cWet" aria-hidden="true"></canvas>
+    <canvas id="cFoam" aria-hidden="true"></canvas>
+    <canvas id="cFx" tabindex="0" role="application" aria-label="Wash area. Drag to spray. Arrow keys or WASD move the nozzle, hold Space to spray, keys 1 to 5 pick the tip."></canvas>
+    <div class="w-flash" id="wFlash"></div>
+    <div class="glass w-hint" id="wHint" hidden></div>
+    <div class="glass w-tut" id="wTut" hidden><b id="wTutB"></b><span id="wTutS"></span></div>
+    <div class="w-pause" id="wPause" hidden role="dialog" aria-label="Paused">
+      <div class="card">
+        <h2>Paused</h2>
+        <button type="button" class="btn" id="resumeBtn">Resume</button>
+        <button type="button" class="btn ghost" id="leaveBtn">Leave job</button>
+        <p class="fine">Leaving gives no pay and the grime comes back next time.</p>
+      </div>
+    </div>
+  </div>
+  <div class="w-dock">
+    <div class="w-tank" id="wTankBox" aria-hidden="true"><span id="wTank"></span></div>
+    <div class="tips" id="tipRow" role="group" aria-label="Nozzle tips"></div>
+  </div>
+</div>
+
+<div class="modal" id="result" hidden role="dialog" aria-modal="true" aria-labelledby="rTitle">
+  <div class="card res">
+    <div class="r-head"><h2 id="rTitle">Job complete</h2><div class="stars r-stars" id="rStars" role="img" aria-label="Stars"></div></div>
+    <div class="ba" id="ba" role="slider" tabindex="0" aria-label="Before and after slider" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" aria-valuetext="Half before, half after">
+      <canvas id="baBefore" aria-hidden="true"></canvas>
+      <canvas id="baAfter" class="after" aria-hidden="true"></canvas>
+      <div class="ba-line"><span class="ba-knob"></span></div>
+      <span class="ba-tag b">Before</span><span class="ba-tag a">After</span>
+    </div>
+    <dl class="r-rows" id="rRows"></dl>
+    <p class="r-note" id="rNote"></p>
+    <div class="btn-row r-btns">
+      <button type="button" class="btn" id="rNext">Next job</button>
+      <button type="button" class="btn ghost" id="rShop">Shop</button>
+      <button type="button" class="btn ghost" id="rShare">Share</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="setModal" hidden role="dialog" aria-modal="true" aria-labelledby="setTitle">
+  <div class="card">
+    <h2 id="setTitle">Settings</h2>
+    <div class="switch"><span>Sound</span><button type="button" class="tog" id="togSound" aria-pressed="true">On</button></div>
+    <div class="switch"><span>Calm mode <span class="fine">(fewer particles, no shake, no flashing)</span></span><button type="button" class="tog" id="togCalm" aria-pressed="false">Off</button></div>
+    <div class="field">
+      <label class="lab" for="saveText">Save code</label>
+      <textarea class="ctl" id="saveText" rows="4" spellcheck="false" autocapitalize="off" autocomplete="off" aria-describedby="saveHelp"></textarea>
+      <p class="fine" id="saveHelp">Export gives you a code for this game. Paste a code here and choose Import to load it on another device.</p>
+    </div>
+    <div class="btn-row set-acts">
+      <button type="button" class="btn ghost sm" id="expBtn">Export save</button>
+      <button type="button" class="btn ghost sm" id="impBtn">Import save</button>
+      <button type="button" class="btn ghost sm" id="resetBtn">Reset everything</button>
+    </div>
+    <p class="r-note" id="saveMsg" role="status"></p>
+    <button type="button" class="btn" id="setClose">Done</button>
+  </div>
+</div>
+
+<div class="sr-only" id="srRead" role="status" aria-live="polite" aria-atomic="true"></div>
+<div class="sheet" id="sheet" role="dialog" aria-label="Copy text" hidden>
+  <p class="fine">Your browser blocked the copy button. Press and hold the text, then choose Copy.</p>
+  <textarea class="ctl" id="sheetText" rows="6" readonly aria-label="Text to copy"></textarea>
+  <button type="button" class="btn ghost sm" id="sheetClose">Done</button>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* PURE-BEGIN: no DOM in this region. Node loads it for the economy and wash tests. */
+
+  /* ---------- small helpers ---------- */
+  function clamp(v, lo, hi) { return v < lo ? lo : (v > hi ? hi : v); }
+  function mulberry32(a) {
+    a = a >>> 0;
+    return function () {
+      a = (a + 0x6D2B79F5) >>> 0;
+      var t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function hash2(x, y, s) {
+    var h = (Math.imul(x | 0, 374761393) + Math.imul(y | 0, 668265263) + Math.imul(s | 0, 1013904223)) | 0;
+    h = Math.imul(h ^ (h >>> 13), 1274126177);
+    h ^= h >>> 16;
+    return (h >>> 0) / 4294967296;
+  }
+  function vnoise(x, y, s) {
+    var xi = Math.floor(x), yi = Math.floor(y), fx = x - xi, fy = y - yi;
+    fx = fx * fx * (3 - 2 * fx);
+    fy = fy * fy * (3 - 2 * fy);
+    var a = hash2(xi, yi, s), b = hash2(xi + 1, yi, s), c = hash2(xi, yi + 1, s), d = hash2(xi + 1, yi + 1, s);
+    return a + (b - a) * fx + (c - a) * fy + (a - b - c + d) * fx * fy;
+  }
+  function fbm(x, y, s, oct) {
+    var v = 0, amp = 0.5, tot = 0, f = 1;
+    for (var o = 0; o < oct; o++) { v += amp * vnoise(x * f, y * f, s + o * 101); tot += amp; amp *= 0.5; f *= 2; }
+    return v / tot;
+  }
+  function smooth(a, b, x) { var t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); }
+
+  /* ---------- the data table: every tunable number lives here ---------- */
+  var DATA = {
+    version: 1,
+    cell: 10,
+    eps: 0.6,
+    /* Spray physics. A cell comes clean when the pressure at that cell beats its hardness. The speed is
+       rateK times how far the pressure is above the hardness, capped. Pressure falls off toward the rim. */
+    wash: { baseR: 70, fall: 0.3, rateK: 2000, rateCap: 3, soapDrop: 0.45, foamSecs: 7, foamRate: 1100, doneAt: 0.96,
+            scuffSecs: 0.35, scuffReach: 0.6, scuffEach: 0.004, scuffMax: 0.35, cleanShare: 0.25, tipShare: 0.4,
+            flowDecay: 1.2, flowBleed: 0.6, tankDrain: 1, tankRefill: 0.3, tankMin: 0.12 },
+    /* Layers by thickness: thick crust is hardest, the thin film underneath is soft. */
+    bands: [{ id: 'film', top: 70, h: 18 }, { id: 'grime', top: 160, h: 42 }, { id: 'caked', top: 255, h: 82 }],
+    /* Special kinds. Index in this list is the number stored in the kind grid (0 means none). */
+    kinds: [
+      { id: 'none', h: 0 },
+      { id: 'oil', h: 62, name: 'Oil' },
+      { id: 'moss', h: 44, name: 'Moss' },
+      { id: 'graffiti', h: 78, name: 'Graffiti' },
+      { id: 'bird', h: 30, name: 'Bird mess' },
+      { id: 'mildew', h: 36, name: 'Mildew' }
+    ],
+    /* Nozzle tips, real colour code. p is pressure at the centre for a rig with no upgrades, r is the share of the base radius. */
+    tips: [
+      { id: 'red', name: 'Red', deg: 0, p: 135, r: 0.24, water: 0.8, scuff: true, color: '#E5383B', key: '1' },
+      { id: 'yellow', name: 'Yellow', deg: 15, p: 68, r: 0.46, water: 0.9, color: '#F2C21B', key: '2' },
+      { id: 'green', name: 'Green', deg: 25, p: 44, r: 0.72, water: 1, color: '#2FB344', key: '3' },
+      { id: 'white', name: 'White', deg: 40, p: 28, r: 1, water: 1.1, color: '#F1F5F7', key: '4' },
+      { id: 'soap', name: 'Soap', deg: 65, p: 12, r: 1.05, water: 0.6, soap: true, color: '#26323A', key: '5' }
+    ],
+    upgrades: [
+      { id: 'pressure', name: 'Pressure', max: 10, base: 30, growth: 1.9, per: 0.18, blurb: 'More pressure beats tougher grime and cleans faster.' },
+      { id: 'area', name: 'Flow and area', max: 10, base: 48, growth: 1.85, per: 0.1, blurb: 'A wider spray spot, so every pass covers more.' },
+      { id: 'tank', name: 'Tank', max: 8, base: 90, growth: 1.95, per: 0.35, blurb: 'A bigger tank for longer spraying and quicker refills.' },
+      { id: 'reach', name: 'Wand reach', max: 8, base: 130, growth: 2.05, per: 0.05, blurb: 'The jet carries farther, so the rim of the spray stays strong.' },
+      { id: 'flow', name: 'Flow bonus', max: 5, base: 220, growth: 2.2, per: 0.1, blurb: 'Tips build faster and climb higher while you keep spraying.' }
+    ],
+    gear: [
+      { id: 'soap', name: 'Soap tip', cost: 350, blurb: 'Lays foam that softens grime for a few seconds.' },
+      { id: 'hot', name: 'Hot water', cost: 2400, blurb: 'Cuts oil in half. Oil needs far less pressure.' },
+      { id: 'pole', name: 'Extension pole', cost: 3800, blurb: 'Reaches second storey siding. Needed for the Siding job.' },
+      { id: 'surface', name: 'Surface cleaner', cost: 6500, blurb: 'Tap to clean a big disc. Skips edges and stains.' }
+    ],
+    surface: { r: 300, secs: 0.7, p: 110, edge: 50, skip: [1, 2, 3], gap: 0.45 },
+    crew: [
+      { id: 'apprentice', name: 'Apprentice', base: 120, inc: 0.4 },
+      { id: 'tech', name: 'Technician', base: 1100, inc: 2.4 },
+      { id: 'foreman', name: 'Foreman', base: 13000, inc: 16 },
+      { id: 'manager', name: 'Site manager', base: 160000, inc: 105 },
+      { id: 'boss', name: 'Regional boss', base: 2100000, inc: 720 },
+      { id: 'director', name: 'Franchise director', base: 28000000, inc: 4800 }
+    ],
+    crewGrowth: 1.15,
+    crewMilestones: [10, 25, 50, 100, 200],
+    trucks: { base: 5000, growth: 2.2, max: 8 },
+    offline: { baseHours: 4, perTruck: 1, maxHours: 12, efficiency: 1 },
+    franchise: { fpDiv: 50000, minGain: 8, minGainStep: 0, perPoint: 0.12, colors: [
+      { id: 'sun', name: 'Sun yellow', fp: 0, hex: '#F5B800' },
+      { id: 'teal', name: 'Teal', fp: 6, hex: '#14B8A6' },
+      { id: 'flame', name: 'Flame', fp: 15, hex: '#F97316' },
+      { id: 'violet', name: 'Violet', fp: 30, hex: '#8B5CF6' },
+      { id: 'chrome', name: 'Chrome', fp: 60, hex: '#CBD5E1' },
+      { id: 'gold', name: 'Gold', fp: 120, hex: '#FFD23F' }
+    ] },
+    stars: { toughNeeded: 0.7 },
+    jobs: []
+  };
+  /* Jobs. recipe: how the grime is laid out. region: whole surface or a blob (fractions of the scene).
+     film is [min, max] thickness everywhere, grime and caked add thicker patches, shade piles extra grime on one side,
+     specials are stamped blobs of oil, moss, graffiti, bird mess or mildew, stencil hides a shape that shows as you clean. */
+  DATA.jobs = [
+    { id: 'driveway', name: 'Oil Stained Driveway', art: 'driveway', pay: 28, par: 40, stars: 0, gear: [], delicate: false, size: 'Small',
+      recipe: { region: { blob: [0.5, 0.5, 0.4, 0.26] }, film: [34, 60],
+        specials: [{ k: 'oil', n: 1, r: [14, 15], t: [100, 130], x: [0.47, 0.53], y: [0.47, 0.53] }, { k: 'oil', n: 2, r: [3, 4], t: [80, 100], x: [0.3, 0.7], y: [0.4, 0.6] }] } },
+    { id: 'patio', name: 'Garden Patio', art: 'patio', pay: 70, par: 60, stars: 2, gear: [], delicate: false, size: 'Medium',
+      recipe: { region: 'full', film: [38, 66], grime: { amt: 75, cover: 0.3, scale: 14 }, shade: { side: 'top', amt: 0.25 },
+        specials: [{ k: 'moss', n: 4, r: [5, 9], t: [90, 130], x: [0.1, 0.9], y: [0.05, 0.5] }] } },
+    { id: 'fence', name: 'Picket Fence', art: 'fence', pal: { film: [156, 166, 124], grime: [96, 116, 72], caked: [54, 74, 46] }, pay: 100, par: 75, stars: 4, gear: [], delicate: true, size: 'Medium',
+      recipe: { region: 'full', film: [40, 68], grime: { amt: 85, cover: 0.45, scale: 12 }, shade: { side: 'bottom', amt: 0.3 },
+        specials: [{ k: 'mildew', n: 5, r: [5, 8], t: [80, 110], x: [0.05, 0.95], y: [0.5, 0.95] }] } },
+    { id: 'wall', name: 'Brick Wall', art: 'wall', pal: { film: [138, 128, 112], grime: [86, 78, 68], caked: [46, 42, 38] }, pay: 250, par: 90, stars: 7, gear: [], delicate: false, size: 'Large',
+      recipe: { region: 'full', film: [40, 70], grime: { amt: 90, cover: 0.5, scale: 12 }, caked: { amt: 80, cover: 0.12, scale: 9 }, shade: { side: 'bottom', amt: 0.3 },
+        specials: [{ k: 'graffiti', n: 2, r: [8, 11], t: [90, 120], x: [0.2, 0.8], y: [0.25, 0.6] }, { k: 'moss', n: 3, r: [4, 7], t: [90, 120], x: [0.05, 0.95], y: [0.75, 0.97] }] } },
+    { id: 'deck', name: 'Wooden Deck', art: 'deck', pal: { film: [158, 150, 126], grime: [100, 104, 76], caked: [56, 60, 44] }, pay: 420, par: 100, stars: 10, gear: [], delicate: true, size: 'Large',
+      recipe: { region: 'full', film: [42, 70], grime: { amt: 95, cover: 0.55, scale: 12 }, caked: { amt: 80, cover: 0.14, scale: 9 }, shade: { side: 'left', amt: 0.25 },
+        specials: [{ k: 'mildew', n: 5, r: [5, 8], t: [80, 110], x: [0.05, 0.95], y: [0.05, 0.95] }, { k: 'oil', n: 2, r: [4, 6], t: [90, 120], x: [0.1, 0.9], y: [0.3, 0.9] }] } },
+    { id: 'garage', name: 'Garage Door', art: 'garage', pal: { film: [170, 162, 142], grime: [118, 106, 84], caked: [74, 64, 52] }, pay: 950, par: 110, stars: 13, gear: [], delicate: false, size: 'Large',
+      recipe: { region: 'full', film: [44, 72], grime: { amt: 100, cover: 0.55, scale: 11 }, caked: { amt: 85, cover: 0.2, scale: 8 }, shade: { side: 'bottom', amt: 0.35 },
+        specials: [{ k: 'bird', n: 6, r: [3, 5], t: [70, 100], x: [0.1, 0.9], y: [0.05, 0.6] }, { k: 'oil', n: 2, r: [4, 6], t: [90, 120], x: [0.1, 0.9], y: [0.7, 0.95] }] } },
+    { id: 'siding', name: 'Vinyl Siding House', art: 'siding', pal: { film: [160, 176, 140], grime: [88, 112, 80], caked: [52, 72, 52] }, pay: 2100, par: 125, stars: 16, gear: ['pole'], delicate: true, size: 'Huge',
+      recipe: { region: 'full', film: [46, 74], grime: { amt: 100, cover: 0.55, scale: 11 }, caked: { amt: 85, cover: 0.16, scale: 8 }, shade: { side: 'top', amt: 0.3 },
+        specials: [{ k: 'mildew', n: 8, r: [5, 9], t: [80, 110], x: [0.05, 0.95], y: [0.05, 0.95] }, { k: 'bird', n: 3, r: [3, 4], t: [70, 100], x: [0.1, 0.9], y: [0.05, 0.4] }] } },
+    { id: 'car', name: 'Family Car', art: 'car', pal: { film: [150, 142, 124], grime: [98, 90, 76], caked: [60, 54, 46] }, pay: 4800, par: 130, stars: 19, gear: ['soap'], delicate: true, size: 'Huge',
+      recipe: { region: { blob: [0.5, 0.5, 0.33, 0.4], orient: true }, film: [48, 76], grime: { amt: 105, cover: 0.55, scale: 10 }, caked: { amt: 90, cover: 0.18, scale: 7 },
+        specials: [{ k: 'bird', n: 5, r: [3, 5], t: [80, 110], x: [0.2, 0.8], y: [0.15, 0.85] }, { k: 'oil', n: 2, r: [3, 5], t: [90, 120], x: [0.2, 0.8], y: [0.3, 0.85] }] } }
+  ];
+
+
+  /* ---------- number formatting ---------- */
+  /* Rule: below 1,000 whole dollars (rounded down). From 1,000: three significant digits, rounded down so a
+     display never promises more than you have, trailing zeros dropped, suffix K M B T Qa Qi (to 999Qi).
+     From 1e21: scientific with three significant digits, like 1.23e21. Anything that is not a number shows 0. */
+  var SUF = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi'];
+  var NF0 = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 });
+  function trimZeros(s) { return s.indexOf('.') < 0 ? s : s.replace(/0+$/, '').replace(/\.$/, ''); }
+  function fmtBig(n) {
+    n = +n;
+    if (!isFinite(n)) return '0';
+    if (n < 0) return '-' + fmtBig(-n);
+    if (n < 1000) return NF0.format(Math.floor(n));
+    if (n >= 1e21) {
+      var e = Math.floor(Math.log10(n));
+      while (n >= Math.pow(10, e + 1)) e++;
+      while (n < Math.pow(10, e)) e--;
+      var q = Math.floor(n / Math.pow(10, e - 2));
+      return trimZeros((q / 100).toFixed(2)) + 'e' + e;
+    }
+    var tier = 1;
+    while (tier < 6 && n >= Math.pow(1000, tier + 1)) tier++;
+    var v = n / Math.pow(1000, tier);
+    var dec = v < 10 ? 2 : (v < 100 ? 1 : 0);
+    var k = 3 * tier - dec;
+    var qq = Math.floor(n / Math.pow(10, k));
+    return trimZeros((qq / Math.pow(10, dec)).toFixed(dec)) + SUF[tier];
+  }
+  function fmtMoney(n) { n = +n; if (!isFinite(n)) return '$0'; return n < 0 ? '-$' + fmtBig(-n) : '$' + fmtBig(n); }
+  /* Income per second: one decimal below 1,000 (rounded down), otherwise like money. */
+  function fmtRate(n) {
+    n = +n;
+    if (!isFinite(n) || n < 0) n = 0;
+    if (n < 1000) return '$' + trimZeros((Math.floor(n * 10) / 10).toFixed(1)) + '/s';
+    return '$' + fmtBig(n) + '/s';
+  }
+  function fmtDur(sec) {
+    sec = Math.max(0, Math.floor(+sec || 0));
+    if (sec < 60) return sec + ' s';
+    var m = Math.floor(sec / 60), s = sec % 60;
+    if (sec < 3600) return m + ' min' + (s ? ' ' + s + ' s' : '');
+    var h = Math.floor(sec / 3600), mm = Math.floor((sec % 3600) / 60);
+    return h + ' h' + (mm ? ' ' + mm + ' min' : '');
+  }
+
+  /* ---------- economy: costs, crew, rig, payout, unlocks, franchise, offline (all pure) ---------- */
+  var FLOW_REF = 2;
+  function costAt(base, growth, n) { return Math.ceil(base * Math.pow(growth, n) - 1e-9); }
+  function byId(list, id) { for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i]; return null; }
+  function upgradeCost(id, level) { var u = byId(DATA.upgrades, id); return costAt(u.base, u.growth, level); }
+  function crewCost(id, owned) { return costAt(byId(DATA.crew, id).base, DATA.crewGrowth, owned); }
+  function crewCostMany(id, owned, k) { var t = 0; for (var i = 0; i < k; i++) t += crewCost(id, owned + i); return t; }
+  function crewAfford(id, owned, money) {
+    var k = 0, t = 0;
+    while (k < 1000) { var c = crewCost(id, owned + k); if (t + c > money) break; t += c; k++; }
+    return k;
+  }
+  function truckCost(n) { return costAt(DATA.trucks.base, DATA.trucks.growth, n); }
+  function milestoneCount(owned) { var c = 0; for (var i = 0; i < DATA.crewMilestones.length; i++) if (owned >= DATA.crewMilestones[i]) c++; return c; }
+  function nextMilestone(owned) { for (var i = 0; i < DATA.crewMilestones.length; i++) if (owned < DATA.crewMilestones[i]) return DATA.crewMilestones[i]; return 0; }
+  function franchiseMult(fp) { return 1 + DATA.franchise.perPoint * Math.max(0, fp || 0); }
+  function crewRawIncome(st) {
+    var t = 0;
+    for (var i = 0; i < DATA.crew.length; i++) {
+      var c = DATA.crew[i], n = (st.crew && st.crew[c.id]) || 0;
+      t += n * c.inc * Math.pow(2, milestoneCount(n));
+    }
+    return t;
+  }
+  function crewIncome(st) { return crewRawIncome(st) * franchiseMult(st.fp); }
+  function tierIncome(st, id) {
+    var c = byId(DATA.crew, id), n = (st.crew && st.crew[id]) || 0;
+    return n * c.inc * Math.pow(2, milestoneCount(n)) * franchiseMult(st.fp);
+  }
+  function offlineCapSec(st) {
+    var o = DATA.offline;
+    return Math.min(o.maxHours, o.baseHours + o.perTruck * Math.max(0, st.trucks || 0)) * 3600;
+  }
+  /* now and savedAt are milliseconds. A clock that went backwards pays nothing. */
+  function offlineCredit(st, now) {
+    var last = st.savedAt;
+    if (!(last > 0) || !isFinite(now) || now < last) return { secs: 0, raw: 0, capped: false, earned: 0, backwards: isFinite(now) && last > 0 && now < last };
+    var raw = (now - last) / 1000, cap = offlineCapSec(st), secs = Math.min(raw, cap);
+    return { secs: secs, raw: raw, capped: raw > cap, earned: secs * crewIncome(st) * DATA.offline.efficiency, backwards: false };
+  }
+  function rigOf(st) {
+    var u = st.up || {}, g = st.gear || {};
+    function lv(id) { return clamp(Math.floor(u[id] || 0), 0, byId(DATA.upgrades, id).max); }
+    function per(id) { return byId(DATA.upgrades, id).per; }
+    return {
+      pMul: 1 + per('pressure') * lv('pressure'),
+      rMul: 1 + per('area') * lv('area'),
+      fall: Math.max(0.1, DATA.wash.fall - 0.03 * lv('reach')),
+      tankMax: 40 * (1 + per('tank') * lv('tank')),
+      flowCap: 1.5 + per('flow') * lv('flow'),
+      flowGain: 0.12 + 0.03 * lv('flow'),
+      soap: !!g.soap, hot: !!g.hot, pole: !!g.pole, surface: !!g.surface
+    };
+  }
+  function starsTotal(st) { var t = 0, s = st.stars || {}; for (var k in s) if (byId(DATA.jobs, k)) t += clamp(Math.floor(s[k] || 0), 0, 3); return t; }
+  function jobStatus(job, st) {
+    var needStars = Math.max(0, job.stars - starsTotal(st)), needGear = [];
+    for (var i = 0; i < job.gear.length; i++) if (!(st.gear && st.gear[job.gear[i]])) needGear.push(job.gear[i]);
+    return { ok: needStars === 0 && needGear.length === 0, needStars: needStars, needGear: needGear };
+  }
+  /* res: { tough: 0..1 share of tough spots cleaned by hand, flow: average multiplier, penalty: 0..1, secs } */
+  function payout(job, res, st) {
+    var W = DATA.wash;
+    var base = Math.floor(job.pay * franchiseMult(st.fp) + 1e-9);
+    var clean = Math.floor(base * W.cleanShare * clamp(res.tough, 0, 1) + 1e-9);
+    var tips = Math.floor(base * W.tipShare * clamp((res.flow - 1) / (FLOW_REF - 1), 0, 1) + 1e-9);
+    var damage = Math.floor((base + clean + tips) * clamp(res.penalty, 0, W.scuffMax) + 1e-9);
+    return { base: base, clean: clean, tips: tips, damage: damage, total: base + clean + tips - damage };
+  }
+  function starsFor(job, res) {
+    var b = res.tough >= DATA.stars.toughNeeded && res.penalty <= 0, c = res.secs <= job.par;
+    return { a: true, b: b, c: c, n: 1 + (b ? 1 : 0) + (c ? 1 : 0) };
+  }
+  function fpGain(lifetime) { return Math.floor(Math.sqrt(Math.max(0, lifetime) / DATA.franchise.fpDiv)); }
+  function franchiseNeed(st) { return DATA.franchise.minGain + DATA.franchise.minGainStep * (st.cycles || 0); }
+  function franchiseOffer(st) { var g = fpGain(st.lifetime), need = franchiseNeed(st); return { gain: g, need: need, can: g >= need, total: (st.fp || 0) + g }; }
+  function rigColors(fp) { return DATA.franchise.colors.filter(function (c) { return fp >= c.fp; }); }
+  function emptyUp() { var o = {}; DATA.upgrades.forEach(function (u) { o[u.id] = 0; }); return o; }
+  function emptyCrew() { var o = {}; DATA.crew.forEach(function (c) { o[c.id] = 0; }); return o; }
+  function emptyGear() { var o = {}; DATA.gear.forEach(function (g) { o[g.id] = false; }); return o; }
+  function freshState() {
+    return { v: 1, money: 0, lifetime: 0, earned: 0, stars: {}, up: emptyUp(), gear: emptyGear(), crew: emptyCrew(), trucks: 0,
+             fp: 0, cycles: 0, color: 'sun', savedAt: 0, tut: false, jobs: 0, set: { sound: true, calm: false } };
+  }
+  /* Franchise: money, upgrades, gear, crew and trucks reset. Stars, points, colours and settings stay. */
+  function applyFranchise(st) {
+    var o = franchiseOffer(st), n = freshState();
+    n.stars = JSON.parse(JSON.stringify(st.stars || {}));
+    n.fp = (st.fp || 0) + o.gain;
+    n.cycles = (st.cycles || 0) + 1;
+    n.color = st.color;
+    n.earned = st.earned || 0;
+    n.jobs = st.jobs || 0;
+    n.tut = true;
+    n.set = { sound: !!(st.set && st.set.sound), calm: !!(st.set && st.set.calm) };
+    n.savedAt = st.savedAt || 0;
+    return n;
+  }
+
+  /* ---------- wash core: grime recipes, spray physics, flow, tidy sweep (pure, no DOM) ---------- */
+  /* The scene is W by H logical units. Portrait phones get 1000 wide and taller, landscape gets 1000 high and wider. */
+  function sceneSize(aspect) {
+    var r = clamp(+aspect || 0.5, 0.45, 2.1);
+    if (r >= 1) return { W: Math.round(1000 * r / 10) * 10, H: 1000 };
+    return { W: 1000, H: Math.round(1000 / r / 10) * 10 };
+  }
+  function blobAt(grid, kinds, gw, gh, kid, cx, cy, rad, t0, t1, rnd, seed, wob) {
+    var x0 = Math.max(0, Math.floor(cx - rad * 1.5)), x1 = Math.min(gw - 1, Math.ceil(cx + rad * 1.5));
+    var y0 = Math.max(0, Math.floor(cy - rad * 1.5)), y1 = Math.min(gh - 1, Math.ceil(cy + rad * 1.5));
+    for (var y = y0; y <= y1; y++) for (var x = x0; x <= x1; x++) {
+      var dx = x + 0.5 - cx, dy = y + 0.5 - cy;
+      var d = Math.sqrt(dx * dx + dy * dy) / rad + (vnoise(x * 0.3, y * 0.3, seed) - 0.5) * wob;
+      if (d >= 1) continue;
+      var wgt = 1 - smooth(0.5, 1, d);
+      if (wgt < 0.22) continue;
+      var i = y * gw + x;
+      kinds[i] = kid;
+      var tt = t0 + (t1 - t0) * wgt;
+      if (tt > grid[i]) grid[i] = tt;
+    }
+  }
+  function scribbleAt(grid, kinds, gw, gh, kid, cx, cy, len, t0, t1, rnd) {
+    var ang = rnd() * 6.283, x = cx, y = cy;
+    for (var s = 0; s < len; s++) {
+      ang += (rnd() - 0.5) * 1.9;
+      x += Math.cos(ang) * 1.1; y += Math.sin(ang) * 1.1;
+      blobAt(grid, kinds, gw, gh, kid, x, y, 1.7, t0, t1, rnd, 7, 0.1);
+    }
+  }
+  function makeGrid(job, gw, gh, seed) {
+    var rc = job.recipe, n = gw * gh, thick = new Float32Array(n), kind = new Uint8Array(n);
+    var rnd = mulberry32((seed >>> 0) ^ 0x9E3779B1), s1 = (seed & 255) + 11, s2 = s1 + 37, s3 = s1 + 71;
+    var blob = rc.region && rc.region.blob ? rc.region.blob.slice() : null;
+    if (blob && rc.region.orient && gw > gh) { var tb = blob[2]; blob[2] = blob[3]; blob[3] = tb; }
+    var film = rc.film, g = rc.grime, c = rc.caked, sh = rc.shade;
+    for (var y = 0; y < gh; y++) for (var x = 0; x < gw; x++) {
+      var u = (x + 0.5) / gw, v = (y + 0.5) / gh, wgt = 1;
+      if (blob) {
+        var ex = (u - blob[0]) / blob[2], ey = (v - blob[1]) / blob[3];
+        var d = Math.sqrt(ex * ex + ey * ey) + (fbm(x / 5, y / 5, s3, 2) - 0.5) * 0.4;
+        wgt = 1 - smooth(0.82, 1, d);
+        if (wgt < 0.06) continue;
+      }
+      var t = film[0] + (film[1] - film[0]) * fbm(x / 7, y / 7, s1, 2);
+      var bias = 0;
+      if (sh) {
+        var e = sh.side === 'bottom' ? v : sh.side === 'top' ? 1 - v : sh.side === 'left' ? 1 - u : sh.side === 'right' ? u : 0;
+        bias = sh.amt * smooth(0.35, 1, e);
+      }
+      if (g) t += g.amt * smooth(1 - g.cover - 0.08, 1 - g.cover + 0.08, fbm(x / g.scale, y / g.scale, s2, 3) + bias);
+      if (c) t += c.amt * smooth(1 - c.cover - 0.06, 1 - c.cover + 0.06, fbm(x / c.scale, y / c.scale, s3, 3) + bias * 0.8);
+      t *= 0.88 + 0.24 * hash2(x, y, s1);
+      t *= wgt;
+      thick[i0(x, y, gw)] = clamp(t, 0, 255);
+    }
+    var sp = rc.specials || [];
+    for (var k = 0; k < sp.length; k++) {
+      var def = sp[k], kid = 0;
+      for (var q = 1; q < DATA.kinds.length; q++) if (DATA.kinds[q].id === def.k) kid = q;
+      for (var m = 0; m < def.n; m++) {
+        var px = (def.x[0] + (def.x[1] - def.x[0]) * rnd()) * gw, py = (def.y[0] + (def.y[1] - def.y[0]) * rnd()) * gh;
+        var rad = def.r[0] + (def.r[1] - def.r[0]) * rnd();
+        if (def.k === 'graffiti') scribbleAt(thick, kind, gw, gh, kid, px, py, Math.round(rad * 2.2), def.t[0], def.t[1], rnd);
+        else blobAt(thick, kind, gw, gh, kid, px, py, rad, def.t[0], def.t[1], rnd, s1 + m * 13, def.k === 'moss' ? 0.9 : 0.45);
+      }
+    }
+    var tough = new Uint8Array(n), total = 0, toughN = 0, top2 = DATA.bands[1].top;
+    for (var i = 0; i < n; i++) {
+      if (thick[i] < DATA.eps * 2) { thick[i] = 0; kind[i] = 0; continue; }
+      total++;
+      if (kind[i] || thick[i] > top2) { tough[i] = 1; toughN++; }
+    }
+    return { thick: thick, kind: kind, tough: tough, total: total, toughTotal: toughN };
+  }
+  function i0(x, y, gw) { return y * gw + x; }
+  function makeWash(job, gw, gh, seed) {
+    var g = makeGrid(job, gw, gh, seed), n = gw * gh;
+    return {
+      job: job, gw: gw, gh: gh, W: gw * DATA.cell, H: gh * DATA.cell, seed: seed,
+      thick: g.thick, kind: g.kind, tough: g.tough, foam: new Float32Array(n), scuff: new Uint8Array(n), dmg: new Float32Array(n),
+      total0: g.total, left: g.total, toughTotal: g.toughTotal, toughDone: 0, scuffN: 0, foamN: 0,
+      units: 0, flowSum: 0, flowUnits: 0, mult: 1, secs: 0,
+      track: true, mark: new Uint8Array(n), changed: new Int32Array(n), nChanged: 0, cleaned: new Int32Array(n), nCleaned: 0,
+      sDirty: 0, sRemoved: 0, sBlocked: 0, sScuff: 0, tidyP: 0
+    };
+  }
+  function coverage(w) { return w.total0 ? 1 - w.left / w.total0 : 1; }
+  function markChanged(w, i) { if (w.track && !w.mark[i]) { w.mark[i] = 1; w.changed[w.nChanged++] = i; } }
+  function cellDone(w, i, byHand) {
+    w.thick[i] = 0; w.left--; w.foam[i] = 0;
+    if (byHand && w.tough[i]) w.toughDone++;
+    if (w.track) w.cleaned[w.nCleaned++] = i;
+  }
+  /* One spot of spray at (x, y), for dt seconds. R is the radius in units. */
+  function stamp(w, x, y, dt, tip, rig, R) {
+    var C = DATA.cell, gw = w.gw, gh = w.gh, W = DATA.wash;
+    var x0 = Math.max(0, Math.floor((x - R) / C)), x1 = Math.min(gw - 1, Math.floor((x + R) / C));
+    var y0 = Math.max(0, Math.floor((y - R) / C)), y1 = Math.min(gh - 1, Math.floor((y + R) / C));
+    var R2 = R * R, thick = w.thick, kind = w.kind, foam = w.foam, eps = DATA.eps, kinds = DATA.kinds, bands = DATA.bands;
+    var P0 = tip.p * rig.pMul, fall = rig.fall;
+    var cx, cy, dx, dy, dy2, d2, i, t, row;
+    if (tip.soap) {
+      var add = 1.8 * dt;
+      for (cy = y0; cy <= y1; cy++) {
+        dy = (cy + 0.5) * C - y; dy2 = dy * dy; row = cy * gw;
+        for (cx = x0; cx <= x1; cx++) {
+          dx = (cx + 0.5) * C - x; d2 = dx * dx + dy2;
+          if (d2 >= R2) continue;
+          i = row + cx;
+          if (thick[i] <= 0) continue;
+          w.sDirty++;
+          var f0 = foam[i], f1 = f0 + add * (1 - 0.5 * d2 / R2);
+          if (f1 > 1) f1 = 1;
+          if (f1 !== f0) { if (f0 === 0) w.foamN++; foam[i] = f1; markChanged(w, i); }
+        }
+      }
+      return;
+    }
+    var rk = W.rateK * dt, cap = W.rateCap, drop = W.soapDrop, scuffing = tip.scuff && w.job.delicate;
+    var sr2 = (R * W.scuffReach) * (R * W.scuffReach), sdt = dt / W.scuffSecs, mult = w.mult;
+    for (cy = y0; cy <= y1; cy++) {
+      dy = (cy + 0.5) * C - y; dy2 = dy * dy; row = cy * gw;
+      for (cx = x0; cx <= x1; cx++) {
+        dx = (cx + 0.5) * C - x; d2 = dx * dx + dy2;
+        if (d2 >= R2) continue;
+        i = row + cx; t = thick[i];
+        if (t <= 0) {
+          if (scuffing && d2 < sr2 && !w.scuff[i]) {
+            var dg = w.dmg[i] + sdt;
+            w.dmg[i] = dg;
+            if (dg > w.sScuff) w.sScuff = dg;
+            if (dg >= 1) { w.scuff[i] = 255; w.scuffN++; markChanged(w, i); }
+          }
+          continue;
+        }
+        var k = kind[i], H = k ? kinds[k].h : (t <= bands[0].top ? bands[0].h : (t <= bands[1].top ? bands[1].h : bands[2].h));
+        if (k === 1 && rig.hot) H *= 0.5;
+        var f = foam[i];
+        if (f > 0) H *= 1 - drop * f;
+        w.sDirty++;
+        var pe = P0 * (1 - fall * d2 / R2);
+        if (pe <= H) { w.sBlocked++; continue; }
+        var r = pe / H - 1;
+        if (r > cap) r = cap;
+        var dec = rk * r;
+        w.sRemoved++;
+        var took = dec < t ? dec : t;
+        w.flowSum += mult * took; w.flowUnits += took; w.units += took;
+        t -= dec;
+        if (t <= eps) cellDone(w, i, true); else thick[i] = t;
+        markChanged(w, i);
+      }
+    }
+  }
+  /* The surface cleaner: one big disc with even pressure, no rim fall off. It leaves a strip at the edges and skips stains. */
+  function discStamp(w, x, y, dt, rig, R) {
+    var C = DATA.cell, gw = w.gw, gh = w.gh, S = DATA.surface, bands = DATA.bands, eps = DATA.eps;
+    var x0 = Math.max(0, Math.floor((x - R) / C)), x1 = Math.min(gw - 1, Math.floor((x + R) / C));
+    var y0 = Math.max(0, Math.floor((y - R) / C)), y1 = Math.min(gh - 1, Math.floor((y + R) / C));
+    var R2 = R * R, P = S.p * rig.pMul, rk = DATA.wash.rateK * dt, cap = DATA.wash.rateCap, mult = w.mult;
+    for (var cy = y0; cy <= y1; cy++) {
+      var py = (cy + 0.5) * C, dy = py - y;
+      if (py < S.edge || py > w.H - S.edge) continue;
+      for (var cx = x0; cx <= x1; cx++) {
+        var px = (cx + 0.5) * C, dx = px - x;
+        if (dx * dx + dy * dy >= R2 || px < S.edge || px > w.W - S.edge) continue;
+        var i = cy * gw + cx, t = w.thick[i];
+        if (t <= 0) continue;
+        var k = w.kind[i];
+        if (k && S.skip.indexOf(k) >= 0) continue;
+        w.sDirty++;
+        var H = k ? DATA.kinds[k].h : (t <= bands[0].top ? bands[0].h : (t <= bands[1].top ? bands[1].h : bands[2].h));
+        var r = P / H - 1;
+        if (r <= 0) { w.sBlocked++; continue; }
+        if (r > cap) r = cap;
+        var dec = rk * r, took = dec < t ? dec : t;
+        w.sRemoved++;
+        w.flowSum += mult * took; w.flowUnits += took; w.units += took;
+        t -= dec;
+        if (t <= eps) cellDone(w, i, true); else w.thick[i] = t;
+        markChanged(w, i);
+      }
+    }
+  }
+  function newSprayer(rig, tipId) {
+    return { on: false, x: 0, y: 0, px: 0, py: 0, hasPrev: false, tip: byId(DATA.tips, tipId || 'white'), mult: 1, tank: rig.tankMax, dry: false,
+             surf: null, cool: 0, removing: false, blocked: false };
+  }
+  /* One fixed step of the whole wash. s is the sprayer, rig comes from rigOf. Moves the spot from the last position to x, y. */
+  function simStep(w, s, rig, dt) {
+    var W = DATA.wash, tip = s.tip;
+    w.sDirty = w.sRemoved = w.sBlocked = 0; w.sScuff = 0;
+    var spraying = s.on && !s.dry && !s.surf;
+    if (s.on && s.dry && s.tank >= rig.tankMax * W.tankMin) s.dry = false;
+    if (spraying) {
+      var R = W.baseR * tip.r * rig.rMul;
+      var x1 = s.x, y1 = s.y, x0 = s.hasPrev ? s.px : x1, y0 = s.hasPrev ? s.py : y1;
+      var len = Math.sqrt((x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0));
+      var n = Math.max(1, Math.ceil(len / (R * 0.4))), sdt = dt / n;
+      w.mult = s.mult;
+      for (var k = 1; k <= n; k++) { var f = k / n; stamp(w, x0 + (x1 - x0) * f, y0 + (y1 - y0) * f, sdt, tip, rig, R); }
+      s.tank -= dt * tip.water * W.tankDrain;
+      if (s.tank <= 0) { s.tank = 0; s.dry = true; }
+    } else if (s.tank < rig.tankMax) {
+      s.tank = Math.min(rig.tankMax, s.tank + rig.tankMax * W.tankRefill * dt);
+    }
+    if (s.surf) {
+      var S = DATA.surface;
+      w.mult = s.mult;
+      discStamp(w, s.surf.x, s.surf.y, dt, rig, S.r * rig.rMul);
+      s.surf.left -= dt;
+      s.tank = Math.max(0, s.tank - dt * 3);
+      if (s.surf.left <= 0) { s.surf = null; s.cool = S.gap; }
+    } else if (s.cool > 0) s.cool -= dt;
+    s.px = s.x; s.py = s.y; s.hasPrev = s.on;
+    s.removing = w.sRemoved > 0;
+    s.blocked = !tip.soap && w.sDirty > 0 && w.sRemoved === 0 && w.sBlocked >= w.sDirty * 0.6;
+    if (spraying || s.surf) {
+      if (s.removing || (tip.soap && w.sDirty > 0)) { if (s.removing) s.mult = Math.min(rig.flowCap, s.mult + rig.flowGain * dt); }
+      else s.mult = Math.max(1, s.mult - W.flowBleed * dt);
+    } else if (s.cool <= 0) s.mult = Math.max(1, s.mult - W.flowDecay * dt);
+    if (w.foamN > 0) {
+      var dec = dt / W.foamSecs, fm = w.foam, nn = fm.length, live = 0;
+      for (var i = 0; i < nn; i++) { var v = fm[i]; if (v > 0) { v -= dec; if (v <= 0) { v = 0; } else live++; fm[i] = v; } }
+      w.foamN = live;
+    }
+    w.secs += dt;
+  }
+  /* The shimmer sweep that tidies the last specks. p goes 0 to 1 along a diagonal. */
+  function tidyTo(w, p) {
+    var gw = w.gw, gh = w.gh;
+    for (var y = 0; y < gh; y++) for (var x = 0; x < gw; x++) {
+      var i = y * gw + x;
+      if (w.thick[i] > 0 && ((x / gw) * 0.5 + (y / gh) * 0.5) <= p) { cellDone(w, i, false); markChanged(w, i); }
+    }
+    w.tidyP = p;
+  }
+  function washResult(w) {
+    var W = DATA.wash;
+    return { tough: w.toughTotal ? w.toughDone / w.toughTotal : 1, flow: w.flowUnits > 0 ? w.flowSum / w.flowUnits : 1,
+             penalty: Math.min(W.scuffMax, w.scuffN * W.scuffEach), secs: w.secs, scuffN: w.scuffN };
+  }
+
+  /* ---------- save: versioned schema, sanitising, export and import codes (pure) ---------- */
+  var SAVE_VERSION = 1;
+  var B64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+  /* Our save text is plain ASCII, so a tiny base64 over char codes is enough and works in the page and in Node. */
+  function b64enc(str) {
+    var out = '', i = 0;
+    while (i < str.length) {
+      var a = str.charCodeAt(i++) & 127, b = i < str.length ? str.charCodeAt(i++) & 127 : -1, c = i < str.length ? str.charCodeAt(i++) & 127 : -1;
+      var n = (a << 16) | ((b < 0 ? 0 : b) << 8) | (c < 0 ? 0 : c);
+      out += B64.charAt((n >> 18) & 63) + B64.charAt((n >> 12) & 63) + (b < 0 ? '' : B64.charAt((n >> 6) & 63)) + (c < 0 ? '' : B64.charAt(n & 63));
+    }
+    return out;
+  }
+  function b64dec(s) {
+    var out = '', buf = 0, bits = 0;
+    for (var i = 0; i < s.length; i++) {
+      var v = B64.indexOf(s.charAt(i));
+      if (v < 0) return null;
+      buf = (buf << 6) | v; bits += 6;
+      if (bits >= 8) { bits -= 8; out += String.fromCharCode((buf >> bits) & 255); buf &= (1 << bits) - 1; }
+    }
+    return out;
+  }
+  function checksum(str) {
+    var h = 2166136261;
+    for (var i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
+    return h.toString(36);
+  }
+  function num(v, lo, hi, d) { v = +v; if (!isFinite(v)) return d; return v < lo ? lo : (v > hi ? hi : v); }
+  function int(v, lo, hi, d) { var n = num(v, lo, hi, d); return Math.floor(n); }
+  var MAX_MONEY = 1e30;
+  /* Turns anything read from storage into a safe state, or null if it is not a save at all. Unknown keys are dropped. */
+  function sanitize(raw) {
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
+    var m = migrate(raw);
+    if (!m) return null;
+    var s = freshState(), i;
+    s.money = num(m.money, 0, MAX_MONEY, 0);
+    s.lifetime = num(m.lifetime, 0, MAX_MONEY, 0);
+    s.earned = Math.max(s.lifetime, num(m.earned, 0, MAX_MONEY, 0));
+    for (i = 0; i < DATA.jobs.length; i++) { var id = DATA.jobs[i].id; if (m.stars && typeof m.stars === 'object') { var v = int(m.stars[id], 0, 3, 0); if (v > 0) s.stars[id] = v; } }
+    for (i = 0; i < DATA.upgrades.length; i++) { var u = DATA.upgrades[i]; s.up[u.id] = m.up && typeof m.up === 'object' ? int(m.up[u.id], 0, u.max, 0) : 0; }
+    for (i = 0; i < DATA.gear.length; i++) { var g = DATA.gear[i]; s.gear[g.id] = !!(m.gear && typeof m.gear === 'object' && m.gear[g.id] === true); }
+    for (i = 0; i < DATA.crew.length; i++) { var c = DATA.crew[i]; s.crew[c.id] = m.crew && typeof m.crew === 'object' ? int(m.crew[c.id], 0, 100000, 0) : 0; }
+    s.trucks = int(m.trucks, 0, DATA.trucks.max, 0);
+    s.fp = int(m.fp, 0, 1e9, 0);
+    s.cycles = int(m.cycles, 0, 1e6, 0);
+    s.jobs = int(m.jobs, 0, 1e9, 0);
+    s.tut = m.tut === true;
+    var col = byId(DATA.franchise.colors, m.color);
+    s.color = col && s.fp >= col.fp ? col.id : 'sun';
+    s.savedAt = num(m.savedAt, 0, 4102444800000, 0);
+    s.set = { sound: !(m.set && m.set.sound === false), calm: !!(m.set && m.set.calm === true) };
+    return s;
+  }
+  /* Older saves are brought forward one version at a time. Version 1 is the first, so this only checks the number. */
+  function migrate(raw) {
+    var v = raw.v === undefined ? 1 : +raw.v;
+    if (!isFinite(v) || v < 1 || v > SAVE_VERSION) return null;
+    return raw;
+  }
+  function serialize(st) { st.v = SAVE_VERSION; return JSON.stringify(st); }
+  function parseSave(text) {
+    try { return sanitize(JSON.parse(text)); } catch (e) { return null; }
+  }
+  function exportCode(st) { var j = serialize(st); return 'GT1.' + b64enc(j) + '.' + checksum(j); }
+  /* Returns { ok, state, error }. The code must be intact: the check catches a cut off or edited copy. */
+  function importCode(text) {
+    var t = String(text == null ? '' : text).replace(/\s+/g, '');
+    var m = /^GT1\.([A-Za-z0-9_-]+)\.([a-z0-9]+)$/.exec(t);
+    if (!m) return { ok: false, error: 'That does not look like a Grime Time save code.' };
+    var j = b64dec(m[1]);
+    if (j === null || checksum(j) !== m[2]) return { ok: false, error: 'The code is damaged or cut off. Copy it again in full.' };
+    var s = parseSave(j);
+    if (!s) return { ok: false, error: 'That save could not be read.' };
+    return { ok: true, state: s };
+  }
+
+  var PURE = {
+    DATA: DATA, clamp: clamp, mulberry32: mulberry32, hash2: hash2, vnoise: vnoise, fbm: fbm, smooth: smooth,
+    fmtBig: fmtBig, fmtMoney: fmtMoney, fmtRate: fmtRate, fmtDur: fmtDur,
+    costAt: costAt, byId: byId, upgradeCost: upgradeCost, crewCost: crewCost, crewCostMany: crewCostMany, crewAfford: crewAfford, truckCost: truckCost,
+    milestoneCount: milestoneCount, nextMilestone: nextMilestone, franchiseMult: franchiseMult, crewRawIncome: crewRawIncome, crewIncome: crewIncome,
+    tierIncome: tierIncome, offlineCapSec: offlineCapSec, offlineCredit: offlineCredit, rigOf: rigOf, starsTotal: starsTotal, jobStatus: jobStatus,
+    payout: payout, starsFor: starsFor, fpGain: fpGain, franchiseOffer: franchiseOffer, franchiseNeed: franchiseNeed, rigColors: rigColors, freshState: freshState, applyFranchise: applyFranchise,
+    sceneSize: sceneSize, makeGrid: makeGrid, makeWash: makeWash, coverage: coverage, stamp: stamp, discStamp: discStamp,
+    newSprayer: newSprayer, simStep: simStep, tidyTo: tidyTo, washResult: washResult,
+    sanitize: sanitize, migrate: migrate, serialize: serialize, parseSave: parseSave, exportCode: exportCode, importCode: importCode,
+    b64enc: b64enc, b64dec: b64dec, checksum: checksum, SAVE_VERSION: SAVE_VERSION
+  };
+  /* PURE-END */
+
+  /* ================= everything below uses the page ================= */
+  var STORE_KEY = 'grime-time-v1';
+  /* Shown to people who spot a bug. */
+  var SUPPORT = 'fireseabrook2566@gmail.com';
+  var SITE_ADDR = 'sanjixysti-creator.github.io/grime-time/';
+  var TEST = (function () { try { return location.hash === '#test'; } catch (e) { return false; } })();
+  var STEP = 1 / 60;
+  var SVGNS = 'http://www.w3.org/2000/svg';
+
+  var state = null;
+  var calm = false;
+
+  function $(id) { return document.getElementById(id); }
+  function h(tag, attrs, kids) {
+    var el = document.createElement(tag);
+    if (attrs) for (var k in attrs) {
+      if (k === 'text') el.textContent = attrs[k];
+      else if (k === 'class') el.className = attrs[k];
+      else el.setAttribute(k, attrs[k]);
+    }
+    if (kids) kids.forEach(function (c) { if (c) el.appendChild(c); });
+    return el;
+  }
+  function svgEl(tag, attrs, kids) {
+    var el = document.createElementNS(SVGNS, tag);
+    if (attrs) for (var k in attrs) el.setAttribute(k, attrs[k]);
+    if (kids) kids.forEach(function (c) { el.appendChild(c); });
+    return el;
+  }
+  function starIcon(on) {
+    var s = svgEl('svg', { 'class': 'star' + (on ? ' on' : ''), viewBox: '0 0 24 24', 'aria-hidden': 'true', focusable: 'false' });
+    s.appendChild(svgEl('path', { d: 'M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6L2.5 9.4l6.6-.8z' }));
+    return s;
+  }
+  function clear(el) { while (el.firstChild) el.removeChild(el.firstChild); }
+  /* Long figures get a smaller size class so they always fit their box. */
+  function fit(el, text, a, b) {
+    el.textContent = text;
+    var n = text.length;
+    el.classList.toggle('sm', n > (a || 6) && n <= (b || 8));
+    el.classList.toggle('xs', n > (b || 8));
+    el.style.fontSize = '';
+    if (el.clientWidth > 0 && el.scrollWidth > el.clientWidth + 1) {
+      var fs = parseFloat(getComputedStyle(el).fontSize) || 20;
+      while (fs > 13 && el.scrollWidth > el.clientWidth + 1) { fs -= 1; el.style.fontSize = fs + 'px'; }
+    }
+  }
+
+  /* ---------- storage (always inside try/catch; the page works without it) ---------- */
+  function load() {
+    var raw = null;
+    try { raw = localStorage.getItem(STORE_KEY); } catch (e) { return null; }
+    if (!raw) return null;
+    var s = parseSave(raw);
+    if (!s) { try { localStorage.setItem(STORE_KEY + '-backup', raw); } catch (e2) { /* nothing to do */ } return null; }
+    return s;
+  }
+  var saveTimer = 0;
+  function save() {
+    if (saveTimer) { clearTimeout(saveTimer); saveTimer = 0; }
+    state.savedAt = Date.now();
+    try { localStorage.setItem(STORE_KEY, serialize(state)); } catch (e) { /* storage unavailable */ }
+  }
+  function scheduleSave() { if (!saveTimer) saveTimer = setTimeout(save, 1500); }
+
+  /* ---------- toast, copy sheet, two step buttons, screen reader line ---------- */
+  var toastTimer;
+  function toast(msg) {
+    var t = $('toast');
+    t.textContent = msg;
+    t.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.hidden = true; }, 3200);
+  }
+  function twoTap(btn, idle, armed, action) {
+    var on = false, t;
+    function off() { on = false; clearTimeout(t); btn.textContent = idle; }
+    btn.addEventListener('click', function () {
+      if (!on) { on = true; btn.textContent = armed; t = setTimeout(off, 3000); return; }
+      off();
+      action();
+    });
+  }
+  function copyFallback(text, okMsg) {
+    var sheet = $('sheet'), ta = $('sheetText');
+    ta.value = text;
+    sheet.hidden = false;
+    var ok = false;
+    try { ta.focus(); ta.select(); ok = document.execCommand('copy'); } catch (e) { ok = false; }
+    if (ok) { sheet.hidden = true; toast(okMsg); }
+  }
+  function copyText(text, okMsg) {
+    var p = null;
+    try { if (navigator.clipboard && navigator.clipboard.writeText) p = navigator.clipboard.writeText(text); } catch (e) { p = null; }
+    if (!p) { copyFallback(text, okMsg); return; }
+    p.then(function () { toast(okMsg); }, function () { copyFallback(text, okMsg); });
+  }
+  var srTimer;
+  function say(text, now) {
+    clearTimeout(srTimer);
+    if (now) { $('srRead').textContent = text; return; }
+    srTimer = setTimeout(function () { $('srRead').textContent = text; }, 400);
+  }
+  function isCalm() { return calm || (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches); }
+  function applyCalm() { calm = !!(state && state.set && state.set.calm); document.documentElement.classList.toggle('calm', calm); }
+
+  /* ---------- sound: Web Audio, no files. It starts after the first tap and fails quietly ---------- */
+  var audio = { ctx: null, master: null, hiss: null, filt: null, noise: null, bad: false, last: {} };
+  function audioStart() {
+    if (audio.bad) return;
+    try {
+      if (!audio.ctx) {
+        var AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) { audio.bad = true; return; }
+        var c = new AC();
+        audio.ctx = c;
+        audio.master = c.createGain();
+        audio.master.gain.value = 0.9;
+        audio.master.connect(c.destination);
+        var len = Math.floor(c.sampleRate * 2), buf = c.createBuffer(1, len, c.sampleRate), d = buf.getChannelData(0);
+        for (var i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+        audio.noise = buf;
+        var src = c.createBufferSource();
+        src.buffer = buf; src.loop = true;
+        var f = c.createBiquadFilter();
+        f.type = 'bandpass'; f.frequency.value = 3000; f.Q.value = 0.7;
+        var g = c.createGain();
+        g.gain.value = 0;
+        src.connect(f); f.connect(g); g.connect(audio.master);
+        src.start();
+        audio.filt = f; audio.hiss = g;
+      }
+      if (audio.ctx.state === 'suspended') { var p = audio.ctx.resume(); if (p && p.catch) p.catch(function () { /* stays silent */ }); }
+    } catch (e) { audio.bad = true; }
+  }
+  function sndOn() { return !audio.bad && !!audio.ctx && audio.ctx.state === 'running' && !!state && state.set.sound; }
+  function hissSet(level, freq, q) {
+    if (!audio.hiss) return;
+    try {
+      var t = audio.ctx.currentTime;
+      audio.hiss.gain.setTargetAtTime(sndOn() ? level : 0, t, 0.045);
+      if (freq) audio.filt.frequency.setTargetAtTime(freq, t, 0.06);
+      if (q) audio.filt.Q.setTargetAtTime(q, t, 0.06);
+    } catch (e) { /* ignore */ }
+  }
+  function tone(freq, dur, type, vol, slide, delay) {
+    if (!sndOn()) return;
+    try {
+      var c = audio.ctx, t0 = c.currentTime + (delay || 0), o = c.createOscillator(), g = c.createGain();
+      o.type = type || 'sine';
+      o.frequency.setValueAtTime(freq, t0);
+      if (slide) o.frequency.exponentialRampToValueAtTime(slide, t0 + dur);
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(vol, t0 + 0.012);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      o.connect(g); g.connect(audio.master);
+      o.start(t0); o.stop(t0 + dur + 0.03);
+    } catch (e) { /* ignore */ }
+  }
+  function puff(dur, freq, vol) {
+    if (!sndOn() || !audio.noise) return;
+    try {
+      var c = audio.ctx, t0 = c.currentTime, s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+      s.buffer = audio.noise;
+      f.type = 'bandpass'; f.frequency.value = freq; f.Q.value = 0.8;
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(vol, t0 + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      s.connect(f); f.connect(g); g.connect(audio.master);
+      s.start(t0, Math.random()); s.stop(t0 + dur + 0.03);
+    } catch (e) { /* ignore */ }
+  }
+  function every(name, ms) {
+    var now = performance.now();
+    if (audio.last[name] && now - audio.last[name] < ms) return false;
+    audio.last[name] = now;
+    return true;
+  }
+  var SND = {
+    squeak: function () { if (every('sq', 150)) tone(1500 + Math.random() * 700, 0.075, 'sine', 0.05, 2500); },
+    coin: function () { if (every('coin', 70)) { tone(988, 0.07, 'square', 0.035); tone(1319, 0.13, 'square', 0.035, 0, 0.07); } },
+    tink: function () { if (every('tink', 140)) tone(1250 + Math.random() * 250, 0.05, 'triangle', 0.09, 700); },
+    click: function () { tone(520, 0.05, 'triangle', 0.06, 380); },
+    chime: function () { [523, 659, 784, 1047].forEach(function (f, i) { tone(f, 0.22, 'triangle', 0.09, 0, i * 0.075); }); },
+    jingle: function () {
+      [523, 659, 784, 1047, 1319, 1568].forEach(function (f, i) { tone(f, 0.3, 'triangle', 0.1, 0, i * 0.085); tone(f * 2, 0.2, 'sine', 0.035, 0, i * 0.085); });
+      puff(0.5, 4500, 0.06);
+    },
+    whirr: function () { puff(0.5, 900, 0.1); tone(180, 0.5, 'sawtooth', 0.04, 90); },
+    pop: function () { if (every('pop', 90)) tone(900 + Math.random() * 300, 0.04, 'sine', 0.035, 400); },
+    warn: function () { if (every('warn', 400)) tone(200, 0.16, 'sawtooth', 0.05, 140); }
+  };
+  var HISS = { red: [5200, 1.3, 0.16], yellow: [3800, 0.9, 0.15], green: [2700, 0.8, 0.15], white: [1900, 0.6, 0.15], soap: [1300, 0.5, 0.1] };
+
+  /* ---------- scene art: procedural, no image files. Each draws the clean surface in scene units ---------- */
+  function mkCanvas(w, h) { var c = document.createElement('canvas'); c.width = Math.max(1, Math.round(w)); c.height = Math.max(1, Math.round(h)); return c; }
+  function rgb(c) { return 'rgb(' + (c[0] | 0) + ',' + (c[1] | 0) + ',' + (c[2] | 0) + ')'; }
+  function mix(a, b, t) { return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t]; }
+  /* Soft cloudy colour variation: noise on a small canvas, stretched over the scene. */
+  function mottle(ctx, W, H, ca, cb, scale, alpha, seed, oct) {
+    var cw = Math.max(8, Math.ceil(W / 12)), ch = Math.max(8, Math.ceil(H / 12));
+    var c = mkCanvas(cw, ch), x = c.getContext('2d'), im = x.createImageData(cw, ch), d = im.data;
+    for (var y = 0; y < ch; y++) for (var xx = 0; xx < cw; xx++) {
+      var v = fbm(xx * 12 / scale, y * 12 / scale, seed, oct || 3), i = (y * cw + xx) * 4;
+      d[i] = ca[0] + (cb[0] - ca[0]) * v; d[i + 1] = ca[1] + (cb[1] - ca[1]) * v; d[i + 2] = ca[2] + (cb[2] - ca[2]) * v; d[i + 3] = 255;
+    }
+    x.putImageData(im, 0, 0);
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(c, 0, 0, W, H);
+    ctx.restore();
+  }
+  function speckle(ctx, W, H, rnd, n, s0, s1, cols, alpha) {
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    for (var i = 0; i < n; i++) {
+      ctx.fillStyle = cols[(rnd() * cols.length) | 0];
+      var s = s0 + (s1 - s0) * rnd();
+      ctx.fillRect(rnd() * W, rnd() * H, s, s * (0.6 + rnd() * 0.8));
+    }
+    ctx.restore();
+  }
+  function crack(ctx, rnd, x, y, ang, len, w, col) {
+    ctx.save();
+    ctx.strokeStyle = col; ctx.lineWidth = w; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.beginPath(); ctx.moveTo(x, y);
+    for (var i = 0; i < len; i++) { ang += (rnd() - 0.5) * 0.9; x += Math.cos(ang) * 14; y += Math.sin(ang) * 14; ctx.lineTo(x, y); }
+    ctx.stroke();
+    ctx.restore();
+  }
+  function bevel(ctx, x, y, w, hh, r, base, light, dark, depth) {
+    ctx.fillStyle = base;
+    ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x, y, w, hh, r) : ctx.rect(x, y, w, hh); ctx.fill();
+    ctx.fillStyle = light; ctx.fillRect(x + r * 0.4, y, w - r * 0.8, depth);
+    ctx.fillStyle = dark; ctx.fillRect(x + r * 0.4, y + hh - depth, w - r * 0.8, depth);
+  }
+  var ART = {};
+  ART.driveway = function (ctx, W, H, rnd) {
+    ctx.fillStyle = '#C3C7C7'; ctx.fillRect(0, 0, W, H);
+    mottle(ctx, W, H, [176, 182, 184], [214, 217, 216], 140, 0.9, 5, 3);
+    ctx.save(); ctx.globalAlpha = 0.06;
+    for (var y = 0; y < H; y += 9) { ctx.fillStyle = rnd() < 0.5 ? '#fff' : '#445'; ctx.fillRect(0, y + rnd() * 4, W, 1.6); }
+    ctx.restore();
+    speckle(ctx, W, H, rnd, Math.round(W * H / 420), 1.2, 3.4, ['#8D9395', '#E9ECEB', '#A5ABAD', '#F4F6F5'], 0.4);
+    var jx = W > H ? [W * 0.5] : [W * 0.5], jy = [];
+    for (var yy = 560; yy < H - 200; yy += 560) jy.push(yy);
+    ctx.save();
+    jx.forEach(function (x) { ctx.fillStyle = '#8B9193'; ctx.fillRect(x - 3, 0, 6, H); ctx.fillStyle = '#E3E6E6'; ctx.fillRect(x + 3, 0, 3, H); });
+    jy.forEach(function (y) { ctx.fillStyle = '#8B9193'; ctx.fillRect(0, y - 3, W, 6); ctx.fillStyle = '#E3E6E6'; ctx.fillRect(0, y + 3, W, 3); });
+    ctx.restore();
+    for (var i = 0; i < 3; i++) crack(ctx, rnd, rnd() * W, rnd() * H, rnd() * 6.28, 9 + ((rnd() * 8) | 0), 2.2, 'rgba(95,101,103,0.65)');
+  };
+  ART.patio = function (ctx, W, H, rnd) {
+    ctx.fillStyle = '#6F6A62'; ctx.fillRect(0, 0, W, H);
+    var pw = 220, ph = 110, gap = 10, pal = [[196, 178, 150], [186, 160, 132], [205, 190, 165], [176, 150, 122], [192, 170, 140], [168, 156, 140]];
+    var row = 0;
+    for (var y = 0; y < H + ph; y += ph + gap, row++) {
+      var off = (row % 2) * (pw / 2 + gap / 2);
+      for (var x = -off; x < W + pw; x += pw + gap) {
+        var c = pal[(rnd() * pal.length) | 0], j = (rnd() - 0.5) * 18;
+        ctx.fillStyle = rgb([c[0] + j, c[1] + j, c[2] + j]);
+        ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x, y, pw, ph, 9) : ctx.rect(x, y, pw, ph); ctx.fill();
+        ctx.fillStyle = 'rgba(255,255,255,0.14)'; ctx.fillRect(x + 4, y + 2, pw - 8, 4);
+        ctx.fillStyle = 'rgba(0,0,0,0.10)'; ctx.fillRect(x + 4, y + ph - 6, pw - 8, 4);
+      }
+    }
+    mottle(ctx, W, H, [90, 80, 70], [250, 240, 225], 160, 0.18, 9, 3);
+    speckle(ctx, W, H, rnd, Math.round(W * H / 500), 1.2, 3.2, ['#6B5E50', '#F2E8D8', '#9C8870'], 0.35);
+  };
+  ART.fence = function (ctx, W, H, rnd) {
+    ctx.fillStyle = '#35523A'; ctx.fillRect(0, 0, W, H);
+    mottle(ctx, W, H, [34, 70, 40], [72, 110, 62], 120, 0.9, 12, 3);
+    var rails = [H * 0.3, H * 0.72];
+    ctx.fillStyle = '#7B6A58';
+    rails.forEach(function (y) { ctx.fillRect(0, y - 40, W, 80); ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.fillRect(0, y + 40, W, 12); ctx.fillStyle = '#7B6A58'; });
+    var pw = 130, gap = 34, top = 70;
+    for (var x = 20; x < W; x += pw + gap) {
+      ctx.save();
+      ctx.fillStyle = 'rgba(0,0,0,0.28)';
+      ctx.beginPath(); ctx.moveTo(x + 14, top + 60); ctx.lineTo(x + pw / 2 + 14, top - 20); ctx.lineTo(x + pw + 14, top + 60); ctx.lineTo(x + pw + 14, H); ctx.lineTo(x + 14, H); ctx.fill();
+      var g = ctx.createLinearGradient(x, 0, x + pw, 0);
+      g.addColorStop(0, '#F6F3EC'); g.addColorStop(0.7, '#ECE8DF'); g.addColorStop(1, '#D9D4C8');
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.moveTo(x, top + 60); ctx.lineTo(x + pw / 2, top - 30); ctx.lineTo(x + pw, top + 60); ctx.lineTo(x + pw, H); ctx.lineTo(x, H); ctx.closePath(); ctx.fill();
+      ctx.globalAlpha = 0.16; ctx.strokeStyle = '#8A7B66'; ctx.lineWidth = 1.4;
+      for (var k = 0; k < 7; k++) { var gx = x + 14 + rnd() * (pw - 28); ctx.beginPath(); ctx.moveTo(gx, top + 70 + rnd() * 30); ctx.lineTo(gx + (rnd() - 0.5) * 6, H); ctx.stroke(); }
+      ctx.restore();
+      rails.forEach(function (y) { ctx.fillStyle = '#B9B2A4'; ctx.beginPath(); ctx.arc(x + pw / 2, y - 14, 5, 0, 6.3); ctx.fill(); });
+    }
+    ctx.fillStyle = '#3F6B3A'; ctx.fillRect(0, H - 40, W, 40);
+    speckle(ctx, W, H, rnd, Math.round(W * H / 900), 1.5, 3, ['#6E8F5E', '#2C4A30'], 0.5);
+  };
+  ART.wall = function (ctx, W, H, rnd) {
+    ctx.fillStyle = '#CFC8BB'; ctx.fillRect(0, 0, W, H);
+    var bw = 210, bh = 66, m = 10, pal = [[176, 84, 58], [164, 76, 52], [188, 98, 70], [152, 70, 48], [170, 90, 64], [182, 108, 82]];
+    var row = 0;
+    for (var y = 0; y < H + bh; y += bh + m, row++) {
+      var off = (row % 2) * (bw / 2 + m / 2);
+      for (var x = -off; x < W + bw; x += bw + m) {
+        var c = pal[(rnd() * pal.length) | 0], j = (rnd() - 0.5) * 22;
+        ctx.fillStyle = rgb([c[0] + j, c[1] + j * 0.6, c[2] + j * 0.5]);
+        ctx.fillRect(x, y, bw, bh);
+        ctx.fillStyle = 'rgba(255,255,255,0.13)'; ctx.fillRect(x, y, bw, 5);
+        ctx.fillStyle = 'rgba(0,0,0,0.16)'; ctx.fillRect(x, y + bh - 6, bw, 6);
+      }
+    }
+    mottle(ctx, W, H, [80, 40, 30], [255, 225, 200], 130, 0.16, 21, 3);
+    speckle(ctx, W, H, rnd, Math.round(W * H / 300), 1.2, 3.4, ['#5A2E22', '#E8C4A8', '#87402E'], 0.3);
+  };
+  function rrPath(ctx, x, y, w, h, r) {
+    r = Math.min(r, w / 2, h / 2);
+    ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+  }
+  ART.deck = function (ctx, W, H, rnd) {
+    ctx.fillStyle = '#2E2016'; ctx.fillRect(0, 0, W, H);
+    var vertical = H > W * 1.15, tw = vertical ? H : W, th = vertical ? W : H;
+    var bw = 118, gap = 7, pal = [[176, 132, 88], [162, 120, 80], [188, 146, 100], [150, 110, 74], [170, 126, 86], [158, 118, 84]];
+    ctx.save();
+    if (vertical) { ctx.translate(W, 0); ctx.rotate(Math.PI / 2); }
+    for (var y = 0; y < th + bw; y += bw + gap) {
+      var x = -rnd() * 420;
+      while (x < tw) {
+        var len = 430 + rnd() * 560, c = pal[(rnd() * pal.length) | 0], j = (rnd() - 0.5) * 16, x1 = x + len - 7;
+        ctx.fillStyle = rgb([c[0] + j, c[1] + j * 0.8, c[2] + j * 0.6]);
+        ctx.fillRect(x, y, x1 - x, bw);
+        ctx.fillStyle = 'rgba(255,240,215,0.16)'; ctx.fillRect(x, y, x1 - x, 5);
+        ctx.fillStyle = 'rgba(40,20,5,0.2)'; ctx.fillRect(x, y + bw - 6, x1 - x, 6);
+        ctx.save(); ctx.globalAlpha = 0.22; ctx.strokeStyle = '#5B3C22'; ctx.lineWidth = 1.5;
+        for (var k = 0; k < 9; k++) { var gy = y + 10 + rnd() * (bw - 20); ctx.beginPath(); ctx.moveTo(x + 4, gy); ctx.bezierCurveTo(x + len * 0.3, gy + (rnd() - 0.5) * 7, x + len * 0.65, gy + (rnd() - 0.5) * 7, x1 - 4, gy + (rnd() - 0.5) * 4); ctx.stroke(); }
+        ctx.restore();
+        if (rnd() < 0.3) { var kx = x + 60 + rnd() * (len - 130), ky = y + 24 + rnd() * (bw - 48); ctx.fillStyle = 'rgba(70,40,18,0.45)'; ctx.beginPath(); ctx.ellipse(kx, ky, 16 + rnd() * 10, 9 + rnd() * 5, 0, 0, 6.3); ctx.fill(); ctx.strokeStyle = 'rgba(70,40,18,0.3)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.ellipse(kx, ky, 28, 16, 0, 0, 6.3); ctx.stroke(); }
+        ctx.fillStyle = 'rgba(60,40,25,0.7)';
+        [x + 16, x1 - 16].forEach(function (sx) { ctx.beginPath(); ctx.arc(sx, y + bw * 0.28, 3.2, 0, 6.3); ctx.arc(sx, y + bw * 0.72, 3.2, 0, 6.3); ctx.fill(); });
+        x += len;
+      }
+    }
+    ctx.restore();
+    mottle(ctx, W, H, [60, 36, 16], [255, 230, 190], 150, 0.16, 31, 3);
+    speckle(ctx, W, H, rnd, Math.round(W * H / 700), 1.2, 3, ['#4A2F18', '#E9CFA8'], 0.3);
+  };
+  ART.garage = function (ctx, W, H, rnd) {
+    ctx.fillStyle = '#EEEBE3'; ctx.fillRect(0, 0, W, H);
+    var m = Math.round(W * 0.03), seal = Math.round(H * 0.035), dx = m, dy = m, dw = W - 2 * m, dh = H - m - seal;
+    var rows = Math.max(4, Math.round(dh / 300)), ph = dh / rows;
+    for (var r = 0; r < rows; r++) {
+      var y0 = dy + r * ph, g = ctx.createLinearGradient(0, y0, 0, y0 + ph);
+      g.addColorStop(0, '#E7E4DB'); g.addColorStop(1, '#D3CFC3');
+      ctx.fillStyle = g; ctx.fillRect(dx, y0, dw, ph);
+      ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.fillRect(dx, y0, dw, 6);
+      ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.fillRect(dx, y0 + 6, dw, 4);
+      var inset = 26, cols = dw > 1300 ? 4 : 2, cw = (dw - inset * (cols + 1)) / cols;
+      for (var c = 0; c < cols; c++) {
+        var px = dx + inset + c * (cw + inset), py = y0 + inset + 6, pw = cw, phh = ph - inset * 2 - 6;
+        if (r === 0) continue;
+        ctx.fillStyle = 'rgba(0,0,0,0.16)'; ctx.fillRect(px, py, pw, phh);
+        ctx.fillStyle = 'rgba(255,255,255,0.55)'; ctx.fillRect(px, py, pw, 5); ctx.fillRect(px, py, 5, phh);
+        ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.fillRect(px, py + phh - 5, pw, 5); ctx.fillRect(px + pw - 5, py, 5, phh);
+        ctx.fillStyle = 'rgba(255,255,255,0.22)'; ctx.fillRect(px + 8, py + 8, pw - 16, phh - 16);
+      }
+      if (r === 0) {
+        var wn = dw > 1300 ? 8 : 5, ww = (dw - inset * 2 - 14 * (wn - 1)) / wn;
+        for (var w = 0; w < wn; w++) {
+          var wx = dx + inset + w * (ww + 14), wy = y0 + inset + 8, wh = ph - inset * 2 - 10, gg = ctx.createLinearGradient(wx, wy, wx + ww, wy + wh);
+          gg.addColorStop(0, '#5E7C93'); gg.addColorStop(1, '#2E4456');
+          ctx.fillStyle = '#B9B4A6'; ctx.fillRect(wx - 5, wy - 5, ww + 10, wh + 10);
+          ctx.fillStyle = gg; ctx.fillRect(wx, wy, ww, wh);
+          ctx.fillStyle = 'rgba(255,255,255,0.28)'; ctx.beginPath(); ctx.moveTo(wx + ww * 0.15, wy); ctx.lineTo(wx + ww * 0.55, wy); ctx.lineTo(wx + ww * 0.05, wy + wh); ctx.lineTo(wx, wy + wh); ctx.lineTo(wx, wy + wh * 0.6); ctx.closePath(); ctx.fill();
+        }
+      }
+    }
+    ctx.fillStyle = '#7C7C78'; rrPath(ctx, W / 2 - 70, dy + dh - 150, 140, 22, 11); ctx.fill();
+    ctx.fillStyle = '#C9C9C4'; rrPath(ctx, W / 2 - 66, dy + dh - 148, 132, 8, 4); ctx.fill();
+    ctx.fillStyle = '#2B2B2B'; ctx.fillRect(dx, dy + dh, dw, seal);
+    ctx.fillStyle = '#6F7270'; ctx.fillRect(0, H - 6, W, 6);
+    ctx.fillStyle = '#CFCAC0'; ctx.fillRect(0, 0, m, H); ctx.fillRect(W - m, 0, m, H); ctx.fillRect(0, 0, W, m);
+    ctx.fillStyle = 'rgba(0,0,0,0.18)'; ctx.fillRect(m, m, 4, dh); ctx.fillRect(m, m, dw, 4);
+    mottle(ctx, W, H, [90, 85, 70], [255, 252, 240], 170, 0.14, 41, 3);
+    speckle(ctx, W, H, rnd, Math.round(W * H / 900), 1.2, 2.6, ['#9C9788', '#FFFFFF'], 0.22);
+  };
+  ART.siding = function (ctx, W, H, rnd) {
+    ctx.fillStyle = '#8CA2B3'; ctx.fillRect(0, 0, W, H);
+    var lap = 74, n = 0;
+    for (var y = 0; y < H + lap; y += lap, n++) {
+      var j = (rnd() - 0.5) * 8, g = ctx.createLinearGradient(0, y, 0, y + lap);
+      g.addColorStop(0, rgb([188 + j, 205 + j, 218 + j])); g.addColorStop(0.12, rgb([166 + j, 184 + j, 198 + j])); g.addColorStop(1, rgb([140 + j, 160 + j, 175 + j]));
+      ctx.fillStyle = g; ctx.fillRect(0, y, W, lap);
+      ctx.fillStyle = 'rgba(15,30,45,0.34)'; ctx.fillRect(0, y + lap - 6, W, 6);
+      ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.fillRect(0, y, W, 3);
+    }
+    var cols = Math.max(1, Math.round(W / 560)), rowsN = H > W * 1.2 ? 2 : 1;
+    function windowAt(cx, cy, ww, wh) {
+      var x = cx - ww / 2, y = cy - wh / 2;
+      ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.fillRect(x + 10, y + 12, ww, wh);
+      ctx.fillStyle = '#F4F2EC'; ctx.fillRect(x - 24, y - 24, ww + 48, wh + 48);
+      var gg = ctx.createLinearGradient(x, y, x + ww, y + wh); gg.addColorStop(0, '#6F8EA6'); gg.addColorStop(1, '#2C4357');
+      ctx.fillStyle = gg; ctx.fillRect(x, y, ww, wh);
+      ctx.fillStyle = 'rgba(255,255,255,0.26)'; ctx.beginPath(); ctx.moveTo(x + ww * 0.12, y); ctx.lineTo(x + ww * 0.5, y); ctx.lineTo(x, y + wh * 0.62); ctx.lineTo(x, y + wh * 0.3); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#F4F2EC'; ctx.fillRect(x + ww / 2 - 5, y, 10, wh); ctx.fillRect(x, y + wh / 2 - 5, ww, 10);
+      ctx.fillStyle = 'rgba(0,0,0,0.16)'; ctx.fillRect(x - 24, y + wh + 24, ww + 48, 7);
+      var sw = ww * 0.42;
+      [x - 24 - sw - 12, x + ww + 24 + 12].forEach(function (sx) {
+        ctx.fillStyle = '#27405A'; ctx.fillRect(sx, y - 24, sw, wh + 48);
+        ctx.fillStyle = 'rgba(0,0,0,0.24)'; for (var l = 0; l < 9; l++) ctx.fillRect(sx + 8, y - 12 + l * ((wh + 24) / 9), sw - 16, 7);
+      });
+    }
+    for (var rr2 = 0; rr2 < rowsN; rr2++) for (var c = 0; c < cols; c++) {
+      var cx = W * (c + 0.5) / cols, cy = rowsN === 1 ? H * 0.5 : H * (rr2 === 0 ? 0.24 : 0.66), ww = Math.min(240, W / cols * 0.4);
+      windowAt(cx, cy, ww, ww * 1.35);
+    }
+    ctx.fillStyle = '#E9E7E0'; ctx.fillRect(W * 0.02, 0, 22, H);
+    ctx.fillStyle = 'rgba(0,0,0,0.2)'; ctx.fillRect(W * 0.02 + 22, 0, 6, H);
+    mottle(ctx, W, H, [70, 90, 110], [255, 255, 255], 160, 0.12, 51, 3);
+    speckle(ctx, W, H, rnd, Math.round(W * H / 1200), 1.2, 2.4, ['#7B8FA0', '#FFFFFF'], 0.2);
+  };
+  ART.car = function (ctx, W, H, rnd) {
+    ctx.fillStyle = '#9A9EA0'; ctx.fillRect(0, 0, W, H);
+    mottle(ctx, W, H, [128, 132, 134], [186, 190, 192], 150, 0.9, 61, 3);
+    speckle(ctx, W, H, rnd, Math.round(W * H / 500), 1.2, 3, ['#6F7476', '#D7DBDD'], 0.35);
+    var vertical = H >= W, L = vertical ? Math.min(H * 0.8, W * 1.9) : Math.min(W * 0.8, H * 1.9), Wd = L * 0.44;
+    ctx.save();
+    ctx.translate(W / 2, H / 2);
+    if (vertical) ctx.rotate(Math.PI / 2);
+    ctx.fillStyle = 'rgba(0,0,0,0.28)'; rrPath(ctx, -L / 2 + 14, -Wd / 2 + 24, L, Wd, Wd * 0.4); ctx.fill();
+    ctx.fillStyle = '#16181A';
+    [[-0.3, -0.5], [-0.3, 0.5], [0.3, -0.5], [0.3, 0.5]].forEach(function (p) { rrPath(ctx, p[0] * L - L * 0.08, p[1] * Wd * 0.92 - Wd * 0.06, L * 0.16, Wd * 0.12, 14); ctx.fill(); });
+    var bg = ctx.createLinearGradient(0, -Wd / 2, 0, Wd / 2);
+    bg.addColorStop(0, '#5AA6E6'); bg.addColorStop(0.5, '#2D74BE'); bg.addColorStop(1, '#1D5390');
+    ctx.fillStyle = bg; rrPath(ctx, -L / 2, -Wd / 2, L, Wd, Wd * 0.4); ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.35)'; ctx.lineWidth = 4; rrPath(ctx, -L / 2 + 8, -Wd / 2 + 8, L - 16, Wd - 16, Wd * 0.36); ctx.stroke();
+    var wg = ctx.createLinearGradient(0, -Wd / 2, 0, Wd / 2); wg.addColorStop(0, '#6F8CA2'); wg.addColorStop(1, '#23323E');
+    ctx.fillStyle = wg;
+    ctx.beginPath(); ctx.moveTo(L * 0.1, -Wd * 0.4); ctx.lineTo(L * 0.2, -Wd * 0.3); ctx.lineTo(L * 0.2, Wd * 0.3); ctx.lineTo(L * 0.1, Wd * 0.4); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(-L * 0.24, -Wd * 0.36); ctx.lineTo(-L * 0.3, -Wd * 0.28); ctx.lineTo(-L * 0.3, Wd * 0.28); ctx.lineTo(-L * 0.24, Wd * 0.36); ctx.closePath(); ctx.fill();
+    var rg = ctx.createLinearGradient(0, -Wd / 2, 0, Wd / 2); rg.addColorStop(0, '#4E95D6'); rg.addColorStop(1, '#2468AB');
+    ctx.fillStyle = rg; rrPath(ctx, -L * 0.22, -Wd * 0.34, L * 0.32, Wd * 0.68, 24); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.2)'; rrPath(ctx, -L * 0.2, -Wd * 0.3, L * 0.28, Wd * 0.2, 16); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.18)'; rrPath(ctx, L * 0.22, -Wd * 0.34, L * 0.22, Wd * 0.2, 14); ctx.fill();
+    ctx.fillStyle = '#1B5C9E'; rrPath(ctx, L * 0.1, -Wd * 0.58, L * 0.07, Wd * 0.14, 8); ctx.fill(); rrPath(ctx, L * 0.1, Wd * 0.44, L * 0.07, Wd * 0.14, 8); ctx.fill();
+    ctx.fillStyle = '#FFF6D0'; rrPath(ctx, L * 0.46, -Wd * 0.38, L * 0.04, Wd * 0.2, 6); ctx.fill(); rrPath(ctx, L * 0.46, Wd * 0.18, L * 0.04, Wd * 0.2, 6); ctx.fill();
+    ctx.fillStyle = '#B4262B'; rrPath(ctx, -L * 0.5 + 2, -Wd * 0.38, L * 0.03, Wd * 0.22, 6); ctx.fill(); rrPath(ctx, -L * 0.5 + 2, Wd * 0.16, L * 0.03, Wd * 0.22, 6); ctx.fill();
+    ctx.restore();
+  };
+  var ART_LIST = ['driveway', 'patio', 'fence', 'wall', 'deck', 'garage', 'siding', 'car'];
+
+  /* ---------- dirt renderer: shades the thickness grid on the CPU, one small block at a time ---------- */
+  var GRAIN = (function () { var g = new Uint8Array(4096), r = mulberry32(99); for (var i = 0; i < 4096; i++) g[i] = (r() * 255) | 0; return g; })();
+  var PAL0 = { film: [152, 142, 110], grime: [100, 92, 58], caked: [56, 47, 37] };
+  var KIND_COL = [null, [22, 26, 38], [80, 124, 48], [222, 44, 150], [228, 226, 214], [60, 80, 66]];
+  var NEON = [[222, 44, 150], [40, 190, 232], [250, 190, 30]];
+  function newDirt(canvas, w, pw, ph) {
+    var n = w.gw * w.gh;
+    canvas.width = pw; canvas.height = ph;
+    var ctx = canvas.getContext('2d');
+    var D = { cv: canvas, ctx: ctx, w: w, pal: w.job.pal || PAL0, gw: w.gw, gh: w.gh, pw: pw, ph: ph, cpx: pw / w.gw, cpy: ph / w.gh,
+              img: ctx.createImageData(pw, ph), cov: new Float32Array(n), col: new Uint8Array(n * 4), sh: new Int8Array(n),
+              bmark: new Uint8Array(n), blist: new Int32Array(n), nb: 0, pmark: new Uint8Array(n), plist: new Int32Array(n), np: 0, rowMin: new Int16Array(w.gh), rowMax: new Int16Array(w.gh), initRow: 0 };
+    D.data = D.img.data;
+    for (var i = 0; i < D.gh; i++) { D.rowMin[i] = 32767; D.rowMax[i] = -1; }
+    for (var j = 0; j < n; j++) cellPaint(D, j);
+    for (var q = 0; q < n; q++) cellShade(D, q);
+    return D;
+  }
+  /* Palette of one cell into PAL: colour and opacity from its thickness, kind and scuff state. */
+  var PAL = [0, 0, 0, 0];
+  function palette(D, i) {
+    var w = D.w, t = w.thick[i], k = w.kind[i], x = i % D.gw, y = (i / D.gw) | 0;
+    var n = hash2(x, y, 3), r, g, b, o;
+    if (t > 0) {
+      if (k) {
+        var kc = KIND_COL[k];
+        if (k === 3) kc = NEON[Math.floor(vnoise(x * 0.09, y * 0.09, 17) * 2.999)];
+        else if (k === 2) kc = mix(kc, [112, 160, 64], n * 0.7);
+        var fk = k === 4 ? 0.12 : 0.05;
+        r = kc[0] * (1 - fk + fk * 2 * n); g = kc[1] * (1 - fk + fk * 2 * n); b = kc[2] * (1 - fk + fk * 2 * n);
+        o = 0.86 + 0.1 * Math.min(1, t / 120);
+      } else {
+        var f = t < 70 ? t / 70 : (t < 160 ? 1 + (t - 70) / 90 : 2 + (t - 160) / 95), c;
+        var pl = D.pal;
+        if (f < 1) { c = mix([196, 188, 160], pl.film, 0.35 + 0.65 * f); o = 0.42 + 0.26 * f; }
+        else if (f < 2) { c = mix(pl.film, pl.grime, f - 1); o = 0.68 + 0.22 * (f - 1); }
+        else { c = mix(pl.grime, pl.caked, f - 2); o = 0.9 + 0.08 * (f - 2); }
+        var v = 0.88 + 0.24 * n;
+        r = c[0] * v; g = c[1] * v; b = c[2] * v;
+      }
+    } else if (w.scuff[i]) { r = 238; g = 220; b = 184; o = 0.66; }
+    else { r = g = b = 0; o = 0; }
+    PAL[0] = r; PAL[1] = g; PAL[2] = b; PAL[3] = o;
+  }
+  function rawCov(w, i) { var t = w.thick[i]; return t > 0 ? (t >= 2 ? 1 : t * 0.5) : (w.scuff[i] ? 0.85 : 0); }
+  /* Coverage is smoothed over the 3 by 3 neighbourhood so the edge of a stain is round, not stepped.
+     A clean cell next to dirt borrows the colour of its dirtiest neighbour so the edge does not darken. */
+  function cellPaint(D, i) {
+    var w = D.w, gw = D.gw, gh = D.gh, x = i % gw, y = (i / gw) | 0, j = i * 4, col = D.col;
+    var xm = x > 0 ? x - 1 : x, xp = x < gw - 1 ? x + 1 : x, ym = y > 0 ? y - 1 : y, yp = y < gh - 1 ? y + 1 : y;
+    var rm = ym * gw, r0 = y * gw, rp = yp * gw;
+    var c0 = rawCov(w, r0 + x), cv = 4 * c0;
+    var e1 = rawCov(w, r0 + xm), e2 = rawCov(w, r0 + xp), e3 = rawCov(w, rm + x), e4 = rawCov(w, rp + x);
+    var d1 = rawCov(w, rm + xm), d2 = rawCov(w, rm + xp), d3 = rawCov(w, rp + xm), d4 = rawCov(w, rp + xp);
+    cv = (cv + 2 * (e1 + e2 + e3 + e4) + d1 + d2 + d3 + d4) / 16;
+    var src = -1;
+    if (c0 > 0) src = i;
+    else if (cv > 0) {
+      var best = 0;
+      if (e1 > best) { best = e1; src = r0 + xm; } if (e2 > best) { best = e2; src = r0 + xp; } if (e3 > best) { best = e3; src = rm + x; } if (e4 > best) { best = e4; src = rp + x; }
+      if (d1 > best) { best = d1; src = rm + xm; } if (d2 > best) { best = d2; src = rm + xp; } if (d3 > best) { best = d3; src = rp + xm; } if (d4 > best) { best = d4; src = rp + xp; }
+    }
+    if (src >= 0) { palette(D, src); col[j] = PAL[0]; col[j + 1] = PAL[1]; col[j + 2] = PAL[2]; col[j + 3] = PAL[3] * 255; }
+    else { col[j] = 0; col[j + 1] = 0; col[j + 2] = 0; col[j + 3] = 0; }
+    D.cov[i] = cv;
+  }
+  function cellShade(D, i) {
+    var gw = D.gw, gh = D.gh, th = D.w.thick, x = i % gw, y = (i / gw) | 0;
+    var l = x > 0 ? th[i - 1] : th[i], rr = x < gw - 1 ? th[i + 1] : th[i], u = y > 0 ? th[i - gw] : th[i], d = y < gh - 1 ? th[i + gw] : th[i];
+    var s = ((rr - l) + (d - u)) * 0.3;
+    D.sh[i] = s > 60 ? 60 : (s < -60 ? -60 : s);
+  }
+  function shadeRect(D, px0, py0, px1, py1) {
+    var gw = D.gw, gh = D.gh, cov = D.cov, col = D.col, sh = D.sh, data = D.data, pw = D.pw, ix = 1 / D.cpx, iy = 1 / D.cpy;
+    for (var py = py0; py < py1; py++) {
+      var fy = (py + 0.5) * iy - 0.5, y0 = Math.floor(fy), ay = fy - y0, y1 = y0 + 1;
+      if (y0 < 0) y0 = 0; if (y0 > gh - 1) y0 = gh - 1; if (y1 > gh - 1) y1 = gh - 1;
+      var r0 = y0 * gw, r1 = y1 * gw, gy = (py & 63) << 6, bay = 1 - ay;
+      for (var px = px0; px < px1; px++) {
+        var fx = (px + 0.5) * ix - 0.5, x0 = Math.floor(fx), ax = fx - x0, x1 = x0 + 1;
+        if (x0 < 0) x0 = 0; if (x0 > gw - 1) x0 = gw - 1; if (x1 > gw - 1) x1 = gw - 1;
+        var i00 = r0 + x0, i10 = r0 + x1, i01 = r1 + x0, i11 = r1 + x1;
+        var bax = 1 - ax;
+        var c00 = cov[i00] * bax * bay, c10 = cov[i10] * ax * bay, c01 = cov[i01] * bax * ay, c11 = cov[i11] * ax * ay;
+        var c = c00 + c10 + c01 + c11, o = (py * pw + px) * 4;
+        if (c < 0.04) { data[o + 3] = 0; continue; }
+        var ic = 1 / c, a00 = i00 * 4, a10 = i10 * 4, a01 = i01 * 4, a11 = i11 * 4;
+        var r = (col[a00] * c00 + col[a10] * c10 + col[a01] * c01 + col[a11] * c11) * ic;
+        var g = (col[a00 + 1] * c00 + col[a10 + 1] * c10 + col[a01 + 1] * c01 + col[a11 + 1] * c11) * ic;
+        var b = (col[a00 + 2] * c00 + col[a10 + 2] * c10 + col[a01 + 2] * c01 + col[a11 + 2] * c11) * ic;
+        var op = (col[a00 + 3] * c00 + col[a10 + 3] * c10 + col[a01 + 3] * c01 + col[a11 + 3] * c11) * ic;
+        var s = (sh[i00] * c00 + sh[i10] * c10 + sh[i01] * c01 + sh[i11] * c11) * ic;
+        var edge = c <= 0.3 ? 0 : (c >= 0.6 ? 1 : (c - 0.3) / 0.3);
+        edge = edge * edge * (3 - 2 * edge);
+        var shadow = c < 0.3 ? 46 * (c - 0.04) / 0.26 : 46;
+        var bright = s + (GRAIN[gy + (px & 63)] - 128) * 0.2;
+        var rim = edge * (c >= 0.92 ? 0 : (0.92 - c) / 0.32);
+        if (rim > 1) rim = 1;
+        bright += rim * 34;
+        var a = edge * op + (1 - edge) * shadow * (1 - 0.0);
+        data[o] = (r + bright) * edge + 8 * (1 - edge);
+        data[o + 1] = (g + bright) * edge + 14 * (1 - edge);
+        data[o + 2] = (b + bright) * edge + 18 * (1 - edge);
+        data[o + 3] = a;
+      }
+    }
+  }
+  function blockRect(D, bx, by) {
+    return [Math.round(bx * D.cpx), Math.round(by * D.cpy), Math.min(D.pw, Math.round((bx + 1) * D.cpx)), Math.min(D.ph, Math.round((by + 1) * D.cpy))];
+  }
+  /* Whole canvas, a few block rows at a time so a phone never freezes. Returns true when finished. */
+  function dirtChunk(D, budgetPx) {
+    var done = 0;
+    while (D.initRow < D.gh && done < budgetPx) {
+      var y0 = Math.round(D.initRow * D.cpy), y1 = Math.min(D.ph, Math.round((D.initRow + 1) * D.cpy));
+      shadeRect(D, 0, y0, D.pw, y1);
+      D.ctx.putImageData(D.img, 0, 0, 0, y0, D.pw, y1 - y0);
+      done += (y1 - y0) * D.pw;
+      D.initRow++;
+    }
+    return D.initRow >= D.gh;
+  }
+  function dirtAll(D) { while (!dirtChunk(D, 1e9)) { /* loop until done */ } }
+  /* Repaint what the spray changed this frame. A changed cell alters the smoothed colour of the cells around it
+     (paint list, one ring) and the pixels around those (shade list, two rings). */
+  function dirtUpdate(D) {
+    var w = D.w, gw = D.gw, gh = D.gh, n = w.nChanged, i, k, x, y, dx, dy, xx, yy, b;
+    if (!n) return;
+    for (k = 0; k < n; k++) {
+      i = w.changed[k]; x = i % gw; y = (i / gw) | 0;
+      for (dy = -2; dy <= 2; dy++) {
+        yy = y + dy;
+        if (yy < 0 || yy >= gh) continue;
+        for (dx = -2; dx <= 2; dx++) {
+          xx = x + dx;
+          if (xx < 0 || xx >= gw) continue;
+          b = yy * gw + xx;
+          if (!D.bmark[b]) {
+            D.bmark[b] = 1; D.blist[D.nb++] = b;
+            if (xx < D.rowMin[yy]) D.rowMin[yy] = xx;
+            if (xx > D.rowMax[yy]) D.rowMax[yy] = xx;
+          }
+          if (dx >= -1 && dx <= 1 && dy >= -1 && dy <= 1 && !D.pmark[b]) { D.pmark[b] = 1; D.plist[D.np++] = b; }
+        }
+      }
+      w.mark[i] = 0;
+    }
+    w.nChanged = 0;
+    for (k = 0; k < D.np; k++) { b = D.plist[k]; cellPaint(D, b); cellShade(D, b); D.pmark[b] = 0; }
+    D.np = 0;
+    for (k = 0; k < D.nb; k++) {
+      var bi = D.blist[k], bx = bi % gw, by = (bi / gw) | 0, r = blockRect(D, bx, by);
+      shadeRect(D, r[0], r[1], r[2], r[3]);
+      D.bmark[bi] = 0;
+    }
+    D.nb = 0;
+    for (var row = 0; row < gh; row++) {
+      if (D.rowMax[row] < 0) continue;
+      var ra = blockRect(D, D.rowMin[row], row), rb = blockRect(D, D.rowMax[row], row);
+      D.ctx.putImageData(D.img, 0, 0, ra[0], ra[1], rb[2] - ra[0], rb[3] - ra[1]);
+      D.rowMin[row] = 32767; D.rowMax[row] = -1;
+    }
+  }
+
+  /* ---------- sprites and particles (fixed pools, nothing is allocated while spraying) ---------- */
+  var SPR = null;
+  function makeSprites() {
+    function sprite(sz, draw) { var c = mkCanvas(sz, sz), x = c.getContext('2d'); draw(x, sz); return c; }
+    SPR = {
+      mist: sprite(64, function (x, s) {
+        var g = x.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2);
+        g.addColorStop(0, 'rgba(255,255,255,0.6)'); g.addColorStop(0.45, 'rgba(232,247,255,0.24)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+        x.fillStyle = g; x.fillRect(0, 0, s, s);
+      }),
+      drop: sprite(16, function (x, s) {
+        var g = x.createRadialGradient(s * 0.4, s * 0.38, 0, s / 2, s / 2, s / 2);
+        g.addColorStop(0, '#FFFFFF'); g.addColorStop(0.55, 'rgba(206,240,255,0.95)'); g.addColorStop(1, 'rgba(130,205,245,0.0)');
+        x.fillStyle = g; x.beginPath(); x.arc(s / 2, s / 2, s / 2, 0, 6.3); x.fill();
+      }),
+      bubble: sprite(32, function (x, s) {
+        x.fillStyle = 'rgba(255,255,255,0.28)'; x.beginPath(); x.arc(s / 2, s / 2, s * 0.42, 0, 6.3); x.fill();
+        x.strokeStyle = 'rgba(255,255,255,0.95)'; x.lineWidth = s * 0.07; x.beginPath(); x.arc(s / 2, s / 2, s * 0.42, 0, 6.3); x.stroke();
+        x.fillStyle = 'rgba(255,255,255,0.95)'; x.beginPath(); x.ellipse(s * 0.36, s * 0.34, s * 0.1, s * 0.06, -0.7, 0, 6.3); x.fill();
+      }),
+      sparkle: sprite(48, function (x, s) {
+        var c = s / 2, g = x.createRadialGradient(c, c, 0, c, c, c);
+        g.addColorStop(0, 'rgba(255,255,255,0.95)'); g.addColorStop(0.3, 'rgba(255,244,190,0.45)'); g.addColorStop(1, 'rgba(255,230,140,0)');
+        x.fillStyle = g; x.fillRect(0, 0, s, s);
+        x.fillStyle = '#FFFFFF'; x.beginPath();
+        x.moveTo(c, 1); x.quadraticCurveTo(c + 3, c - 3, s - 1, c); x.quadraticCurveTo(c + 3, c + 3, c, s - 1);
+        x.quadraticCurveTo(c - 3, c + 3, 1, c); x.quadraticCurveTo(c - 3, c - 3, c, 1); x.fill();
+      }),
+      grit: sprite(16, function (x, s) {
+        var g = x.createRadialGradient(s * 0.42, s * 0.4, 0, s / 2, s / 2, s / 2);
+        g.addColorStop(0, 'rgba(176,160,118,1)'); g.addColorStop(0.7, 'rgba(120,106,72,0.95)'); g.addColorStop(1, 'rgba(90,78,52,0)');
+        x.fillStyle = g; x.beginPath(); x.arc(s / 2, s / 2, s / 2, 0, 6.3); x.fill();
+      }),
+      coin: sprite(40, function (x, s) {
+        var c = s / 2, g = x.createRadialGradient(c * 0.8, c * 0.75, 1, c, c, c);
+        g.addColorStop(0, '#FFF3B0'); g.addColorStop(0.6, '#FFC83D'); g.addColorStop(1, '#C98A00');
+        x.fillStyle = g; x.beginPath(); x.arc(c, c, c - 1.5, 0, 6.3); x.fill();
+        x.strokeStyle = '#8A5A00'; x.lineWidth = 2; x.beginPath(); x.arc(c, c, c - 3.5, 0, 6.3); x.stroke();
+        x.fillStyle = '#8A5A00'; x.font = '800 ' + Math.round(s * 0.52) + 'px Arial, sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('$', c, c + 1);
+      })
+    };
+  }
+  var PN = 760, T_MIST = 1, T_DROP = 2, T_BUB = 3, T_SPARK = 4, T_SPARKLE = 5, T_RING = 6, T_COIN = 7, T_TEXT = 8, T_GRIT = 9;
+  var PT = { x: new Float32Array(PN), y: new Float32Array(PN), vx: new Float32Array(PN), vy: new Float32Array(PN), life: new Float32Array(PN), max: new Float32Array(PN),
+             size: new Float32Array(PN), rot: new Float32Array(PN), vr: new Float32Array(PN), a: new Float32Array(PN), tx: new Float32Array(PN), ty: new Float32Array(PN),
+             amt: new Float32Array(PN), type: new Uint8Array(PN), next: 0, live: 0 };
+  var popText = [];
+  function spawn(type, x, y, vx, vy, life, size, a) {
+    var i = PT.next; PT.next = (PT.next + 1) % PN;
+    PT.type[i] = type; PT.x[i] = x; PT.y[i] = y; PT.vx[i] = vx; PT.vy[i] = vy; PT.life[i] = life; PT.max[i] = life; PT.size[i] = size;
+    PT.rot[i] = Math.random() * 6.28; PT.vr[i] = (Math.random() - 0.5) * 6; PT.a[i] = a == null ? 1 : a; PT.amt[i] = 0;
+    return i;
+  }
+  function clearParticles() { for (var i = 0; i < PN; i++) PT.life[i] = 0; }
+  var coinArrive = null;
+  function stepParticles(dt, g) {
+    for (var i = 0; i < PN; i++) {
+      var L = PT.life[i];
+      if (L <= 0) continue;
+      L -= dt; PT.life[i] = L;
+      var ty = PT.type[i];
+      if (ty === T_DROP || ty === T_GRIT) { PT.vy[i] += g * dt; PT.x[i] += PT.vx[i] * dt; PT.y[i] += PT.vy[i] * dt; }
+      else if (ty === T_SPARK) { PT.vy[i] += g * 0.6 * dt; PT.x[i] += PT.vx[i] * dt; PT.y[i] += PT.vy[i] * dt; }
+      else if (ty === T_COIN) {
+        var age = PT.max[i] - L;
+        if (age < 0.28) {
+          PT.y[i] -= 60 * dt * (1 - age / 0.28);
+          PT.vx[i] = PT.x[i]; PT.vy[i] = PT.y[i];   /* flight origin = last rising spot */
+        } else {
+          var f = Math.min(1, (age - 0.28) / (PT.max[i] - 0.28)), e = f * f * (3 - 2 * f);
+          PT.x[i] = PT.vx[i] + (PT.tx[i] - PT.vx[i]) * e; PT.y[i] = PT.vy[i] + (PT.ty[i] - PT.vy[i]) * e;
+        }
+        if (L <= 0 && coinArrive) coinArrive(PT.amt[i]);
+      } else { PT.x[i] += PT.vx[i] * dt; PT.y[i] += PT.vy[i] * dt; PT.vx[i] *= (1 - 1.2 * dt); PT.vy[i] *= (1 - 1.2 * dt); }
+      PT.rot[i] += PT.vr[i] * dt;
+    }
+  }
+  function drawParticles(ctx, dpr) {
+    var i, L, m, f, ty, sz;
+    ctx.save();
+    for (i = 0; i < PN; i++) {
+      L = PT.life[i];
+      if (L <= 0) continue;
+      m = PT.max[i]; f = L / m; ty = PT.type[i]; sz = PT.size[i];
+      if (ty === T_MIST) {
+        var s = sz * (1.4 - 0.7 * f);
+        ctx.globalAlpha = PT.a[i] * f * f;
+        ctx.drawImage(SPR.mist, PT.x[i] - s, PT.y[i] - s, s * 2, s * 2);
+      } else if (ty === T_DROP || ty === T_GRIT) {
+        ctx.globalAlpha = Math.min(1, f * 2.2) * PT.a[i];
+        var vx = PT.vx[i], vy = PT.vy[i];
+        if (ty === T_DROP && (vx * vx + vy * vy) > 90000) {
+          ctx.strokeStyle = 'rgba(235,248,255,0.7)'; ctx.lineWidth = sz * 1.1; ctx.lineCap = 'round';
+          ctx.beginPath(); ctx.moveTo(PT.x[i], PT.y[i]); ctx.lineTo(PT.x[i] - vx * 0.035, PT.y[i] - vy * 0.035); ctx.stroke();
+        }
+        ctx.drawImage(ty === T_GRIT ? SPR.grit : SPR.drop, PT.x[i] - sz, PT.y[i] - sz, sz * 2, sz * 2);
+      } else if (ty === T_BUB) {
+        ctx.globalAlpha = Math.min(1, f * 3) * PT.a[i];
+        var bs = sz * (f < 0.15 ? 1 + (0.15 - f) * 3 : 1);
+        ctx.drawImage(SPR.bubble, PT.x[i] - bs, PT.y[i] - bs, bs * 2, bs * 2);
+      } else if (ty === T_SPARK) {
+        ctx.globalAlpha = Math.min(1, f * 2.5);
+        ctx.strokeStyle = f > 0.5 ? '#FFFFFF' : '#FFC83D'; ctx.lineWidth = 2.2 * dpr; ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.moveTo(PT.x[i], PT.y[i]); ctx.lineTo(PT.x[i] - PT.vx[i] * 0.04, PT.y[i] - PT.vy[i] * 0.04); ctx.stroke();
+      } else if (ty === T_SPARKLE) {
+        var k = Math.sin(3.14159 * (1 - f)), ss = sz * (0.25 + 0.75 * k);
+        ctx.globalAlpha = PT.a[i] * Math.min(1, k * 1.6);
+        ctx.save(); ctx.translate(PT.x[i], PT.y[i]); ctx.rotate(PT.rot[i] * 0.3);
+        ctx.drawImage(SPR.sparkle, -ss, -ss, ss * 2, ss * 2); ctx.restore();
+      } else if (ty === T_RING) {
+        var rr = sz * (0.35 + 0.65 * (1 - f));
+        ctx.globalAlpha = 0.55 * f * PT.a[i];
+        ctx.strokeStyle = '#FFFFFF'; ctx.lineWidth = 2 * dpr;
+        ctx.beginPath(); ctx.ellipse(PT.x[i], PT.y[i], rr, rr * 0.62, 0, 0, 6.3); ctx.stroke();
+      } else if (ty === T_COIN) {
+        ctx.globalAlpha = 1;
+        var cs = sz * (L < 0.12 ? 0.6 + L * 3.3 : 1);
+        ctx.drawImage(SPR.coin, PT.x[i] - cs, PT.y[i] - cs, cs * 2, cs * 2);
+      } else if (ty === T_TEXT) {
+        ctx.globalAlpha = Math.min(1, f * 2.5);
+        ctx.font = '800 ' + Math.round(sz) + 'px "Big Shoulders Display", "Arial Narrow", Arial, sans-serif';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        var tx = popText[PT.amt[i] | 0] || '';
+        ctx.lineWidth = 4 * dpr; ctx.strokeStyle = 'rgba(8,24,30,0.85)'; ctx.strokeText(tx, PT.x[i], PT.y[i]);
+        ctx.fillStyle = '#FFD23F'; ctx.fillText(tx, PT.x[i], PT.y[i]);
+      }
+    }
+    ctx.restore();
+  }
+
+  /* ================= the wash view ================= */
+  var G = null;                      /* the wash in progress, or null */
+  var raf = 0, lastT = 0;
+  var inp = { down: false, space: false, aim: false, id: -1, x: 500, y: 500, fx: 0, fy: 0, touch: false, kl: 0, kr: 0, ku: 0, kd: 0, typ: 'mouse' };
+  var el = {};                       /* cached elements, filled by initWash */
+  var TOUCH_LIFT = 56;               /* css px the spray lands above a finger */
+
+  function rigColor() {
+    var c = byId(DATA.franchise.colors, state.color);
+    return c ? c.hex : '#F5B800';
+  }
+  function stageBox() {
+    var r = el.stage.getBoundingClientRect();
+    return { left: r.left, top: r.top, w: r.width, h: r.height };
+  }
+  /* Fit the scene inside the stage and set canvas sizes. Called at job start and on every resize. */
+  function layoutWash(first) {
+    if (!G) return;
+    var b = stageBox(), w = G.w;
+    if (b.w < 10 || b.h < 10) return;
+    var sc = Math.min(b.w / w.W, b.h / w.H), cw = w.W * sc, ch = w.H * sc;
+    G.sc = sc; G.cssW = cw; G.cssH = ch; G.ox = (b.w - cw) / 2; G.oy = (b.h - ch) / 2; G.sw = b.w; G.sh = b.h; G.left = b.left; G.top = b.top;
+    var dpr = window.devicePixelRatio || 1;
+    if (first) {
+      var d1 = Math.min(2, dpr), q = Math.sqrt(1.5e6 / (cw * ch));
+      if (q < d1) d1 = Math.max(0.75, q);
+      G.dpr = d1; G.pw = Math.max(64, Math.round(cw * d1)); G.ph = Math.max(64, Math.round(ch * d1));
+    }
+    [el.scene, el.dirt, el.wetC, el.foamC].forEach(function (c) {
+      c.style.left = G.ox + 'px'; c.style.top = G.oy + 'px'; c.style.width = cw + 'px'; c.style.height = ch + 'px';
+    });
+    var fd = Math.min(dpr, 1.6), fq = Math.sqrt(1.6e6 / (b.w * b.h));
+    if (fq < fd) fd = Math.max(0.75, fq);
+    G.fdpr = fd;
+    var fw = Math.round(b.w * fd), fh = Math.round(b.h * fd);
+    if (el.fx.width !== fw || el.fx.height !== fh) { el.fx.width = fw; el.fx.height = fh; }
+    el.fx.style.left = '0px'; el.fx.style.top = '0px'; el.fx.style.width = b.w + 'px'; el.fx.style.height = b.h + 'px';
+    G.K = sc * fd;                    /* device px per scene unit on the fx canvas */
+    G.fxo = [G.ox * fd, G.oy * fd];
+  }
+  function toDev(x, y) { return [G.fxo[0] + x * G.K, G.fxo[1] + y * G.K]; }
+
+  function pickSeed(job) {
+    var idx = 0;
+    for (var i = 0; i < DATA.jobs.length; i++) if (DATA.jobs[i].id === job.id) idx = i;
+    if (TEST && window.__grime && window.__grime.seed != null) return window.__grime.seed >>> 0;
+    return ((state.jobs + 1) * 7919 + idx * 104729 + 17) >>> 0;
+  }
+
+  function setTip(id, silent) {
+    if (!G) return;
+    var tp = byId(DATA.tips, id);
+    if (!tp) return;
+    if (tp.soap && !state.gear.soap) { toast('Buy the Soap tip in the Rig tab first.'); return; }
+    G.s.tip = tp; G.tipId = id; G.surfMode = false;
+    syncTips();
+    if (!silent) { SND.click(); say(tp.name + ' tip selected', true); }
+    if (G.s.on) { var hs = HISS[tp.id]; hissSet(hs[2], hs[0], hs[1]); }
+  }
+  function setSurface(silent) {
+    if (!G || !state.gear.surface) return;
+    G.surfMode = true;
+    syncTips();
+    if (!silent) { SND.click(); say('Surface cleaner selected. Tap to clean a big disc.', true); }
+    hissSet(0);
+  }
+  function syncTips() {
+    var bs = el.tipRow.querySelectorAll('.tipbtn');
+    for (var i = 0; i < bs.length; i++) {
+      var id = bs[i].getAttribute('data-tip'), on = id === 'surface' ? !!G.surfMode : (!G.surfMode && id === G.tipId);
+      bs[i].setAttribute('aria-pressed', on ? 'true' : 'false');
+    }
+  }
+  function buildTips() {
+    clear(el.tipRow);
+    var sizes = { red: 13, yellow: 17, green: 21, white: 26, soap: 24 };
+    DATA.tips.forEach(function (tp) {
+      var locked = tp.soap && !state.gear.soap;
+      var b = h('button', { type: 'button', 'class': 'tipbtn' + (tp.soap ? ' soapdot' : '') + (locked ? ' locked' : ''), 'data-tip': tp.id, 'aria-pressed': 'false',
+        'aria-label': tp.name + ' tip' + (tp.deg ? ', ' + tp.deg + ' degrees, ' + (tp.id === 'red' ? 'narrow and strong' : tp.id === 'white' ? 'wide and gentle' : 'medium') : ', lays foam') + (locked ? ', locked, buy it in the Rig tab' : '') }, [
+        h('span', { 'class': 'dot', style: '--c:' + tp.color + ';--d:' + sizes[tp.id] + 'px' }), h('span', { 'class': 'lab', text: tp.name }), h('span', { 'class': 'key', 'aria-hidden': 'true', text: tp.key })]);
+      if (locked) { b.setAttribute('aria-disabled', 'true'); b.appendChild(h('span', { 'class': 'lk', 'aria-hidden': 'true' }, [lockIcon()])); }
+      b.addEventListener('click', function () { setTip(tp.id); });
+      el.tipRow.appendChild(b);
+    });
+    if (state.gear.surface) {
+      var sb = h('button', { type: 'button', 'class': 'tipbtn surf', 'data-tip': 'surface', 'aria-pressed': 'false', 'aria-label': 'Surface cleaner. Tap to clean a big disc' }, [
+        h('span', { 'class': 'dot' }), h('span', { 'class': 'lab', text: 'Disc' }), h('span', { 'class': 'key', 'aria-hidden': 'true', text: '6' })]);
+      sb.addEventListener('click', function () { setSurface(); });
+      el.tipRow.appendChild(sb);
+    }
+  }
+
+  /* Start a job. The stage must be visible so its size is known. */
+  function startJob(id, noAudio) {
+    var job = byId(DATA.jobs, id);
+    if (!job || G) return;
+    if (!jobStatus(job, state).ok) return;
+    if (!noAudio) audioStart();
+    closeOverlays();
+    $('wash').hidden = false;
+    $('app').inert = true;
+    document.documentElement.classList.add('locked');
+    /* Name and tip buttons go in first: they decide how tall the stage is, and the scene is fitted to the stage. */
+    el.wName.textContent = job.name;
+    buildTips();
+    var b = stageBox();
+    var sz = sceneSize(b.w / Math.max(1, b.h)), gw = sz.W / DATA.cell, gh = sz.H / DATA.cell;
+    var w = makeWash(job, gw, gh, pickSeed(job)), rig = rigOf(state);
+    G = { job: job, w: w, rig: rig, s: newSprayer(rig, 'white'), tipId: 'white', surfMode: false, D: null, phase: 'load', paused: false, acc: 0,
+          sc: 1, ox: 0, oy: 0, dpr: 1, fdpr: 1, K: 1, fxo: [0, 0], pw: 0, ph: 0, t: 0, hudT: 0, shown: -1, pay: 0, payShown: 0, coinAt: 0.04,
+          base: payout(job, { tough: 0, flow: 1, penalty: 0, secs: 0 }, state).base, said: 0, hintT: 0, hintKey: '', blockedT: 0, warnT: 0, tidyT: 0,
+          foamOn: false, flowSaid: 1, toughSaid: 0, shake: 0, flashA: 0, tutStep: -1, tutT: 0, idleT: 0, moved: 0, nextRing: 0, nextSq: 0, sparkleN: 0, tipLog: {}, wasRemoving: false,
+          wandX: 0, wandSwing: 0, lastX: 0, lastY: 0 };
+    layoutWash(true);
+    inp.down = false; inp.space = false; inp.aim = false; inp.id = -1;
+    inp.x = w.W * 0.5; inp.y = w.H * 0.5;
+    syncTips();
+    el.wPause.hidden = true; el.wHint.hidden = true; el.tut.hidden = true; el.wFlash.style.opacity = '0';
+    el.tank.classList.remove('dry');
+    el.stage.style.visibility = 'hidden';
+    /* Scene art, then the dirt a few rows per frame so the phone never freezes. */
+    el.scene.width = G.pw; el.scene.height = G.ph;
+    var sx = el.scene.getContext('2d');
+    sx.setTransform(G.pw / w.W, 0, 0, G.ph / w.H, 0, 0);
+    (ART[job.art] || ART.driveway)(sx, w.W, w.H, mulberry32((w.seed ^ 0x51ED) >>> 0));
+    sx.setTransform(1, 0, 0, 1, 0, 0);
+    G.D = newDirt(el.dirt, w, G.pw, G.ph);
+    w.nChanged = 0; w.nCleaned = 0; w.mark.fill(0);
+    G.foamCv = el.foamC; G.foamCv.width = gw; G.foamCv.height = gh; G.foamCx = G.foamCv.getContext('2d'); G.foamImg = G.foamCx.createImageData(gw, gh); layerShow(el.foamC, false);
+    G.wet = new Float32Array(gw * gh); G.wetN = 0; G.wetCv = el.wetC; G.wetCv.width = gw; G.wetCv.height = gh; G.wetCx = G.wetCv.getContext('2d'); G.wetImg = G.wetCx.createImageData(gw, gh); layerShow(el.wetC, false);
+    clearParticles();
+    coinArrive = function (amt) { G.payShown += amt; bumpPay(); };
+    lastT = performance.now();
+    if (!raf) raf = requestAnimationFrame(frame);
+    say('Job started: ' + job.name + '. Drag to spray.', true);
+    if (TEST) { while (!dirtChunk(G.D, 1e9)) { /* the test hook renders the whole scene at once */ } finishLoad(); }
+  }
+  function finishLoad() {
+    if (!G || G.phase !== 'load') return;
+    G.phase = 'play';
+    snapshotBefore();
+    el.stage.style.visibility = '';
+    setTip(state.tut ? 'white' : 'white', true);
+    if (!state.tut) tutorial(0);
+  }
+  function snapshotBefore() {
+    var mw = Math.min(G.pw, 560), mh = Math.round(mw * G.ph / G.pw), c = mkCanvas(mw, mh), x = c.getContext('2d');
+    x.imageSmoothingQuality = 'high';
+    x.drawImage(el.scene, 0, 0, mw, mh);
+    x.drawImage(el.dirt, 0, 0, mw, mh);
+    G.before = c;
+  }
+
+  /* ---------- the frame loop: fixed 1/60 simulation steps, drawing once per frame ---------- */
+  function frame(t) {
+    raf = requestAnimationFrame(frame);
+    var dt = Math.min(0.1, Math.max(0, (t - lastT) / 1000));
+    lastT = t;
+    if (!G) return;
+    advance(dt);
+  }
+  function advance(dt) {
+    if (!G) return;
+    if (G.phase === 'load') {
+      var t0 = performance.now();
+      while (performance.now() - t0 < 12) { if (dirtChunk(G.D, 120000)) { finishLoad(); break; } }
+      return;
+    }
+    if (G.paused) return;
+    G.acc += dt;
+    var n = 0;
+    while (G.acc >= STEP && n < 3) { stepOnce(); G.acc -= STEP; n++; }
+    if (G.acc > STEP) G.acc = 0;
+    G.t += dt;
+    if (G.phase === 'tidy') tidyFrame(dt);
+    dirtUpdate(G.D);
+    visuals(dt);
+    if (G.phase === 'play' && coverage(G.w) >= DATA.wash.doneAt) finishJob();
+  }
+  function stepOnce() {
+    var s = G.s, w = G.w;
+    if (G.phase !== 'play') return;
+    var sp = 0.7 * Math.min(w.W, 1000) * STEP;
+    if (inp.kl || inp.kr || inp.ku || inp.kd) {
+      inp.x = clamp(inp.x + (inp.kr - inp.kl) * sp, 0, w.W); inp.y = clamp(inp.y + (inp.kd - inp.ku) * sp, 0, w.H); inp.aim = true;
+    }
+    s.x = inp.x; s.y = inp.y;
+    var want = (inp.down || inp.space) && !G.surfMode;
+    s.on = want;
+    simStep(w, s, G.rig, STEP);
+    G.moved += Math.abs(s.x - G.lastX) + Math.abs(s.y - G.lastY); G.lastX = s.x; G.lastY = s.y;
+  }
+
+  /* ---------- input ---------- */
+  function sceneAt(cx, cy, touch) {
+    var fy = cy - G.top, fx = cx - G.left, off = 0;
+    if (touch) { var bottom = G.oy + G.cssH; off = TOUCH_LIFT * clamp((bottom - fy) / 90, 0, 1); }
+    return { x: clamp((fx - G.ox) / G.sc, 0, G.w.W), y: clamp((fy - off - G.oy) / G.sc, 0, G.w.H) };
+  }
+  function surfaceTap() {
+    var s = G.s;
+    if (!G.surfMode || G.phase !== 'play' || s.surf || s.cool > 0 || G.paused) return;
+    if (s.tank < 4) { hint('Tank is low. Wait a moment.', 'tank', true); return; }
+    s.surf = { x: inp.x, y: inp.y, left: DATA.surface.secs };
+    SND.whirr();
+    spawn(T_RING, toDev(inp.x, inp.y)[0], toDev(inp.x, inp.y)[1], 0, 0, 0.5, DATA.surface.r * G.rig.rMul * G.K, 1);
+  }
+  function onDown(e) {
+    if (!G || G.phase !== 'play' || G.paused) return;
+    if (inp.id !== -1 && e.pointerId !== inp.id) return;
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    e.preventDefault();
+    audioStart();
+    try { el.fx.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+    inp.id = e.pointerId; inp.typ = e.pointerType; inp.touch = e.pointerType === 'touch';
+    var p = sceneAt(e.clientX, e.clientY, inp.touch);
+    inp.x = p.x; inp.y = p.y; inp.down = true; inp.aim = true;
+    surfaceTap();
+    if (!G.surfMode) { var hs = HISS[G.s.tip.id]; hissSet(hs[2], hs[0], hs[1]); }
+    if (G.tutStep === 0) tutorial(1);
+  }
+  function onMove(e) {
+    if (!G || G.paused) return;
+    if (inp.id !== -1 && e.pointerId !== inp.id) return;
+    if (inp.id === -1 && e.pointerType === 'touch') return;
+    var p = sceneAt(e.clientX, e.clientY, e.pointerType === 'touch');
+    inp.x = p.x; inp.y = p.y; inp.aim = true; inp.typ = e.pointerType;
+  }
+  function onUp(e) {
+    if (e.pointerId !== inp.id) return;
+    inp.down = false; inp.id = -1;
+    if (inp.touch) inp.aim = false;
+    hissSet(0);
+    try { el.fx.releasePointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+  }
+  function releaseAll() { inp.down = false; inp.space = false; inp.id = -1; inp.kl = inp.kr = inp.ku = inp.kd = 0; hissSet(0); }
+  function onKey(e, down) {
+    if (!G || e.ctrlKey || e.metaKey || e.altKey) return;
+    var k = e.key, t = e.target, onBtn = t && t.tagName === 'BUTTON';
+    if (!el.wPause.hidden || G.phase !== 'play') {
+      if (down && (k === 'Escape' || k === 'p' || k === 'P') && G.phase === 'play') { e.preventDefault(); togglePause(); }
+      return;
+    }
+    var dir = { ArrowLeft: 'kl', a: 'kl', A: 'kl', ArrowRight: 'kr', d: 'kr', D: 'kr', ArrowUp: 'ku', w: 'ku', W: 'ku', ArrowDown: 'kd', s: 'kd', S: 'kd' }[k];
+    if (dir) { e.preventDefault(); inp[dir] = down ? 1 : 0; if (down) { inp.aim = true; inp.typ = 'key'; } return; }
+    if (k === ' ' || k === 'Spacebar') {
+      if (onBtn) return;
+      e.preventDefault();
+      if (down && !inp.space) { audioStart(); inp.space = true; inp.aim = true; surfaceTap(); if (!G.surfMode) { var hs = HISS[G.s.tip.id]; hissSet(hs[2], hs[0], hs[1]); } if (G.tutStep === 0) tutorial(1); }
+      if (!down) { inp.space = false; hissSet(0); }
+      return;
+    }
+    if (!down) return;
+    if (k === 'Escape' || k === 'p' || k === 'P') { e.preventDefault(); togglePause(); return; }
+    if (k >= '1' && k <= '5') { setTip(DATA.tips[+k - 1].id); return; }
+    if (k === '6') setSurface();
+  }
+  function togglePause() {
+    if (!G || G.phase !== 'play') return;
+    G.paused = !G.paused;
+    el.wPause.hidden = !G.paused;
+    releaseAll();
+    if (G.paused) { say('Paused', true); try { $('resumeBtn').focus(); } catch (e) { /* ignore */ } }
+    else { lastT = performance.now(); }
+  }
+
+  /* ---------- drawing: foam, spray fan, wand, crosshair, shimmer, particles ---------- */
+  var popIdx = 0;
+  function pop(text, x, y, size) {
+    popIdx = (popIdx + 1) % 24; popText[popIdx] = text;
+    var i = spawn(T_TEXT, x, y, 0, -46 * G.fdpr, 1.1, size * G.fdpr, 1);
+    PT.amt[i] = popIdx;
+  }
+  function wandDir(N) {
+    var sw = G.sw * G.fdpr, sh = G.sh * G.fdpr;
+    var bx = sw * 0.5 + (N[0] - sw * 0.5) * 0.45, by = sh + 40 * G.fdpr;
+    var dx = bx - N[0], dy = by - N[1], L = Math.sqrt(dx * dx + dy * dy) || 1;
+    return [dx / L, dy / L];
+  }
+  /* The foam and wet trail layers are small canvases the browser stretches over the scene, so no full size draw happens per frame. */
+  function layerShow(c, on) { if (c._on === on) return; c._on = on; c.style.visibility = on ? 'visible' : 'hidden'; }
+  function drawFoam() {
+    var w = G.w, f = w.foam, d = G.foamImg.data, n = f.length, live = 0;
+    for (var i = 0; i < n; i++) {
+      var v = f[i], j = i * 4;
+      if (v > 0) {
+        var a = v > 0.25 ? 1 : v * 4;
+        d[j] = 238; d[j + 1] = 249; d[j + 2] = 255; d[j + 3] = a * 205 * (0.8 + 0.2 * (((i * 2654435761) >>> 24) / 255));
+        live++;
+      } else d[j + 3] = 0;
+    }
+    G.foamCx.putImageData(G.foamImg, 0, 0);
+    G.foamOn = live > 0;
+    layerShow(el.foamC, G.foamOn);
+  }
+  function drawWand(ctx, N, T, d) {
+    var fd = G.fdpr, len = 360 * fd, tip = G.surfMode ? { color: '#FFD23F' } : G.s.tip, nx = -d[1], ny = d[0];
+    function line(x0, y0, x1, y1, wd, col) {
+      ctx.strokeStyle = col; ctx.lineWidth = wd; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+    }
+    var m = [T[0] + d[0] * len * 0.42, T[1] + d[1] * len * 0.42], e = [T[0] + d[0] * len, T[1] + d[1] * len];
+    ctx.save();
+    /* hose from the grip to the lower left corner */
+    var hx = G.sw * fd * 0.12, hy = G.sh * fd + 90 * fd;
+    ctx.strokeStyle = 'rgba(0,0,0,0.28)'; ctx.lineWidth = 13 * fd; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(e[0] + 4 * fd, e[1] + 5 * fd); ctx.quadraticCurveTo(e[0] + d[0] * 90 * fd, e[1] + 180 * fd, hx, hy); ctx.stroke();
+    ctx.strokeStyle = '#17535F'; ctx.lineWidth = 10 * fd;
+    ctx.beginPath(); ctx.moveTo(e[0], e[1]); ctx.quadraticCurveTo(e[0] + d[0] * 90 * fd, e[1] + 175 * fd, hx, hy); ctx.stroke();
+    /* shadow, lance, grip */
+    line(T[0] + 5 * fd, T[1] + 7 * fd, e[0] + 5 * fd, e[1] + 7 * fd, 14 * fd, 'rgba(0,0,0,0.26)');
+    line(T[0], T[1], m[0], m[1], 11 * fd, '#27363E');
+    line(T[0], T[1], m[0], m[1], 7.5 * fd, '#C9D4DA');
+    line(T[0] + nx * 1.6 * fd, T[1] + ny * 1.6 * fd, m[0] + nx * 1.6 * fd, m[1] + ny * 1.6 * fd, 1.8 * fd, 'rgba(255,255,255,0.8)');
+    line(m[0], m[1], e[0], e[1], 20 * fd, '#1C282E');
+    line(m[0], m[1], e[0], e[1], 15 * fd, rigColor());
+    line(m[0] + nx * 4 * fd, m[1] + ny * 4 * fd, e[0] + nx * 4 * fd, e[1] + ny * 4 * fd, 3 * fd, 'rgba(255,255,255,0.45)');
+    /* nozzle head in the tip colour */
+    var hx0 = T[0], hy0 = T[1], hx1 = T[0] + d[0] * 20 * fd, hy1 = T[1] + d[1] * 20 * fd;
+    line(hx0, hy0, hx1, hy1, 15 * fd, '#1C282E');
+    line(hx0, hy0, hx1, hy1, 11 * fd, tip.color);
+    ctx.restore();
+  }
+  function drawSpray(ctx, spraying) {
+    var s = G.s, tip = s.tip, K = G.K, fd = G.fdpr, N = toDev(s.x, s.y), d = wandDir(N);
+    var R = DATA.wash.baseR * tip.r * G.rig.rMul * K, D0 = R * 0.75 + 52 * fd;
+    var T = [N[0] + d[0] * D0, N[1] + d[1] * D0], nx = -d[1], ny = d[0];
+    if (spraying) {
+      var soapy = tip.soap, wT = Math.max(1.5 * fd, R * 0.05), wN = R * (soapy ? 0.8 : 0.92), k = soapy ? 0.55 : 1;
+      var g = ctx.createLinearGradient(T[0], T[1], N[0], N[1]);
+      g.addColorStop(0, 'rgba(235,248,255,' + (0.24 * k) + ')'); g.addColorStop(0.55, 'rgba(235,248,255,' + (0.5 * k) + ')'); g.addColorStop(1, 'rgba(255,255,255,' + (0.74 * k) + ')');
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.moveTo(T[0] + nx * wT, T[1] + ny * wT); ctx.lineTo(N[0] + nx * wN, N[1] + ny * wN); ctx.lineTo(N[0] - nx * wN, N[1] - ny * wN); ctx.lineTo(T[0] - nx * wT, T[1] - ny * wT); ctx.closePath(); ctx.fill();
+      /* bright jet core */
+      var jg = ctx.createLinearGradient(T[0], T[1], N[0], N[1]);
+      jg.addColorStop(0, 'rgba(255,255,255,0.35)'); jg.addColorStop(1, 'rgba(255,255,255,' + (0.95 * k) + ')');
+      ctx.strokeStyle = jg; ctx.lineCap = 'round'; ctx.lineWidth = Math.max(2.2 * fd, R * 0.16);
+      ctx.beginPath(); ctx.moveTo(T[0], T[1]); ctx.lineTo(N[0], N[1]); ctx.stroke();
+      /* moving streaks along the fan */
+      ctx.strokeStyle = 'rgba(255,255,255,0.95)'; ctx.lineWidth = 1.8 * fd;
+      var nS = isCalm() ? 4 : 9;
+      for (var i = 0; i < nS; i++) {
+        var u = (G.t * 3.4 + i * 0.113 + (i % 3) * 0.31) % 1, off = (((i * 37) % 11) / 5.5 - 1) * 0.85, uu = 1 - u;
+        var px = T[0] + (N[0] - T[0]) * uu + nx * off * wN * uu, py = T[1] + (N[1] - T[1]) * uu + ny * off * wN * uu;
+        ctx.globalAlpha = 0.35 + 0.65 * u;
+        ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px - (px - T[0]) * 0.08, py - (py - T[1]) * 0.08); ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+      var rg = ctx.createRadialGradient(N[0], N[1], 0, N[0], N[1], R * 1.05);
+      rg.addColorStop(0, 'rgba(255,255,255,' + (0.8 * k) + ')'); rg.addColorStop(0.45, 'rgba(238,249,255,' + (0.38 * k) + ')'); rg.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = rg; ctx.beginPath(); ctx.ellipse(N[0], N[1], R * 1.05, R * 0.85, 0, 0, 6.3); ctx.fill();
+    }
+    return { N: N, T: T, d: d, R: R };
+  }
+  /* A soft glow where cells were just cleaned, fading over about a second: the fresh clean trail. */
+  function drawWet(dt) {
+    var wet = G.wet, n = wet.length, img = G.wetImg.data, live = 0, dec = dt / 1.1;
+    for (var i = 0; i < n; i++) {
+      var v = wet[i], j = i * 4;
+      if (v > 0) {
+        v -= dec; if (v < 0) v = 0;
+        wet[i] = v;
+        if (v > 0) { live++; img[j] = 214; img[j + 1] = 240; img[j + 2] = 255; img[j + 3] = 105 * v * v; } else img[j + 3] = 0;
+      }
+    }
+    G.wetN = live;
+    G.wetCx.putImageData(G.wetImg, 0, 0);
+    layerShow(el.wetC, live > 0);
+  }
+  function drawAim(ctx, N, R, spraying) {
+    var fd = G.fdpr;
+    ctx.save();
+    ctx.lineWidth = 1.6 * fd;
+    ctx.strokeStyle = spraying ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.65)';
+    if (!spraying) ctx.setLineDash([5 * fd, 5 * fd]);
+    ctx.beginPath(); ctx.ellipse(N[0], N[1], R, R * 0.8, 0, 0, 6.3); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.strokeStyle = 'rgba(8,24,30,0.7)'; ctx.lineWidth = 3.6 * fd;
+    ctx.beginPath(); ctx.moveTo(N[0] - 7 * fd, N[1]); ctx.lineTo(N[0] + 7 * fd, N[1]); ctx.moveTo(N[0], N[1] - 7 * fd); ctx.lineTo(N[0], N[1] + 7 * fd); ctx.stroke();
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.8 * fd;
+    ctx.beginPath(); ctx.moveTo(N[0] - 7 * fd, N[1]); ctx.lineTo(N[0] + 7 * fd, N[1]); ctx.moveTo(N[0], N[1] - 7 * fd); ctx.lineTo(N[0], N[1] + 7 * fd); ctx.stroke();
+    ctx.restore();
+  }
+  function drawDisc(ctx) {
+    var s = G.s, S = DATA.surface;
+    if (!s.surf) return;
+    var N = toDev(s.surf.x, s.surf.y), R = S.r * G.rig.rMul * G.K, f = 1 - s.surf.left / S.secs, fd = G.fdpr;
+    ctx.save();
+    var rg = ctx.createRadialGradient(N[0], N[1], R * 0.1, N[0], N[1], R);
+    rg.addColorStop(0, 'rgba(255,255,255,0.35)'); rg.addColorStop(0.8, 'rgba(210,240,255,0.25)'); rg.addColorStop(1, 'rgba(255,255,255,0.05)');
+    ctx.fillStyle = rg; ctx.beginPath(); ctx.ellipse(N[0], N[1], R, R * 0.8, 0, 0, 6.3); ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.9)'; ctx.lineWidth = 3 * fd;
+    ctx.beginPath(); ctx.ellipse(N[0], N[1], R * (0.55 + 0.45 * f), R * 0.8 * (0.55 + 0.45 * f), 0, 0, 6.3); ctx.stroke();
+    ctx.lineWidth = 5 * fd; ctx.lineCap = 'round';
+    for (var a = 0; a < 3; a++) {
+      var an = G.t * 14 + a * 2.094;
+      ctx.beginPath(); ctx.moveTo(N[0], N[1]); ctx.lineTo(N[0] + Math.cos(an) * R * 0.9, N[1] + Math.sin(an) * R * 0.72); ctx.stroke();
+    }
+    ctx.restore();
+  }
+  function drawShimmer(ctx, p) {
+    var w = G.w, c = 2 * p, K = G.K, ox = G.fxo[0], oy = G.fxo[1], W = w.W, H = w.H, P1, P2;
+    if (c <= 1) { P1 = [c * W, 0]; P2 = [0, c * H]; } else { P1 = [W, (c - 1) * H]; P2 = [(c - 1) * W, H]; }
+    var nl = Math.sqrt(1 / (W * W) + 1 / (H * H)), nx = (1 / W) / nl, ny = (1 / H) / nl, bw = Math.min(W, H) * 0.14;
+    var cx = (P1[0] + P2[0]) / 2, cy = (P1[1] + P2[1]) / 2;
+    var g = ctx.createLinearGradient((cx - nx * bw) * K + ox, (cy - ny * bw) * K + oy, (cx + nx * bw) * K + ox, (cy + ny * bw) * K + oy);
+    g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(0.5, 'rgba(255,255,255,0.7)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.save();
+    ctx.beginPath(); ctx.rect(ox, oy, W * K, H * K); ctx.clip();
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.moveTo((P1[0] - nx * bw) * K + ox, (P1[1] - ny * bw) * K + oy); ctx.lineTo((P1[0] + nx * bw) * K + ox, (P1[1] + ny * bw) * K + oy);
+    ctx.lineTo((P2[0] + nx * bw) * K + ox, (P2[1] + ny * bw) * K + oy); ctx.lineTo((P2[0] - nx * bw) * K + ox, (P2[1] - ny * bw) * K + oy);
+    ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+
+  /* ---------- per frame visuals: particles, drawing, shake, hints, HUD ---------- */
+  var HINT_DEF = 'Try a narrower tip or add soap.';
+  function hint(text, key, warn) {
+    if (G.hintKey === key && G.hintT > 0.3) { G.hintT = Math.max(G.hintT, 1.2); return; }
+    el.wHint.textContent = text; el.wHint.classList.toggle('warn', !!warn); el.wHint.hidden = false;
+    G.hintT = 2.6; G.hintKey = key;
+  }
+  function blockedHint() {
+    var w = G.w, s = G.s, cx = clamp(Math.floor(s.x / DATA.cell), 0, w.gw - 1), cy = clamp(Math.floor(s.y / DATA.cell), 0, w.gh - 1), k = 0, t = 0;
+    for (var dy = -2; dy <= 2; dy++) for (var dx = -2; dx <= 2; dx++) {
+      var x = cx + dx, y = cy + dy;
+      if (x < 0 || y < 0 || x >= w.gw || y >= w.gh) continue;
+      var i = y * w.gw + x;
+      if (w.thick[i] > t) { t = w.thick[i]; k = w.kind[i]; }
+    }
+    var soap = state.gear.soap;
+    if (s.tip.id === 'red') return soap ? 'Still too tough. Lay soap first, then the red tip.' : 'Too tough for your rig. Upgrade Pressure, or buy Soap.';
+    if (k === 1) return state.gear.hot ? 'Oil needs a narrow tip. Try red.' : 'Oil is stubborn. Try the red tip.';
+    if (k === 3) return soap ? 'Graffiti: lay soap, then use the red tip.' : 'Graffiti is tough. Try the red tip.';
+    if (k === 2) return 'Moss needs a narrower tip' + (soap ? ' or soap.' : '.');
+    if (k === 4) return 'Bird mess: try a narrower tip.';
+    if (k === 5) return 'Mildew: try a narrower tip' + (soap ? ' or soap.' : '.');
+    return soap ? 'Thick crust. Lay soap, or use a narrower tip.' : HINT_DEF;
+  }
+  function chipTarget() {
+    var r = el.wPay.getBoundingClientRect(), b = stageBox();
+    return [(r.left + r.width / 2 - b.left) * G.fdpr, (r.top + r.height / 2 - b.top) * G.fdpr];
+  }
+  function visuals(dt) {
+    var w = G.w, s = G.s, fd = G.fdpr, K = G.K, ctx = el.fxc, gm = calm || isCalm();
+    var spraying = G.phase === 'play' && s.on && !s.dry && !s.surf && !G.surfMode;
+    var R = DATA.wash.baseR * s.tip.r * G.rig.rMul * K, N = toDev(s.x, s.y), i, k, a, r;
+    /* cleaned cells: sparkles at the wash edge, then clear the list */
+    G.sparkleN = 0;
+    for (k = 0; k < w.nCleaned && G.sparkleN < 3; k++) {
+      if (Math.random() < (gm ? 0.02 : 0.05)) {
+        i = w.cleaned[k];
+        var cp = toDev(((i % w.gw) + 0.5) * DATA.cell, (((i / w.gw) | 0) + 0.5) * DATA.cell);
+        spawn(T_SPARKLE, cp[0], cp[1], (Math.random() - 0.5) * 30 * fd, -20 * fd, 0.5 + Math.random() * 0.35, (7 + Math.random() * 9) * fd, 1);
+        G.sparkleN++;
+      }
+    }
+    for (k = 0; k < w.nCleaned; k++) { var wi = w.cleaned[k]; if (G.wet[wi] === 0) G.wetN++; G.wet[wi] = 1; }
+    w.nCleaned = 0;
+    /* coins fly to the pay chip every 4 percent */
+    var cov = coverage(w);
+    while (G.phase === 'play' && cov >= G.coinAt && G.coinAt <= 0.97) {
+      var ct = chipTarget(), ci = spawn(T_COIN, N[0], N[1], N[0], N[1], 0.95, 11 * fd, 1);
+      PT.tx[ci] = ct[0]; PT.ty[ci] = ct[1]; PT.amt[ci] = G.base * 0.04;
+      G.coinAt += 0.04;
+    }
+    /* spray particles */
+    var tipId = s.tip.id;
+    if (spraying) {
+      var rate = gm ? 0.45 : 1;
+      G.mistAcc = (G.mistAcc || 0) + dt * (s.tip.soap ? 28 : 72) * rate;
+      while (G.mistAcc >= 1) {
+        G.mistAcc -= 1; a = Math.random() * 6.283; r = Math.sqrt(Math.random()) * R * 0.7;
+        spawn(T_MIST, N[0] + Math.cos(a) * r, N[1] + Math.sin(a) * r * 0.8, Math.cos(a) * R * 0.9, Math.sin(a) * R * 0.7 - R * 0.25, 0.45 + Math.random() * 0.35, R * (0.38 + Math.random() * 0.4), 0.8);
+      }
+      if (!s.tip.soap) {
+        G.dropAcc = (G.dropAcc || 0) + dt * 70 * rate * (s.removing ? 1.4 : 0.7);
+        while (G.dropAcc >= 1) {
+          G.dropAcc -= 1; a = Math.random() * 6.283; var sp = (160 + Math.random() * 420) * fd;
+          spawn(T_DROP, N[0] + Math.cos(a) * R * 0.3, N[1] + Math.sin(a) * R * 0.25, Math.cos(a) * sp, Math.sin(a) * sp * 0.6 - 260 * fd, 0.45 + Math.random() * 0.4, (1.5 + Math.random() * 2.2) * fd, 1);
+        }
+        if (s.removing) {
+          G.gritAcc = (G.gritAcc || 0) + dt * 44 * rate;
+          while (G.gritAcc >= 1) {
+            G.gritAcc -= 1; a = Math.random() * 6.283; var sg = (120 + Math.random() * 380) * fd;
+            spawn(T_GRIT, N[0] + Math.cos(a) * R * 0.5, N[1] + Math.sin(a) * R * 0.4, Math.cos(a) * sg, Math.sin(a) * sg * 0.6 - 200 * fd, 0.4 + Math.random() * 0.4, (1.4 + Math.random() * 2) * fd, 1);
+          }
+        }
+      } else {
+        G.bubAcc = (G.bubAcc || 0) + dt * 20 * rate;
+        while (G.bubAcc >= 1) {
+          G.bubAcc -= 1; a = Math.random() * 6.283; r = Math.random() * R * 0.8;
+          spawn(T_BUB, N[0] + Math.cos(a) * r, N[1] + Math.sin(a) * r * 0.8, (Math.random() - 0.5) * 30 * fd, -(20 + Math.random() * 40) * fd, 0.7 + Math.random() * 0.8, (5 + Math.random() * 9) * fd, 1);
+        }
+      }
+      if (s.removing) {
+        G.nextRing -= dt;
+        if (G.nextRing <= 0) { spawn(T_RING, N[0], N[1], 0, 0, 0.42, R * 1.05, 1); G.nextRing = 0.15; }
+        var speed = G.moved / Math.max(dt, 0.001);
+        if (speed > 260) SND.squeak();
+        if (tipId === 'red' && !gm) G.shake = Math.max(G.shake, 1.1);
+      }
+      if (s.blocked) {
+        G.sparkAcc = (G.sparkAcc || 0) + dt * 36 * rate;
+        while (G.sparkAcc >= 1) {
+          G.sparkAcc -= 1; a = Math.random() * 6.283;
+          spawn(T_SPARK, N[0] + Math.cos(a) * R * 0.4, N[1] + Math.sin(a) * R * 0.3, Math.cos(a) * 360 * fd, -(120 + Math.random() * 360) * fd, 0.28 + Math.random() * 0.22, 1, 1);
+        }
+        SND.tink();
+        G.blockedT += dt;
+        if (G.blockedT > 0.5) hint(blockedHint(), 'blocked');
+        if (G.blockedT > 0.5 && !G.toldTip) { G.toldTip = true; }
+      } else G.blockedT = Math.max(0, G.blockedT - dt * 2);
+      if (s.tip.scuff && G.job.delicate && w.sScuff > 0.3) {
+        G.warnT += dt;
+        hint('The red tip scuffs this surface. Switch tips.', 'scuff', true);
+        SND.warn();
+      }
+      if (s.dry) { /* handled below */ }
+    } else G.blockedT = 0;
+    if (G.phase === 'play' && s.on && s.dry) { hint('Out of water. Let go for a moment to refill.', 'dry', true); SND.warn(); }
+    var hs = (spraying ? tipId : 'off');
+    if (G.hiss !== hs) { G.hiss = hs; if (hs === 'off') hissSet(0); else { var hh = HISS[hs]; hissSet(hh[2], hh[0], hh[1]); } }
+    /* surface cleaner disc: coins, sparkles come from the cleaned list; ring pulse at start only */
+    stepParticles(dt, 1100 * fd);
+    /* draw */
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, el.fx.width, el.fx.height);
+    if (G.wetN > 0) drawWet(dt);
+    if (w.foamN > 0 || G.foamOn) drawFoam();
+    if (G.phase === 'tidy') drawShimmer(ctx, Math.min(1, G.tidyT / 0.9));
+    drawDisc(ctx);
+    var sp2 = drawSpray(ctx, spraying);
+    drawParticles(ctx, fd);
+    if (G.phase === 'play' || G.phase === 'tidy') drawWand(ctx, sp2.N, sp2.T, sp2.d);
+    if (G.phase === 'play' && inp.aim && !G.surfMode && inp.typ !== 'touchless') drawAim(ctx, N, R, spraying);
+    if (G.phase === 'play' && inp.aim && G.surfMode) drawAim(ctx, N, DATA.surface.r * G.rig.rMul * K, false);
+    /* shake and flash */
+    if (G.shake > 0.05 && !gm) {
+      G.shake = Math.max(0, G.shake - dt * 14);
+      el.stage.style.transform = 'translate(' + ((Math.random() - 0.5) * G.shake * 2).toFixed(1) + 'px,' + ((Math.random() - 0.5) * G.shake * 2).toFixed(1) + 'px)';
+    } else if (el.stage.style.transform) { el.stage.style.transform = ''; G.shake = 0; }
+    if (G.flashA > 0.01) { G.flashA = Math.max(0, G.flashA - dt * 2.2); el.wFlash.style.opacity = gm ? '0' : G.flashA.toFixed(2); }
+    else if (el.wFlash.style.opacity !== '0') el.wFlash.style.opacity = '0';
+    /* hints timer, tutorial, HUD */
+    if (G.hintT > 0) { G.hintT -= dt; if (G.hintT <= 0) el.wHint.hidden = true; }
+    G.moved = 0;
+    tutorialTick(dt);
+    G.hudT -= dt;
+    if (G.hudT <= 0) { G.hudT = 0.09; hud(); }
+  }
+  function bumpPay() {
+    fit(el.wPay, fmtMoney(Math.floor(G.payShown)), 5, 7);
+    el.wPay.classList.remove('bump'); void el.wPay.offsetWidth; el.wPay.classList.add('bump');
+    SND.coin();
+  }
+  function hud() {
+    var w = G.w, s = G.s, p = coverage(w), pct = G.phase === 'play' ? Math.min(99, Math.floor(p * 100)) : 100;
+    if (G.phase === 'play' && p >= DATA.wash.doneAt) pct = 100;
+    el.wFill.style.width = (G.phase === 'play' ? p * 100 : 100).toFixed(1) + '%';
+    el.wPct.textContent = pct + '%';
+    el.wTough.textContent = w.toughTotal ? 'Tough spots ' + Math.round(100 * w.toughDone / w.toughTotal) + '%' : 'No tough spots';
+    el.wFlow.textContent = 'Flow x' + s.mult.toFixed(1);
+    el.tank.style.transform = 'scaleX(' + clamp(s.tank / G.rig.tankMax, 0, 1).toFixed(3) + ')';
+    el.tankBox.classList.toggle('dry', s.dry);
+    var q = pct >= 75 ? 75 : pct >= 50 ? 50 : pct >= 25 ? 25 : 0;
+    if (q > G.said && G.phase === 'play') { G.said = q; say('Job ' + q + ' percent clean'); }
+    var ts = w.toughTotal ? w.toughDone / w.toughTotal : 1, tq = ts >= 0.7 ? 70 : 0;
+    if (tq > G.toughSaid && G.phase === 'play') { G.toughSaid = tq; pop('Tough spots 70%', toDev(s.x, s.y)[0], toDev(s.x, s.y)[1] - 30 * G.fdpr, 22); SND.chime(); }
+    var fq = s.mult >= 2 ? 2 : s.mult >= 1.5 ? 1.5 : 1;
+    if (fq > G.flowSaid) { G.flowSaid = fq; var pp = toDev(s.x, s.y); pop('FLOW x' + fq.toFixed(1), pp[0], pp[1] - 40 * G.fdpr, 26); }
+  }
+
+  /* ---------- tutorial hints for the very first job ---------- */
+  function tutorial(step) {
+    if (!G || state.tut) return;
+    G.tutStep = step; G.tutT = 0;
+    var tb = el.tutB, ts = el.tutS;
+    if (step === 0) { tb.textContent = 'Drag to spray'; ts.textContent = inp.touch || inp.typ === 'touch' ? 'Wipe the grime away. The spray lands just above your finger.' : 'Press and hold, then wipe the grime away.'; }
+    else if (step === 1) { tb.textContent = 'Keep moving'; ts.textContent = 'Do not lift your finger. Flow tips grow while you keep spraying.'; }
+    else if (step === 2) { tb.textContent = 'Stains need a narrow tip'; ts.textContent = 'Tap the red tip, then scrub the dark stain.'; var rb = el.tipRow.querySelector('[data-tip="red"]'); if (rb) rb.classList.add('pulse'); }
+    else { el.tut.hidden = true; var pb = el.tipRow.querySelector('.pulse'); if (pb) pb.classList.remove('pulse'); return; }
+    el.tut.hidden = false;
+  }
+  function tutorialTick(dt) {
+    if (state.tut || G.phase !== 'play') return;
+    var p = coverage(G.w), w = G.w;
+    if (G.tutStep === 0 || G.tutStep === 3) return;
+    G.tutT += dt;
+    if (G.tutStep === 1 && (p > 0.22 || G.tutT > 9)) {
+      if (w.toughTotal && w.toughDone < w.toughTotal * 0.4 && G.tipId !== 'red') tutorial(2); else tutorial(3);
+    } else if (G.tutStep === 2 && (G.tipId === 'red' && w.toughDone > w.toughTotal * 0.3 || p > 0.8)) tutorial(3);
+    if (G.tutStep === 1 && p > 0.1 && G.tipId === 'red') { /* they found it early, nothing to teach */ tutorial(3); }
+    if (G.tutStep === 2 && G.tipId === 'red') { var pb = el.tipRow.querySelector('.pulse'); if (pb) pb.classList.remove('pulse'); }
+  }
+
+  /* ---------- finishing a job: tidy sweep, pay, stars, result ---------- */
+  var NF = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 });
+  function dollarsWords(n) { return (n < 1e6 ? NF.format(Math.floor(n)) : fmtBig(n)) + ' dollars'; }
+  function finishJob() {
+    if (!G || G.phase !== 'play') return;
+    G.phase = 'tidy'; G.tidyT = 0;
+    releaseAll();
+    G.res = washResult(G.w);
+    G.s.on = false; G.s.surf = null;
+    el.tut.hidden = true; el.wHint.hidden = true;
+    var pb = el.tipRow.querySelector('.pulse'); if (pb) pb.classList.remove('pulse');
+    SND.chime();
+    say('Almost done. Tidying the last specks.', true);
+  }
+  function tidyFrame(dt) {
+    G.tidyT += dt;
+    var p = Math.min(1, G.tidyT / 0.9), w = G.w;
+    tidyTo(w, p);
+    G.sparkAcc2 = (G.sparkAcc2 || 0) + dt * (calm || isCalm() ? 8 : 34);
+    while (G.sparkAcc2 >= 1) {
+      G.sparkAcc2 -= 1;
+      var c = 2 * p, t = Math.random(), x, y;
+      if (c <= 1) { x = c * w.W * (1 - t); y = c * w.H * t; } else { x = w.W - (2 - c) * w.W * t; y = w.H - (2 - c) * w.H * (1 - t); x = clamp(x, 0, w.W); y = clamp(y, 0, w.H); }
+      var d = toDev(x, y);
+      spawn(T_SPARKLE, d[0], d[1], (Math.random() - 0.5) * 40 * G.fdpr, -30 * G.fdpr, 0.5 + Math.random() * 0.4, (8 + Math.random() * 12) * G.fdpr, 1);
+    }
+    if (p >= 1) completeJob();
+  }
+  function completeJob() {
+    if (!G || G.phase !== 'tidy') return;
+    G.phase = 'done';
+    var job = G.job, res = G.res, pay = payout(job, res, state), stars = starsFor(job, res), prev = state.stars[job.id] || 0;
+    state.money += pay.total; state.lifetime += pay.total; state.earned = (state.earned || 0) + pay.total;
+    state.stars[job.id] = Math.max(prev, stars.n);
+    state.jobs = (state.jobs || 0) + 1;
+    state.tut = true;
+    G.pay = pay; G.stars = stars; G.prev = prev;
+    G.payShown = pay.total; fit(el.wPay, fmtMoney(pay.total), 5, 7);
+    save();
+    portalBreak('job-complete');
+    SND.jingle();
+    G.flashA = 0.5; G.shake = 4;
+    var n = calm || isCalm() ? 8 : 40;
+    for (var i = 0; i < n; i++) {
+      var d = toDev(Math.random() * G.w.W, Math.random() * G.w.H);
+      spawn(T_SPARKLE, d[0], d[1], 0, -20 * G.fdpr, 0.6 + Math.random() * 0.7, (10 + Math.random() * 16) * G.fdpr, 1);
+    }
+    say('Job complete, paid ' + dollarsWords(pay.total) + '. ' + stars.n + (stars.n === 1 ? ' star.' : ' stars.'), true);
+    renderBoard();
+    setTimeout(function () { if (G && G.phase === 'done') showResult(); }, 750);
+  }
+  function mmss(sec) { var s = Math.round(sec), m = Math.floor(s / 60); return m + ':' + (s % 60 < 10 ? '0' : '') + (s % 60); }
+  function resRow(label, val, why, cls) {
+    return h('div', { 'class': 'r-row' + (cls ? ' ' + cls : '') }, [h('dt', { text: label }), h('dd', { text: val }), why ? h('dd', { 'class': 'why', text: why }) : null]);
+  }
+  function showResult() {
+    var job = G.job, res = G.res, pay = G.pay, st = G.stars, rr = el.rRows;
+    el.rTitle.textContent = 'Job complete';
+    clear(el.rStars);
+    [st.a, st.b, st.c].forEach(function (on) { el.rStars.appendChild(starIcon(on)); });
+    el.rStars.setAttribute('aria-label', st.n + ' of 3 stars');
+    clear(rr);
+    rr.appendChild(resRow('Base pay', fmtMoney(pay.base), job.name));
+    rr.appendChild(resRow('Cleanliness bonus', '+' + fmtMoney(pay.clean), 'Tough spots cleaned by hand: ' + Math.round(res.tough * 100) + '%'));
+    rr.appendChild(resRow('Flow tips', '+' + fmtMoney(pay.tips), 'Average flow x' + res.flow.toFixed(2)));
+    rr.appendChild(resRow('Damage', pay.damage ? '-' + fmtMoney(pay.damage) : '$0', res.scuffN ? 'Scuffed ' + res.scuffN + ' spots with the red tip' : 'No scuffs'));
+    rr.appendChild(resRow('Total', fmtMoney(pay.total), '', 'total'));
+    var why = [];
+    why.push('Time ' + mmss(res.secs) + ', par ' + mmss(job.par) + '.');
+    if (!st.b) why.push(res.penalty > 0 ? 'Scuffs cost the second star.' : 'Clean 70% of the tough spots by hand for the second star.');
+    if (!st.c) why.push('Beat par for the third star.');
+    if (G.prev && st.n > G.prev) why.unshift('New best!');
+    el.rNote.textContent = why.join(' ');
+    /* before and after pictures */
+    var bc = G.before, ar = G.w.W / G.w.H;
+    el.baBefore.width = bc.width; el.baBefore.height = bc.height; el.baAfter.width = bc.width; el.baAfter.height = bc.height;
+    el.baBefore.getContext('2d').drawImage(bc, 0, 0);
+    el.baAfter.getContext('2d').drawImage(el.scene, 0, 0, bc.width, bc.height);
+    el.ba.style.setProperty('--ar', ar.toFixed(4)); el.ba.style.setProperty('--arn', ar.toFixed(4));
+    setBA(isCalm() ? 50 : 92);
+    var nx = nextJobId();
+    el.rNext.textContent = nx === job.id ? 'Again' : 'Next job';
+    openModal($('result'), null);
+    if (!isCalm()) sweepBA();
+  }
+  var baPos = 50, baAnim = 0;
+  function setBA(p) {
+    baPos = clamp(p, 0, 100);
+    el.ba.style.setProperty('--pos', baPos.toFixed(1) + '%');
+    el.ba.setAttribute('aria-valuenow', String(Math.round(baPos)));
+    el.ba.setAttribute('aria-valuetext', baPos > 70 ? 'Mostly before' : baPos < 30 ? 'Mostly after' : 'Half before, half after');
+  }
+  function sweepBA() {
+    var t0 = performance.now(), from = 92, to = 46;
+    cancelAnimationFrame(baAnim);
+    (function stepA(t) {
+      var f = Math.min(1, (t - t0) / 1300), e = f * f * (3 - 2 * f);
+      setBA(from + (to - from) * e);
+      if (f < 1) baAnim = requestAnimationFrame(stepA);
+    })(t0);
+  }
+  function baFromEvent(e) { var r = el.ba.getBoundingClientRect(); setBA(((e.clientX - r.left) / r.width) * 100); }
+  function nextJobId() {
+    var idx = 0, n = DATA.jobs.length;
+    for (var i = 0; i < n; i++) if (DATA.jobs[i].id === G.job.id) idx = i;
+    for (var k = 1; k < n; k++) { var j = DATA.jobs[(idx + k) % n]; if (jobStatus(j, state).ok && (j.stars > DATA.jobs[idx].stars || k === 1)) return j.id; }
+    return G.job.id;
+  }
+  function leaveWash() {
+    releaseAll();
+    hissSet(0);
+    coinArrive = null;
+    G = null;
+    cancelAnimationFrame(baAnim);
+    $('wash').hidden = true; $('app').inert = false;
+    document.documentElement.classList.remove('locked');
+    el.stage.style.transform = ''; el.stage.style.visibility = '';
+    layerShow(el.wetC, false); layerShow(el.foamC, false);
+    el.wHint.hidden = true; el.tut.hidden = true;
+    renderBoard();
+  }
+
+  /* ---------- modals: one at a time, focus kept inside, focus returned afterwards ---------- */
+  var modalEl = null, modalBack = null;
+  function focusables(root) { return Array.prototype.filter.call(root.querySelectorAll('button, [href], input, textarea, [tabindex]:not([tabindex="-1"])'), function (n) { return !n.disabled && !n.hidden && n.offsetParent !== null; }); }
+  function openModal(m, opener) {
+    modalEl = m; modalBack = opener || document.activeElement;
+    m.hidden = false;
+    $('app').inert = true; $('wash').inert = true;
+    var f = focusables(m);
+    if (f.length) { try { f[Math.max(0, m.id === 'result' ? f.length - 3 : 0)].focus({ preventScroll: true }); } catch (e) { /* ignore */ } }
+    m.scrollTop = 0;
+  }
+  function closeModal() {
+    if (!modalEl) return;
+    modalEl.hidden = true; modalEl = null;
+    $('wash').inert = false;
+    if (!G) $('app').inert = false;
+    var b = modalBack; modalBack = null;
+    if (b && b.focus && document.body.contains(b) && !b.hidden) { try { b.focus(); } catch (e) { /* ignore */ } }
+  }
+  function closeOverlays() { if (modalEl) closeModal(); $('sheet').hidden = true; }
+  document.addEventListener('keydown', function (e) {
+    if (modalEl && e.key === 'Tab') {
+      var f = focusables(modalEl);
+      if (!f.length) return;
+      var first = f[0], last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    } else if (modalEl && e.key === 'Escape') {
+      e.preventDefault();
+      if (modalEl.id === 'result') resultGo('shop'); else closeModal();
+    }
+  });
+
+  /* ---------- share picture: made on a canvas, shared as a file when the browser allows it ---------- */
+  function coverDraw(x, img, dx, dy, dw, dh) {
+    var ir = img.width / img.height, br = dw / dh, sw = img.width, sh = img.height, sx = 0, sy = 0;
+    if (ir > br) { sw = img.height * br; sx = (img.width - sw) / 2; } else { sh = img.width / br; sy = (img.height - sh) / 2; }
+    x.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
+  }
+  function rrect(x, a, b, w, hh, r) { x.beginPath(); if (x.roundRect) x.roundRect(a, b, w, hh, r); else x.rect(a, b, w, hh); }
+  function makeShareCanvas() {
+    var job = G.job, pay = G.pay, st = G.stars, cv = mkCanvas(1080, 1350), x = cv.getContext('2d');
+    var disp = '"Big Shoulders Display", "Arial Narrow", Arial, sans-serif', body = '"Public Sans", system-ui, Arial, sans-serif';
+    var g = x.createLinearGradient(0, 0, 1080, 1350);
+    g.addColorStop(0, '#4A1457'); g.addColorStop(1, '#120A1D');
+    x.fillStyle = g; x.fillRect(0, 0, 1080, 1350);
+    x.fillStyle = '#FFFFFF'; x.font = '800 78px ' + disp; x.textBaseline = 'alphabetic'; x.textAlign = 'left';
+    x.fillText('GRIME TIME', 60, 112);
+    x.fillStyle = '#F0ABFC'; x.font = '600 30px ' + body; x.textAlign = 'right';
+    x.fillText('Blast the grime. Build the business.', 1020, 108);
+    var ax = 60, ay = 150, aw = 960, ah = 800, ar = G.w.W / G.w.H, bc = G.before;
+    x.save(); rrect(x, ax, ay, aw, ah, 26); x.clip();
+    x.fillStyle = '#150C22'; x.fillRect(ax, ay, aw, ah);
+    if (ar < 1.1) { coverDraw(x, bc, ax, ay, 470, ah); coverDraw(x, el.scene, ax + 490, ay, 470, ah); }
+    else { coverDraw(x, bc, ax, ay, aw, 390); coverDraw(x, el.scene, ax, ay + 410, aw, 390); }
+    x.restore();
+    x.font = '800 34px ' + disp; x.textAlign = 'left';
+    function tag(t, tx, ty) { var w = x.measureText(t).width + 36; x.fillStyle = 'rgba(7,24,32,0.88)'; rrect(x, tx, ty, w, 54, 27); x.fill(); x.fillStyle = '#FFFFFF'; x.fillText(t, tx + 18, ty + 38); }
+    if (ar < 1.1) { tag('BEFORE', ax + 16, ay + 16); tag('AFTER', ax + 506, ay + 16); } else { tag('BEFORE', ax + 16, ay + 16); tag('AFTER', ax + 16, ay + 426); }
+    x.textAlign = 'center'; x.fillStyle = '#FFFFFF'; x.font = '800 62px ' + disp;
+    x.fillText(job.name.toUpperCase(), 540, 1040);
+    x.fillStyle = '#FFD23F'; x.font = '800 150px ' + disp;
+    x.fillText(fmtMoney(pay.total), 540, 1190);
+    for (var i = 0; i < 3; i++) {
+      var on = i < st.n, cx = 540 + (i - 1) * 74, cy = 1245;
+      x.fillStyle = on ? '#FFD23F' : '#4B3566';
+      x.beginPath();
+      for (var k = 0; k < 10; k++) { var rad = k % 2 ? 14 : 32, an = -1.5708 + k * 0.6283; x.lineTo(cx + Math.cos(an) * rad, cy + Math.sin(an) * rad); }
+      x.closePath(); x.fill();
+    }
+    x.fillStyle = '#F0ABFC'; x.font = '600 28px ' + body;
+    x.fillText('Play free at ' + SITE_ADDR, 540, 1318);
+    return cv;
+  }
+  function download(blob, name) {
+    var url = URL.createObjectURL(blob), a = document.createElement('a');
+    a.href = url; a.download = name; a.rel = 'noopener';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+  }
+  function shareResult() {
+    if (!G || !G.pay) return;
+    var btn = el.rShare, txt = 'I washed the ' + G.job.name + ' in Grime Time and earned ' + fmtMoney(G.pay.total) + '. Play free: https://' + SITE_ADDR;
+    btn.disabled = true;
+    var fontsReady = (document.fonts && document.fonts.load) ? Promise.all([document.fonts.load('800 60px "Big Shoulders Display"'), document.fonts.load('600 28px "Public Sans"')]).catch(function () { /* draw with fallback fonts */ }) : Promise.resolve();
+    fontsReady.then(function () {
+      var cv = makeShareCanvas();
+      cv.toBlob(function (blob) {
+        btn.disabled = false;
+        if (!blob) { toast('Could not make the picture. Take a screenshot instead.'); return; }
+        var file = null;
+        try { file = new File([blob], 'grime-time.png', { type: 'image/png' }); } catch (e) { file = null; }
+        if (file && navigator.canShare && navigator.share) {
+          var ok = false;
+          try { ok = navigator.canShare({ files: [file] }); } catch (e2) { ok = false; }
+          if (ok) { navigator.share({ files: [file], title: 'Grime Time', text: txt }).catch(function (err) { if (err && err.name !== 'AbortError') { download(blob, 'grime-time.png'); toast('Picture saved to your downloads.'); } }); return; }
+        }
+        try { download(blob, 'grime-time.png'); toast('Picture saved. Check your downloads.'); }
+        catch (e3) { toast('Your browser would not save the picture. Take a screenshot instead.'); }
+      }, 'image/png');
+    }, function () { btn.disabled = false; });
+  }
+  function resultGo(what) {
+    if (!G) return;
+    var nx = nextJobId();
+    closeModal();
+    leaveWash();
+    if (what === 'next') { startJob(nx); return; }
+    if (what === 'shop') selectTab('rig', true);
+  }
+
+  /* ================= the job board: stats, jobs, rig, crew, franchise ================= */
+  var tabName = 'jobs', buyMul = 1, live = { jobs: [], rig: [], crew: [], fran: [] };
+  var THUMB_SRC = {};
+  function keepFocus(fn) {
+    var a = document.activeElement, key = a && a.getAttribute ? a.getAttribute('data-key') : null;
+    fn();
+    if (key) { var n = document.querySelector('[data-key="' + key + '"]'); if (n && n !== document.activeElement) { try { n.focus({ preventScroll: true }); } catch (e) { /* ignore */ } } }
+  }
+  function can(cost) { return state.money >= cost; }
+  function setOff(btn, off) { btn.setAttribute('aria-disabled', off ? 'true' : 'false'); }
+  function isOff(btn) { return btn.getAttribute('aria-disabled') === 'true'; }
+  function buyBtn(key, big, small, cost, onBuy) {
+    var b = h('button', { type: 'button', 'class': 'buy', 'data-key': key }, [h('span', { 'class': 'amt', text: big }), h('small', { text: small })]);
+    setOff(b, !can(cost));
+    b.addEventListener('click', function () { if (isOff(b)) { toast('Not enough cash yet.'); return; } onBuy(); });
+    return b;
+  }
+
+  function renderStats() {
+    fit($('sMoney'), fmtMoney(state.money), 6, 8);
+    fit($('sRate'), fmtRate(crewIncome(state)), 6, 8);
+    fit($('sStars'), starsTotal(state) + '/' + DATA.jobs.length * 3, 6, 8);
+    var on = !!state.set.sound, mb = $('muteBtn');
+    mb.setAttribute('aria-pressed', on ? 'false' : 'true');
+    mb.setAttribute('aria-label', on ? 'Sound on. Press to mute' : 'Sound off. Press to unmute');
+    $('muteWave').hidden = !on; $('muteX').hidden = on;
+  }
+  function paintThumb(job) {
+    if (THUMB_SRC[job.id]) return THUMB_SRC[job.id];
+    var tw = 192, th = 144, c = mkCanvas(tw, th), x = c.getContext('2d'), W = 1000, H = 750;
+    x.save(); x.scale(tw / W, th / H);
+    if (ART[job.art]) ART[job.art](x, W, H, mulberry32(7)); else { x.fillStyle = '#9AA6A8'; x.fillRect(0, 0, W, H); }
+    x.restore();
+    var gw = 100, gh = 75, g = makeGrid(job, gw, gh, 4242), n = gw * gh;
+    for (var i = 0; i < n; i++) { var xx = i % gw, yy = (i / gw) | 0; if (xx / gw + yy / gh < 0.62) g.thick[i] = 0; }
+    var D = { w: { thick: g.thick, kind: g.kind, scuff: new Uint8Array(n) }, pal: job.pal || PAL0, gw: gw, gh: gh, col: new Uint8Array(n * 4), cov: new Float32Array(n) };
+    var dc = mkCanvas(gw, gh), dx = dc.getContext('2d'), im = dx.createImageData(gw, gh), d = im.data;
+    for (var q = 0; q < n; q++) {
+      cellPaint(D, q);
+      var j = q * 4;
+      d[j] = D.col[j]; d[j + 1] = D.col[j + 1]; d[j + 2] = D.col[j + 2]; d[j + 3] = D.cov[q] > 0 ? D.col[j + 3] : 0;
+    }
+    dx.putImageData(im, 0, 0);
+    x.imageSmoothingEnabled = true; x.imageSmoothingQuality = 'high';
+    x.drawImage(dc, 0, 0, tw, th);
+    THUMB_SRC[job.id] = c;
+    return c;
+  }
+  function lockIcon() {
+    var s = svgEl('svg', { viewBox: '0 0 24 24', 'aria-hidden': 'true', focusable: 'false' });
+    s.appendChild(svgEl('path', { d: 'M7 11V8a5 5 0 0 1 10 0v3M6 11h12v9H6z', fill: 'none', stroke: 'currentColor', 'stroke-width': '2.4', 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }));
+    return s;
+  }
+  function gearName(id) { return byId(DATA.gear, id).name; }
+  function renderJobs() {
+    var box = $('jobList');
+    keepFocus(function () {
+      clear(box);
+      var firstLocked = true;
+      DATA.jobs.forEach(function (job) {
+        var st = jobStatus(job, state), stars = state.stars[job.id] || 0, pay = payout(job, { tough: 0, flow: 1, penalty: 0 }, state).base;
+        var thumb = h('div', { 'class': 'j-thumb' }), cv = mkCanvas(192, 144);
+        cv.getContext('2d').drawImage(paintThumb(job), 0, 0);
+        thumb.appendChild(cv);
+        var body = h('div', { 'class': 'j-body' }, [h('div', { 'class': 'j-name', text: job.name })]);
+        if (st.ok) {
+          var sv = h('span', { 'class': 'stars', 'aria-hidden': 'true' });
+          for (var i = 0; i < 3; i++) sv.appendChild(starIcon(i < stars));
+          body.appendChild(h('div', { 'class': 'j-meta' }, [h('span', { 'class': 'j-pay', text: fmtMoney(pay) }), h('span', { text: 'Par ' + mmss(job.par) }), h('span', { text: job.size })]));
+          body.appendChild(sv);
+          var b = h('button', { type: 'button', 'class': 'job', 'data-key': 'job-' + job.id, 'aria-label': job.name + '. Pays ' + dollarsWords(pay) + '. ' + stars + ' of 3 stars. Start job.' }, [thumb, body]);
+          b.addEventListener('click', function () { startJob(job.id); });
+          box.appendChild(b);
+        } else {
+          thumb.appendChild(h('div', { 'class': 'j-lock' }, [lockIcon()]));
+          var need = [];
+          if (st.needStars > 0) need.push('Earn ' + st.needStars + ' more star' + (st.needStars === 1 ? '' : 's'));
+          st.needGear.forEach(function (g) { need.push('Buy ' + gearName(g)); });
+          body.appendChild(h('div', { 'class': 'j-meta' }, [h('span', { 'class': 'j-pay', text: fmtMoney(pay) }), h('span', { text: job.size })]));
+          body.appendChild(h('div', { 'class': 'j-need', text: (firstLocked ? 'Next: ' : 'Locked: ') + need.join(', ') }));
+          firstLocked = false;
+          box.appendChild(h('div', { 'class': 'job locked', role: 'group', 'aria-label': job.name + ', locked. ' + need.join(', ') }, [thumb, body]));
+        }
+      });
+    });
+  }
+
+  function upEffect(id, lv) {
+    var r = (function () { var s = JSON.parse(JSON.stringify(state)); s.up[id] = lv; return rigOf(s); })();
+    if (id === 'pressure') return 'pressure x' + r.pMul.toFixed(2);
+    if (id === 'area') return 'spray width x' + r.rMul.toFixed(2);
+    if (id === 'tank') return NF.format(Math.round(r.tankMax)) + ' s tank';
+    if (id === 'reach') return 'edge strength ' + Math.round((1 - r.fall) * 100) + '%';
+    return 'flow up to x' + r.flowCap.toFixed(1);
+  }
+  function renderRig() {
+    var ul = $('upList'), gl = $('gearList');
+    live.rig = [];
+    keepFocus(function () {
+      clear(ul); clear(gl);
+      DATA.upgrades.forEach(function (u) {
+        var lv = state.up[u.id], maxed = lv >= u.max, pips = h('div', { 'class': 'r-lv', 'aria-hidden': 'true' });
+        for (var i = 0; i < u.max; i++) pips.appendChild(h('span', { 'class': 'pip' + (i < lv ? ' on' : '') }));
+        var desc = u.blurb + ' Now ' + upEffect(u.id, lv) + (maxed ? '.' : ', next ' + upEffect(u.id, lv + 1) + '.');
+        var main = h('div', { 'class': 'r-main' }, [h('div', { 'class': 'r-name', text: u.name + ' ' + lv + '/' + u.max }), h('div', { 'class': 'r-desc', text: desc }), pips]);
+        var row = h('div', { 'class': 'row' + (maxed ? ' owned' : '') }, [main]);
+        if (maxed) row.appendChild(h('span', { 'class': 'owned-tag', text: 'Max level' }));
+        else {
+          var cost = upgradeCost(u.id, lv), b = buyBtn('up-' + u.id, fmtMoney(cost), 'Level ' + (lv + 1), cost, function () { buyUp(u.id); });
+          b.setAttribute('aria-label', 'Upgrade ' + u.name + ' to level ' + (lv + 1) + ' for ' + dollarsWords(cost));
+          row.appendChild(b); live.rig.push(function () { setOff(b, !can(cost)); });
+        }
+        ul.appendChild(row);
+      });
+      DATA.gear.forEach(function (g) {
+        var own = state.gear[g.id], row = h('div', { 'class': 'row' + (own ? ' owned' : '') }, [h('div', { 'class': 'r-main' }, [h('div', { 'class': 'r-name', text: g.name }), h('div', { 'class': 'r-desc', text: g.blurb })])]);
+        if (own) row.appendChild(h('span', { 'class': 'owned-tag', text: 'Owned' }));
+        else {
+          var b = buyBtn('gear-' + g.id, fmtMoney(g.cost), 'Buy', g.cost, function () { buyGear(g.id); });
+          b.setAttribute('aria-label', 'Buy ' + g.name + ' for ' + dollarsWords(g.cost));
+          row.appendChild(b); live.rig.push(function () { setOff(b, !can(g.cost)); });
+        }
+        gl.appendChild(row);
+      });
+    });
+  }
+  function buyUp(id) {
+    var u = byId(DATA.upgrades, id), lv = state.up[id], cost = upgradeCost(id, lv);
+    if (lv >= u.max || !can(cost)) return;
+    state.money -= cost; state.up[id] = lv + 1;
+    SND.chime(); save(); say(u.name + ' is now level ' + (lv + 1), true);
+    renderStats(); renderRig(); renderJobs();
+  }
+  function buyGear(id) {
+    var g = byId(DATA.gear, id);
+    if (state.gear[id] || !can(g.cost)) return;
+    state.money -= g.cost; state.gear[id] = true;
+    SND.chime(); save(); toast(g.name + ' bought.'); say(g.name + ' bought', true);
+    renderStats(); renderRig(); renderJobs();
+  }
+
+  function crewQty(id) {
+    var owned = state.crew[id];
+    if (buyMul === 'max') { var k = crewAfford(id, owned, state.money); return k < 1 ? 1 : k; }
+    return buyMul;
+  }
+  function renderCrew() {
+    var cl = $('crewList'), tl = $('truckList');
+    live.crew = [];
+    keepFocus(function () {
+      clear(cl); clear(tl);
+      var seg = h('div', { 'class': 'btn-row seg', role: 'group', 'aria-label': 'Hire amount' });
+      [[1, 'x1'], [10, 'x10'], ['max', 'Max']].forEach(function (o) {
+        var b = h('button', { type: 'button', 'class': 'btn ghost sm', 'data-key': 'mul-' + o[0], 'aria-pressed': String(buyMul === o[0]), text: o[1] });
+        b.addEventListener('click', function () { buyMul = o[0]; renderCrew(); });
+        seg.appendChild(b);
+      });
+      cl.appendChild(seg);
+      DATA.crew.forEach(function (c) {
+        var n = state.crew[c.id], ms = milestoneCount(n), nm = nextMilestone(n), each = c.inc * Math.pow(2, ms) * franchiseMult(state.fp);
+        var desc = fmtRate(each) + ' each' + (nm ? ', doubles at ' + nm + ' owned.' : ', fully doubled.');
+        var main = h('div', { 'class': 'r-main' }, [h('div', { 'class': 'r-name', text: c.name + ' x' + NF.format(n) }), h('div', { 'class': 'r-desc', text: desc }), h('div', { 'class': 'r-desc', text: n ? 'Pays ' + fmtRate(tierIncome(state, c.id)) + ' in total' : 'Not hired yet' })]);
+        var row = h('div', { 'class': 'row' }, [main]);
+        var b = h('button', { type: 'button', 'class': 'buy', 'data-key': 'crew-' + c.id }, [h('span', { 'class': 'amt' }), h('small')]);
+        function paint() {
+          var q = crewQty(c.id), cost = crewCostMany(c.id, state.crew[c.id], q);
+          b.firstChild.textContent = fmtMoney(cost); b.lastChild.textContent = 'Hire x' + q;
+          b.setAttribute('aria-label', 'Hire ' + q + ' ' + c.name + (q > 1 ? 's' : '') + ' for ' + dollarsWords(cost));
+          setOff(b, !can(cost));
+        }
+        paint();
+        b.addEventListener('click', function () {
+          if (isOff(b)) { toast('Not enough cash yet.'); return; }
+          var q = crewQty(c.id), cost = crewCostMany(c.id, state.crew[c.id], q);
+          if (!can(cost)) return;
+          state.money -= cost; state.crew[c.id] += q;
+          SND.coin(); save(); say(c.name + ' hired. You now have ' + state.crew[c.id], true);
+          renderStats(); renderCrew(); renderFran();
+        });
+        row.appendChild(b); live.crew.push(paint);
+        cl.appendChild(row);
+      });
+      var tr = state.trucks, trow = h('div', { 'class': 'row' + (tr >= DATA.trucks.max ? ' owned' : '') }, [h('div', { 'class': 'r-main' }, [h('div', { 'class': 'r-name', text: 'Trucks ' + tr + '/' + DATA.trucks.max }), h('div', { 'class': 'r-desc', text: 'Each truck adds ' + DATA.offline.perTruck + ' hour to how long your crew keeps earning while you are away. Cap now ' + fmtDur(offlineCapSec(state)) + '.' })])]);
+      if (tr >= DATA.trucks.max) trow.appendChild(h('span', { 'class': 'owned-tag', text: 'Max' }));
+      else {
+        var tc = truckCost(tr), tb = buyBtn('truck', fmtMoney(tc), 'Buy truck', tc, function () {
+          if (!can(tc)) return;
+          state.money -= tc; state.trucks++; SND.chime(); save(); say('Truck bought', true); renderStats(); renderCrew();
+        });
+        tb.setAttribute('aria-label', 'Buy truck ' + (tr + 1) + ' for ' + dollarsWords(tc));
+        trow.appendChild(tb); live.crew.push(function () { setOff(tb, !can(tc)); });
+      }
+      tl.appendChild(trow);
+      $('cRate').textContent = fmtRate(crewIncome(state));
+      $('cCap').textContent = fmtDur(offlineCapSec(state));
+    });
+  }
+
+  function renderFran() {
+    var box = $('franPanel'), o = franchiseOffer(state), need = o.need, lifeNeed = need * need * DATA.franchise.fpDiv;
+    live.fran = [];
+    keepFocus(function () {
+      clear(box);
+      box.appendChild(h('h2', { 'class': 'sec-title', text: 'Franchise' }));
+      box.appendChild(h('p', { text: 'Franchise your business to start over with a permanent income boost. Each point adds ' + Math.round(DATA.franchise.perPoint * 100) + ' percent to everything your crew earns and to job pay.' }));
+      box.appendChild(h('div', { 'class': 'sumbar' }, [
+        h('div', { 'class': 'sum' }, [h('span', { 'class': 'lab', text: 'Franchise points' }), h('span', { 'class': 'v', text: NF.format(state.fp) + ' (x' + franchiseMult(state.fp).toFixed(2) + ')' })]),
+        h('div', { 'class': 'sum' }, [h('span', { 'class': 'lab', text: 'Gain now' }), h('span', { 'class': 'v', text: '+' + NF.format(o.gain) })])
+      ]));
+      var keep = h('div', { 'class': 'cols2' }, [
+        h('div', {}, [h('h3', { 'class': 'lab', text: 'You keep' }), h('ul', { 'class': 'list' }, ['Job stars', 'Franchise points', 'Rig colours', 'Your settings'].map(function (t) { return h('li', { text: t }); }))]),
+        h('div', {}, [h('h3', { 'class': 'lab', text: 'You lose' }), h('ul', { 'class': 'list' }, ['Cash', 'Rig upgrades and gear', 'Crew and trucks'].map(function (t) { return h('li', { text: t }); }))])
+      ]);
+      box.appendChild(keep);
+      var fb = h('button', { type: 'button', 'class': 'btn gold', 'data-key': 'franchise', text: o.can ? 'Franchise for +' + NF.format(o.gain) + ' points' : 'Franchise (not ready yet)' });
+      if (!o.can) {
+        fb.setAttribute('aria-disabled', 'true');
+        box.appendChild(h('p', { 'class': 'fine', text: 'You can franchise once it would give at least ' + need + ' points. That takes ' + fmtMoney(lifeNeed) + ' earned this run. You have earned ' + fmtMoney(state.lifetime) + '.' }));
+        fb.addEventListener('click', function () { toast('Not ready yet: earn ' + fmtMoney(Math.max(0, lifeNeed - state.lifetime)) + ' more.'); });
+      } else {
+        twoTap(fb, 'Franchise for +' + NF.format(o.gain) + ' points', 'Sure? Tap again to reset and gain +' + NF.format(o.gain), doFranchise);
+      }
+      box.appendChild(fb);
+      box.appendChild(h('h3', { 'class': 'lab', text: 'Rig colour' }));
+      var sw = h('div', { 'class': 'swatches', role: 'group', 'aria-label': 'Rig colour' });
+      DATA.franchise.colors.forEach(function (c) {
+        var ok = state.fp >= c.fp;
+        var b = h('button', { type: 'button', 'class': 'sw', 'data-key': 'col-' + c.id, style: 'background:' + c.hex, 'aria-pressed': String(state.color === c.id), 'aria-label': c.name + (ok ? '' : ', unlocks at ' + c.fp + ' points') });
+        if (!ok) b.disabled = true;
+        b.addEventListener('click', function () { state.color = c.id; save(); renderFran(); });
+        sw.appendChild(b);
+      });
+      box.appendChild(sw);
+      box.appendChild(h('p', { 'class': 'fine', text: 'More colours unlock as you earn points.' }));
+    });
+  }
+  function doFranchise() {
+    var o = franchiseOffer(state);
+    if (!o.can) return;
+    state = applyFranchise(state);
+    state.savedAt = Date.now();
+    save(); applyCalm();
+    SND.jingle(); toast('Franchised! Income is now x' + franchiseMult(state.fp).toFixed(2) + '.'); say('Franchised. You have ' + state.fp + ' points.', true);
+    portalBreak('franchise');
+    renderAll(); selectTab('jobs', true);
+  }
+
+  function renderBoard() { renderStats(); renderJobs(); renderRig(); renderCrew(); renderFran(); }
+  function renderAll() { renderBoard(); applyCalm(); }
+  function selectTab(name, focus) {
+    tabName = name;
+    ['jobs', 'rig', 'crew', 'fran'].forEach(function (n) {
+      var on = n === name, t = $('tb-' + n);
+      t.setAttribute('aria-selected', on ? 'true' : 'false'); t.tabIndex = on ? 0 : -1;
+      $('tab-' + n).hidden = !on;
+    });
+    if (focus) $('tb-' + name).focus();
+    refreshLive();
+  }
+  function refreshLive() { var l = live[tabName] || []; for (var i = 0; i < l.length; i++) l[i](); }
+  function tabDots() {
+    var af = DATA.upgrades.some(function (u) { return state.up[u.id] < u.max && can(upgradeCost(u.id, state.up[u.id])); }) || DATA.gear.some(function (g) { return !state.gear[g.id] && can(g.cost); });
+    var cf = DATA.crew.some(function (c) { return can(crewCost(c.id, state.crew[c.id])); });
+    var ff = franchiseOffer(state).can;
+    [['rig', af, 'Rig'], ['crew', cf, 'Crew'], ['fran', ff, 'Franchise']].forEach(function (a) {
+      var t = $('tb-' + a[0]), has = !!t.querySelector('.dot');
+      if (a[1] && !has && tabName !== a[0]) { t.appendChild(h('span', { 'class': 'dot', 'aria-hidden': 'true' })); t.setAttribute('aria-label', a[2] + ', something to buy'); }
+      else if ((!a[1] || tabName === a[0]) && has) { t.removeChild(t.querySelector('.dot')); t.removeAttribute('aria-label'); }
+    });
+  }
+
+  /* ================= settings, offline pay, income tick, start up ================= */
+  /* Future portal hooks. They do nothing on purpose: no ad or portal code lives in this page. */
+  function portalBreak(reason) { return reason; }
+  function portalRewarded() { return false; }
+
+  function durWords(secs) {
+    var m = Math.max(1, Math.round(secs / 60)), hh = Math.floor(m / 60), r = m % 60;
+    if (hh <= 0) return m + (m === 1 ? ' minute' : ' minutes');
+    var s = hh + (hh === 1 ? ' hour' : ' hours');
+    return r ? s + ' ' + r + (r === 1 ? ' minute' : ' minutes') : s;
+  }
+  function showBack(secs, earned, capped) {
+    $('backText').textContent = 'Welcome back! Your crew earned ' + fmtMoney(earned) + ' in ' + durWords(secs) + ' while you were away.' + (capped ? ' That hit the away cap. Trucks raise it.' : '');
+    $('backNote').hidden = false;
+    say('Welcome back. Your crew earned ' + dollarsWords(earned) + ' while you were away.', true);
+  }
+  var lastTick = 0, lastSaveAt = 0;
+  function tick() {
+    var now = Date.now();
+    if (!lastTick || now < lastTick) { lastTick = now; return; }
+    var raw = (now - lastTick) / 1000, cap = offlineCapSec(state), dt = Math.min(raw, cap);
+    lastTick = now;
+    var inc = crewIncome(state);
+    if (inc > 0 && dt > 0) {
+      var add = inc * dt;
+      state.money = Math.min(MAX_MONEY, state.money + add); state.lifetime = Math.min(MAX_MONEY, state.lifetime + add); state.earned += add;
+      if (raw > 90) showBack(dt, add, raw > cap);
+    }
+    renderStats(); refreshLive(); tabDots();
+    if (now - lastSaveAt > 6000) { lastSaveAt = now; if (inc > 0) save(); }
+  }
+
+  function setToggle(btn, on) { btn.setAttribute('aria-pressed', on ? 'true' : 'false'); btn.textContent = on ? 'On' : 'Off'; }
+  function openSettings(opener) {
+    setToggle($('togSound'), state.set.sound); setToggle($('togCalm'), state.set.calm);
+    $('saveText').value = ''; $('saveMsg').textContent = '';
+    openModal($('setModal'), opener);
+  }
+  function wireSettings() {
+    $('setBtn').addEventListener('click', function () { openSettings(this); });
+    $('setClose').addEventListener('click', closeModal);
+    $('muteBtn').addEventListener('click', function () { state.set.sound = !state.set.sound; if (state.set.sound) audioStart(); else hissSet(0); save(); renderStats(); if (state.set.sound) SND.click(); });
+    $('togSound').addEventListener('click', function () { state.set.sound = !state.set.sound; if (state.set.sound) audioStart(); else hissSet(0); setToggle(this, state.set.sound); save(); renderStats(); SND.click(); });
+    $('togCalm').addEventListener('click', function () { state.set.calm = !state.set.calm; applyCalm(); setToggle(this, state.set.calm); save(); });
+    $('expBtn').addEventListener('click', function () {
+      var code = exportCode(state);
+      $('saveText').value = code;
+      $('saveMsg').textContent = 'Your save code is in the box. Keep it somewhere safe.';
+      copyText(code, 'Save code copied');
+    });
+    var impArmed = false, impTimer;
+    function disarm() { impArmed = false; $('impBtn').textContent = 'Import save'; clearTimeout(impTimer); }
+    $('impBtn').addEventListener('click', function () {
+      var r = importCode($('saveText').value);
+      if (!r.ok) { $('saveMsg').textContent = $('saveText').value.trim() ? r.error : 'Paste a save code into the box first.'; disarm(); return; }
+      if (!impArmed) { impArmed = true; this.textContent = 'Tap again to replace'; $('saveMsg').textContent = 'That code is good. It will replace the progress on this device. Tap again to continue.'; impTimer = setTimeout(disarm, 4000); return; }
+      disarm();
+      state = r.state; state.savedAt = Date.now(); lastTick = Date.now();
+      save(); applyCalm(); renderAll(); setToggle($('togSound'), state.set.sound); setToggle($('togCalm'), state.set.calm);
+      $('saveMsg').textContent = 'Save loaded.';
+      toast('Save loaded.');
+    });
+    twoTap($('resetBtn'), 'Reset everything', 'Tap again to erase all progress', function () {
+      state = freshState(); lastTick = Date.now();
+      save(); applyCalm(); renderAll(); closeModal(); selectTab('jobs');
+      toast('Everything was reset.');
+      startJob('driveway');
+    });
+  }
+
+  function wireWash() {
+    el.fx.addEventListener('pointerdown', onDown);
+    el.fx.addEventListener('pointermove', onMove);
+    el.fx.addEventListener('pointerup', onUp);
+    el.fx.addEventListener('pointercancel', onUp);
+    el.fx.addEventListener('lostpointercapture', onUp);
+    el.fx.addEventListener('pointerleave', function (e) { if (e.pointerType === 'mouse' && !inp.down) inp.aim = false; });
+    el.fx.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+    $('pauseBtn').addEventListener('click', togglePause);
+    $('resumeBtn').addEventListener('click', togglePause);
+    twoTap($('leaveBtn'), 'Leave job', 'Tap again to leave', function () { if (!G) return; leaveWash(); });
+    document.addEventListener('keydown', function (e) { onKey(e, true); });
+    document.addEventListener('keyup', function (e) { onKey(e, false); });
+    window.addEventListener('blur', function () { if (G) releaseAll(); });
+    document.addEventListener('visibilitychange', function () {
+      if (document.hidden) { if (G && G.phase === 'play' && !G.paused) togglePause(); hissSet(0); if (state) save(); }
+      else { lastT = performance.now(); }
+    });
+    window.addEventListener('pagehide', function () { if (state) save(); });
+    var rz = 0;
+    function onResize() { cancelAnimationFrame(rz); rz = requestAnimationFrame(function () { if (G) layoutWash(false); }); }
+    window.addEventListener('resize', onResize);
+    window.addEventListener('orientationchange', onResize);
+    if (window.ResizeObserver) { try { new ResizeObserver(onResize).observe(el.stage); } catch (e) { /* the window resize event is enough */ } }
+    $('rNext').addEventListener('click', function () { resultGo('next'); });
+    $('rShop').addEventListener('click', function () { resultGo('shop'); });
+    $('rShare').addEventListener('click', shareResult);
+    var ba = el.ba, drag = false;
+    ba.addEventListener('pointerdown', function (e) { drag = true; cancelAnimationFrame(baAnim); try { ba.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ } baFromEvent(e); });
+    ba.addEventListener('pointermove', function (e) { if (drag) baFromEvent(e); });
+    ba.addEventListener('pointerup', function () { drag = false; });
+    ba.addEventListener('pointercancel', function () { drag = false; });
+    ba.addEventListener('keydown', function (e) {
+      var d = { ArrowLeft: -5, ArrowDown: -5, ArrowRight: 5, ArrowUp: 5 }[e.key];
+      if (d) { e.preventDefault(); cancelAnimationFrame(baAnim); setBA(baPos + d); }
+      else if (e.key === 'Home') { e.preventDefault(); setBA(0); } else if (e.key === 'End') { e.preventDefault(); setBA(100); }
+    });
+  }
+  function wireBoard() {
+    var tabs = ['jobs', 'rig', 'crew', 'fran'];
+    tabs.forEach(function (n) {
+      $('tb-' + n).addEventListener('click', function () { selectTab(n, false); });
+      $('tb-' + n).addEventListener('keydown', function (e) {
+        var i = tabs.indexOf(n), j = -1;
+        if (e.key === 'ArrowRight') j = (i + 1) % tabs.length; else if (e.key === 'ArrowLeft') j = (i + tabs.length - 1) % tabs.length;
+        else if (e.key === 'Home') j = 0; else if (e.key === 'End') j = tabs.length - 1;
+        if (j >= 0) { e.preventDefault(); selectTab(tabs[j], true); }
+      });
+    });
+    $('backOk').addEventListener('click', function () { $('backNote').hidden = true; });
+    $('rewardBtn').addEventListener('click', function () { portalRewarded(); });
+    $('sheetClose').addEventListener('click', function () { $('sheet').hidden = true; });
+    var sup = document.querySelector('.mail');
+    if (sup) sup.textContent = SUPPORT;
+    var mc = document.querySelector('.mail-copy');
+    if (mc) mc.addEventListener('click', function () { copyText(SUPPORT, 'Address copied'); });
+  }
+
+  function init() {
+    ['stage:stage', 'scene:cScene', 'dirt:cDirt', 'wetC:cWet', 'foamC:cFoam', 'fx:cFx', 'tipRow:tipRow', 'wName:wName', 'wFill:wFill', 'wPct:wPct', 'wTough:wTough', 'wFlow:wFlow', 'wPay:wPay', 'wHint:wHint', 'wFlash:wFlash',
+     'wPause:wPause', 'tut:wTut', 'tutB:wTutB', 'tutS:wTutS', 'tank:wTank', 'tankBox:wTankBox', 'rRows:rRows', 'rTitle:rTitle', 'rStars:rStars', 'rNote:rNote', 'ba:ba', 'baBefore:baBefore',
+     'baAfter:baAfter', 'rNext:rNext', 'rShop:rShop', 'rShare:rShare'].forEach(function (p) { var a = p.split(':'); el[a[0]] = $(a[1]); });
+    el.fxc = el.fx.getContext('2d');
+    makeSprites();
+    var saved = load();
+    state = saved || freshState();
+    applyCalm();
+    var oc = offlineCredit(state, Date.now());
+    if (oc.secs >= 60 && oc.earned >= 1) {
+      state.money = Math.min(MAX_MONEY, state.money + oc.earned); state.lifetime = Math.min(MAX_MONEY, state.lifetime + oc.earned); state.earned += oc.earned;
+      showBack(oc.secs, oc.earned, oc.capped);
+    }
+    lastTick = Date.now();
+    wireBoard(); wireWash(); wireSettings();
+    renderAll(); selectTab('jobs', false);
+    setInterval(tick, 250);
+    if (TEST) exposeTestHooks();
+    else if (!state.tut) startJob('driveway', true);
+  }
+
+  /* ---------- test hooks: only when the address ends in #test, otherwise this object never exists ---------- */
+  function exposeTestHooks() {
+    window.__grime = {
+      seed: null, PURE: PURE, inp: inp,
+      state: function () { return state; },
+      G: function () { return G; },
+      setState: function (patch) { for (var k in patch) state[k] = patch[k]; renderAll(); },
+      replaceState: function (s) { state = sanitize(s) || freshState(); applyCalm(); renderAll(); },
+      grant: function (n) { state.money += n; state.lifetime += n; state.earned += n; renderAll(); },
+      advance: function (ms) { var n = Math.round(ms / (1000 / 60)); for (var i = 0; i < n; i++) advance(STEP); },
+      start: function (id) { startJob(id); },
+      pointer: function (x, y, down) { inp.x = x; inp.y = y; inp.down = !!down; inp.aim = true; if (down) surfaceTap(); },
+      income: function (secs) { var a = crewIncome(state) * secs; state.money += a; state.lifetime += a; state.earned += a; renderAll(); },
+      tip: function (id) { setTip(id, true); },
+      surface: function () { setSurface(true); },
+      pause: function () { togglePause(); },
+      finish: function () { var w = G.w; for (var i = 0; i < w.thick.length; i++) if (w.thick[i] > 0) { w.thick[i] = 0; w.left--; markChanged(w, i); if (w.tough[i]) w.toughDone++; } },
+      save: save, tick: tick, renderAll: renderAll, toast: toast
+    };
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
+</script>

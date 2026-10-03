@@ -1,7 +1,7 @@
 """Icon art shared by the hub page, its share image and its home screen icon.
 
-The five web tools reuse the exact art from their own favicons so the hub shows the same tiles people
-see in their browser tabs (site_check.py compares the Rinse Rate and Drive Rate tiles with those pages' favicons).
+The six web tools reuse the exact art from their own favicons so the hub shows the same tiles people
+see in their browser tabs (site_check.py compares the Rinse Rate, Drive Rate and Grime Time tiles with those pages' favicons).
 Tuner's tile follows the three-bar mark on its page.
 All art lives in a 40 x 40 box with a rounded square ground.
 """
@@ -63,6 +63,17 @@ TUNER = (
     '<rect x="9.5" y="21" width="5" height="9" rx="1.6" fill="#FFD23F"/>'
     '<rect x="17.5" y="10" width="5" height="20" rx="1.6" fill="#FFD23F"/>'
     '<rect x="25.5" y="16" width="5" height="14" rx="1.6" fill="#FFD23F"/>',
+)
+
+# A spray fan coming off a wand, with three drops. Same markup as MARK_ON_BRAND in build_grime.py (the favicon).
+GRIME_TIME = (
+    '#A21CAF',
+    '<g transform="translate(1.9 2.1) scale(.9)">'
+    '<path d="M20.5 20.5L38 13.5A19 19 0 0 0 27 2.5Z" fill="#fff" fill-opacity=".94"/>'
+    '<path d="M5 35L15.5 24.5" fill="none" stroke="#F5D0FE" stroke-width="4.6" stroke-linecap="round"/>'
+    '<path d="M14 26L19 21" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round"/>'
+    '<circle cx="33.5" cy="23" r="1.9" fill="#fff"/><circle cx="29" cy="28.5" r="1.4" fill="#fff"/><circle cx="36.5" cy="29" r="1.2" fill="#fff"/>'
+    '</g>',
 )
 
 

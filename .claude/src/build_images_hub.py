@@ -21,6 +21,7 @@ ROWS = [
     ('Drive Rate', ic.DRIVE_RATE),
     ('Used GPU Check', ic.GPU_CHECK),
     ('Tuner for YouTube', ic.TUNER),
+    ('Grime Time', ic.GRIME_TIME),
 ]
 
 
@@ -44,18 +45,18 @@ body{{position:relative;background:#E5E9EB;color:#0F181D;font-family:'Public San
 .brand svg{{width:58px;height:58px}}
 .brand span{{font:800 50px/1 'Big Shoulders Display','Arial Narrow',sans-serif;letter-spacing:.03em}}
 h1{{font:800 108px/.92 'Big Shoulders Display','Arial Narrow',sans-serif;letter-spacing:-.005em}}
-.sub{{font:400 28px/1.35 'Public Sans',sans-serif;max-width:520px}}
-.list{{position:absolute;right:72px;top:60px;bottom:60px;width:430px;display:flex;flex-direction:column;border-bottom:3px solid #0F181D}}
+.sub{{font:400 28px/1.35 'Public Sans',sans-serif;max-width:520px;text-wrap:balance}}
+.list{{position:absolute;right:72px;top:52px;bottom:52px;width:430px;display:flex;flex-direction:column;border-bottom:3px solid #0F181D}}
 .r{{flex:1;display:flex;align-items:center;gap:20px;border-top:3px solid #0F181D}}
-.t{{width:66px;height:66px;border-radius:22.5%;flex:none;display:block}}
-.r b{{font:800 40px/1 'Big Shoulders Display','Arial Narrow',sans-serif;letter-spacing:.01em}}
+.t{{width:56px;height:56px;border-radius:22.5%;flex:none;display:block}}
+.r b{{font:800 38px/1 'Big Shoulders Display','Arial Narrow',sans-serif;letter-spacing:.01em}}
 </style></head><body>
 <div class="left">
   <div class="brand">{ic.mark_svg()}<span>Xysti Software</span></div>
   <div>
     <h1>Small tools for specific jobs.</h1>
   </div>
-  <p class="sub">Free calculators, checkers and add-ons.</p>
+  <p class="sub">Free calculators, checkers, a game and add-ons.</p>
 </div>
 <div class="list">
 {rows}
