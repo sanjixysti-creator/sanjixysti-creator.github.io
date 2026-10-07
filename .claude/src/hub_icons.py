@@ -1,7 +1,7 @@
 """Icon art shared by the hub page, its share image and its home screen icon.
 
-The six web tools reuse the exact art from their own favicons so the hub shows the same tiles people
-see in their browser tabs (site_check.py compares the Rinse Rate, Drive Rate and Grime Time tiles with those pages' favicons).
+The web tools reuse the exact art from their own favicons so the hub shows the same tiles people
+see in their browser tabs (site_check.py compares the Rinse Rate, Drive Rate, Grime Time and QR Forever tiles with those pages' favicons).
 Tuner's tile follows the three-bar mark on its page.
 All art lives in a 40 x 40 box with a rounded square ground.
 """
@@ -74,6 +74,14 @@ GRIME_TIME = (
     '<path d="M14 26L19 21" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round"/>'
     '<circle cx="33.5" cy="23" r="1.9" fill="#fff"/><circle cx="29" cy="28.5" r="1.4" fill="#fff"/><circle cx="36.5" cy="29" r="1.2" fill="#fff"/>'
     '</g>',
+)
+
+# Three finder squares and a few data squares, like a QR code. Same markup as MARK_ON_BRAND in build_qr.py (the favicon).
+QR_FOREVER = (
+    '#15803D',
+    '<g transform="translate(5.2 5.2) scale(.74)" fill="#fff">'
+    '<path fill-rule="evenodd" d="M3 3h14v14H3zM6.2 6.2v7.6h7.6V6.2zM23 3h14v14H23zM26.2 6.2v7.6h7.6V6.2zM3 23h14v14H3zM6.2 26.2v7.6h7.6v-7.6z"/>'
+    '<path d="M8.2 8.2h3.6v3.6H8.2zM28.2 8.2h3.6v3.6h-3.6zM8.2 28.2h3.6v3.6H8.2zM23 23h5.5v5.5H23zM31.5 23H37v5.5h-5.5zM23 31.5h5.5V37H23zM31.5 31.5H37V37h-5.5z"/></g>',
 )
 
 

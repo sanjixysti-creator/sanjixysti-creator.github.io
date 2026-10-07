@@ -22,6 +22,7 @@ ROWS = [
     ('Used GPU Check', ic.GPU_CHECK),
     ('Tuner for YouTube', ic.TUNER),
     ('Grime Time', ic.GRIME_TIME),
+    ('QR Forever', ic.QR_FOREVER),
 ]
 
 
@@ -56,7 +57,7 @@ h1{{font:800 108px/.92 'Big Shoulders Display','Arial Narrow',sans-serif;letter-
   <div>
     <h1>Small tools for specific jobs.</h1>
   </div>
-  <p class="sub">Free calculators, checkers, a game and add-ons.</p>
+  <p class="sub">Free calculators, checkers, a QR code maker, a game and add-ons.</p>
 </div>
 <div class="list">
 {rows}

@@ -1,5 +1,9 @@
-import hashlib, os, pathlib, re, subprocess
+import hashlib, io, os, pathlib, re, subprocess
 from urllib.parse import urlparse
+
+import numpy as np
+import zxingcpp
+from PIL import Image
 from playwright.sync_api import sync_playwright
 
 ROOT = 'https://sanjixysti-creator.github.io/'
@@ -30,6 +34,7 @@ TITLES = {
     'drive-rate/': 'Drive Rate: Is This Delivery Offer Worth It? Free Calculator',
     'gpu-check/': 'Used GPU Check: Free Risk and Price Checker',
     'grime-time/': 'Grime Time: Free Pressure Washing Game, Idle and Satisfying',
+    'qr-forever/': 'QR Forever: Free QR Code Generator That Never Expires',
 }
 
 with sync_playwright() as p:
@@ -56,6 +61,7 @@ with sync_playwright() as p:
                 'rinse-rate/index.html', 'rinse-rate/privacy.html', 'rinse-rate/og.png', 'rinse-rate/apple-touch-icon.png',
                 'drive-rate/index.html', 'drive-rate/privacy.html', 'drive-rate/og.png', 'drive-rate/apple-touch-icon.png',
                 'grime-time/index.html', 'grime-time/privacy.html', 'grime-time/og.png', 'grime-time/apple-touch-icon.png',
+                'qr-forever/index.html', 'qr-forever/privacy.html', 'qr-forever/og.png', 'qr-forever/apple-touch-icon.png',
                 'gpu-check/index.html', 'gpu-check/privacy.html', '404.html', 'sitemap.xml', 'robots.txt'):
         url = ROOT + ('?v=bytes' if rel == 'index.html' else rel)
         r = pg.request.get(url)
@@ -67,7 +73,7 @@ with sync_playwright() as p:
     # the hidden notes are not served anywhere
     for u in ('.claude/CLAUDE.md', 'claude/CLAUDE.md', 'CLAUDE.md', '.claude/', '.claude'):
         eq('%s is not public' % u, pg.request.get(ROOT + u + '?x=1').status, 404)
-    eq('no notes text leaks into any page', any('Notes for Claude' in pg.request.get(ROOT + u).text() for u in ('', 'tuner/', 'rinse-quote/', 'rinse-mix/', 'rinse-rate/', 'drive-rate/', 'gpu-check/', 'grime-time/')), False)
+    eq('no notes text leaks into any page', any('Notes for Claude' in pg.request.get(ROOT + u).text() for u in ('', 'tuner/', 'rinse-quote/', 'rinse-mix/', 'rinse-rate/', 'drive-rate/', 'gpu-check/', 'grime-time/', 'qr-forever/')), False)
     ctx.close()
 
     # 2. each page loads cleanly
@@ -82,7 +88,7 @@ with sync_playwright() as p:
         ctx, pg = new('', scheme=scheme)
         faces = pg.evaluate('''async () => { const o = []; for (const f of [...document.fonts]) { try { await f.load(); o.push(f.status); } catch (e) { o.push('ERR'); } } return o; }''')
         eq('hub fonts loaded (%s)' % scheme, faces, ['loaded'] * 3)
-        eq('hub rows (%s)' % scheme, pg.eval_on_selector_all('.row h3 a', 'els => els.map(e => e.textContent.trim())'), ['Rinse Quote', 'Rinse Mix', 'Rinse Rate', 'Drive Rate', 'Used GPU Check', 'Tuner for YouTube', 'Grime Time'])
+        eq('hub rows (%s)' % scheme, pg.eval_on_selector_all('.row h3 a', 'els => els.map(e => e.textContent.trim())'), ['Rinse Quote', 'Rinse Mix', 'Rinse Rate', 'Drive Rate', 'Used GPU Check', 'Tuner for YouTube', 'Grime Time', 'QR Forever'])
         og = pg.evaluate('''() => new Promise(res => { const i = new Image(); i.onload = () => res([i.naturalWidth, i.naturalHeight]); i.onerror = () => res(null); i.src = document.querySelector('meta[property="og:image"]').content; })''')
         eq('hub share image loads at 1200x630 (%s)' % scheme, og, [1200, 630])
         eq('hub canonical', pg.get_attribute('link[rel=canonical]', 'href'), ROOT)
@@ -91,14 +97,14 @@ with sync_playwright() as p:
         ctx.close()
 
     # 4. click through from the hub to every tool and back by the site's own links
-    for i, path in enumerate(['rinse-quote/', 'rinse-mix/', 'rinse-rate/', 'drive-rate/', 'gpu-check/', 'tuner/', 'grime-time/']):
+    for i, path in enumerate(['rinse-quote/', 'rinse-mix/', 'rinse-rate/', 'drive-rate/', 'gpu-check/', 'tuner/', 'grime-time/', 'qr-forever/']):
         title = TITLES[path]
         ctx, pg = new('')
         pg.locator('.row h3 a').nth(i).click()
         pg.wait_for_url(ROOT + path)
         eq('hub opens %s' % path, pg.title(), title)
         ctx.close()
-    for path in ('rinse-quote/', 'rinse-mix/', 'rinse-rate/', 'drive-rate/', 'gpu-check/', 'grime-time/'):
+    for path in ('rinse-quote/', 'rinse-mix/', 'rinse-rate/', 'drive-rate/', 'gpu-check/', 'grime-time/', 'qr-forever/'):
         ctx, pg = new(path)
         if path == 'grime-time/':
             # a first visit opens straight into the tutorial job, which covers the page: leave the job (two taps) to reach the board and its footer
@@ -202,9 +208,34 @@ with sync_playwright() as p:
     eq('grime privacy page opens', pg.title(), 'Privacy Policy - Grime Time')
     ctx.close()
 
+    # 6d. QR Forever works from the live site with real typing (a normal visit has no test hooks), and the code it draws reads back
+    ctx, pg = new('qr-forever/')
+    eq('qr opens on its sample', (pg.is_visible('#sampleTag'), pg.evaluate('() => typeof window.__qr')), (True, 'undefined'))
+    pg.fill('#f-url', 'sanjixysti-creator.github.io/qr-forever/')
+    pg.wait_for_timeout(400)
+    eq('qr is ready after typing', pg.inner_text('#status').strip(), 'Ready. Download it, print it or copy it.')
+    shown = zxingcpp.read_barcodes(np.asarray(Image.open(io.BytesIO(pg.locator('#cv').screenshot())).convert('L')))
+    eq('qr the code on the screen reads as the typed address', [s.text for s in shown], [ROOT + 'qr-forever/'])
+    with pg.expect_download() as dl:
+        pg.click('#barPng')
+    got = zxingcpp.read_barcodes(np.asarray(Image.open(dl.value.path()).convert('L')))
+    eq('qr the downloaded PNG reads the same', ([s.text for s in got], dl.value.suggested_filename), ([ROOT + 'qr-forever/'], 'qr-link.png'))
+    eq('qr has no sideways scroll', pg.evaluate('document.documentElement.scrollWidth <= document.documentElement.clientWidth'), True)
+    pg.screenshot(path=D + '/live-qr.png')
+    ctx.close()
+    ctx, pg = new('qr-forever/', scheme='dark')
+    pg.screenshot(path=D + '/live-qr-dark.png')
+    og = pg.evaluate('''() => new Promise(res => { const i = new Image(); i.onload = () => res([i.naturalWidth, i.naturalHeight]); i.onerror = () => res(null); i.src = document.querySelector('meta[property="og:image"]').content; })''')
+    eq('qr share image loads at 1200x630', og, [1200, 630])
+    eq('qr canonical', pg.get_attribute('link[rel=canonical]', 'href'), ROOT + 'qr-forever/')
+    ctx.close()
+    ctx, pg = new('qr-forever/privacy.html')
+    eq('qr privacy page opens', pg.title(), 'Privacy Policy - QR Forever')
+    ctx.close()
+
     # 7. the sitemap lists it, and a missing address still gets the not-found page
     ctx, pg = new('')
-    eq('sitemap lists rinse-rate, drive-rate and grime-time', [ROOT + 'rinse-rate/' in pg.request.get(ROOT + 'sitemap.xml?x=1').text(), ROOT + 'drive-rate/' in pg.request.get(ROOT + 'sitemap.xml?x=2').text(), ROOT + 'grime-time/' in pg.request.get(ROOT + 'sitemap.xml?x=3').text()], [True, True, True])
+    eq('sitemap lists rinse-rate, drive-rate, grime-time and qr-forever', [ROOT + 'rinse-rate/' in pg.request.get(ROOT + 'sitemap.xml?x=1').text(), ROOT + 'drive-rate/' in pg.request.get(ROOT + 'sitemap.xml?x=2').text(), ROOT + 'grime-time/' in pg.request.get(ROOT + 'sitemap.xml?x=3').text(), ROOT + 'qr-forever/' in pg.request.get(ROOT + 'sitemap.xml?x=4').text()], [True, True, True, True])
     r = pg.request.get(ROOT + 'no/such/page/at/this/depth')
     eq('a missing address answers 404 with the page', (r.status, 'Nothing here.' in r.text()), (404, True))
     ctx.close()

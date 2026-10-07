@@ -23,6 +23,7 @@ PAGES = [
     ('gpu-check/', 'gpu-check/index.html'),
     ('tuner/', 'tuner/index.html'),
     ('grime-time/', 'grime-time/index.html'),
+    ('qr-forever/', 'qr-forever/index.html'),
 ]
 
 

@@ -21,12 +21,12 @@ OUT = REPO / 'index.html'
 
 SITE_URL = 'https://sanjixysti-creator.github.io/'
 TITLE = 'Xysti Software: Small Free Tools for Specific Jobs'
-DESC = ('Free calculators, checkers, a game and browser add-ons: pressure washing quotes and job profit, '
+DESC = ('Free calculators, checkers, a QR code maker, a game and add-ons: pressure washing quotes, '
         'delivery offer checks, used GPU checks and a YouTube extension.')
 OG_DESC = ('Small free tools for specific jobs: pressure washing quotes and job profit, delivery offer checks, '
-           'used GPU checks, a pressure washing game and a YouTube extension.')
+           'used GPU checks, a QR code maker, a pressure washing game and a YouTube extension.')
 OG_ALT = ('Xysti Software, small free tools for specific jobs, with the icons of Rinse Quote, Rinse Mix, '
-          'Rinse Rate, Drive Rate, Used GPU Check, Tuner for YouTube and Grime Time.')
+          'Rinse Rate, Drive Rate, Used GPU Check, Tuner for YouTube, Grime Time and QR Forever.')
 BG_LIGHT = '#E5E9EB'
 BG_DARK = '#11171B'
 
@@ -81,7 +81,8 @@ def main():
               .replace('@@TILE_DRIVE@@', ic.tile_svg(ic.DRIVE_RATE))
               .replace('@@TILE_GPU@@', ic.tile_svg(ic.GPU_CHECK))
               .replace('@@TILE_TUNER@@', ic.tile_svg(ic.TUNER))
-              .replace('@@TILE_GRIME@@', ic.tile_svg(ic.GRIME_TIME)))
+              .replace('@@TILE_GRIME@@', ic.tile_svg(ic.GRIME_TIME))
+              .replace('@@TILE_QR@@', ic.tile_svg(ic.QR_FOREVER)))
     problems = []
     if '@@' in out:
         problems.append('unreplaced placeholder')
@@ -89,8 +90,8 @@ def main():
         problems.append('dash character found')
     if not 61 <= len(DESC) <= 160:
         problems.append(f'description length {len(DESC)}')
-    if len(re.findall(r'<li class="row"', out)) != 7:
-        problems.append('expected seven rows')
+    if len(re.findall(r'<li class="row"', out)) != 8:
+        problems.append('expected eight rows')
     # Every internal link must exist in the site repo.
     for href in re.findall(r'href="([^"#:]+)"', out):
         if href.startswith(('data:', 'http')):

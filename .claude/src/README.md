@@ -12,19 +12,25 @@ Tool pages (edit these, never the built index.html files):
 - grime-time.html: the Grime Time game, built the same way (one fragment). Its pure economy and wash
   code sits between the PURE-BEGIN and PURE-END comments, so Node can load it for the simulator and the
   tests. grime-time-notes.md explains its text, pacing, save format, economy and what was never tested.
+- qr-forever.html: the QR Forever generator, built the same way (one fragment). The QR encoder, the text each
+  kind of code writes and the drawing maths sit between the PURE-BEGIN and PURE-END comments, so Node can
+  load them for the proof and the payload tests. qr-forever-notes.md explains its text, colours, tests,
+  decisions and what was never tested.
 
 Builders:
 - build_site.py: shared helpers (font embedding, base CSS) and the Rinse Quote build.
-- build_mix.py, build_gpu.py, build_rate.py, build_drive.py, build_grime.py: Rinse Mix, Used GPU Check,
-  Rinse Rate, Drive Rate and Grime Time. Each wraps its
+- build_mix.py, build_gpu.py, build_rate.py, build_drive.py, build_grime.py, build_qr.py: Rinse Mix, Used GPU
+  Check, Rinse Rate, Drive Rate, Grime Time and QR Forever. Each wraps its
   fragment into a full page with title, description, share tags, favicon, embedded fonts, and writes
   index.html plus privacy.html to site/<tool>/. Each refuses to build if it finds a dash character or a
   broken link.
 - build_images.py, build_images_mix.py, build_images_gpu.py, build_images_rate.py, build_images_drive.py,
-  build_images_grime.py: draw og.png (1200x630) and apple-touch-icon.png (180x180) for each tool into
-  site/<tool>/. The Rinse Rate, Drive Rate and Grime Time previews contain a real screenshot of the built
-  result, so run the matching build script before its build_images script. The Grime Time screenshot has
-  random sparkles, so a rebuilt og.png looks the same but is not byte identical to the published one.
+  build_images_grime.py, build_images_qr.py: draw og.png (1200x630) and apple-touch-icon.png (180x180) for each
+  tool into site/<tool>/. The Rinse Rate, Drive Rate, Grime Time and QR Forever previews contain a real
+  screenshot of the built result, so run the matching build script before its build_images script. The Grime
+  Time screenshot has random sparkles, so a rebuilt og.png looks the same but is not byte identical to the
+  published one. The QR Forever screenshot is not random, but Chromium may differ by a few bytes. Its code
+  is a real one for the site address, and build_images_qr.py reads it back and refuses a wrong one.
 - hub.src.html, hub_icons.py, build_hub.py, build_images_hub.py: the home page. These write straight
   into the site repo root (index.html, og.png, apple-touch-icon.png). Run build_images_hub.py first.
 - 404.src.html, build_404.py: the page GitHub Pages shows for an address that does not exist
@@ -37,6 +43,12 @@ Tests:
   each tool (maths against independent reference code, layout at many widths, contrast, tap sizes,
   keyboard, storage, share tags). rate_test.py and drive_test.py take a few minutes each, and
   grime_test.py about 4 to 5 minutes.
+- qr_proof.py with proof_core.js (the QR encoder against segno, zxing-cpp and OpenCV, about 10 minutes),
+  qr_pay_test.py with pay_core.js (the text each kind of code writes, checked with independent parsers) and
+  qr_test.py with qr_test_b.py, qr_test_c.py, qr_test_d.py and qr_harness.py (the QR Forever browser suite,
+  about 10 minutes). They need segno, zxing-cpp, opencv-python, numpy, vobject, icalendar, pillow and
+  playwright from pip, Node, and pdftoppm (poppler-utils) for the print test. qr_shots.py takes screenshots
+  of QR Forever at phone and desktop widths in both colour schemes.
 - grime_sim.js and livebot.js: the Grime Time pacing simulator (node grime_sim.js pace 2 1 0) and the
   bot that grime_test.py plays the live page with. Both need Node.
 - site_check.py: checks the home page, the 404 page, the sitemap, the /tuner/ page and the files that
@@ -56,6 +68,7 @@ Work in a scratch folder, not inside the repo.
     mkdir -p ~/work && cp -r "$SITE_REPO"/.claude/src/. ~/work/ && cd ~/work
     (cd fonts_build && npm install)
     pip install --break-system-packages fonttools brotli playwright pillow   # only if missing
+    pip install --break-system-packages segno zxing-cpp opencv-python numpy vobject icalendar   # only for the QR Forever tests
     node --version    # Node 18 or newer is needed by grime_test.py and grime_sim.js
 
 Playwright needs a Chromium. The scripts try the default install first, then
@@ -69,6 +82,7 @@ Build one tool (output lands in ~/work/site/<tool>/):
     python3 build_rate.py  && python3 build_images_rate.py   # Rinse Rate
     python3 build_drive.py && python3 build_images_drive.py  # Drive Rate
     python3 build_grime.py && python3 build_images_grime.py  # Grime Time
+    python3 build_qr.py    && python3 build_images_qr.py     # QR Forever
 
 Build the home page, the not-found page, the sitemap and robots.txt (these write into $SITE_REPO).
 The tool folders must already be in the repo first, because these builders check that every link
@@ -96,6 +110,9 @@ so a rebuilt page may differ from the live one by a few bytes while looking iden
     python3 grime_test.py                   # Grime Time fragment
     GRIME_STANDALONE=$PWD/site/grime-time/index.html python3 grime_test.py
     GRIME_SECTIONS=math,pace python3 grime_test.py   # a subset (names are listed in grime-time-notes.md)
+    python3 qr_proof.py all                 # QR encoder against segno, zxing-cpp and OpenCV (reads the fragment)
+    python3 qr_pay_test.py                  # what each kind of QR code writes (reads the fragment)
+    python3 qr_test.py                      # QR Forever, the built page (QR_STANDALONE=<index.html> for another copy, QR_ONLY=t_layout for one section)
     python3 site_check.py                   # home page, 404, sitemap, /tuner/, untouched files (reads $SITE_REPO)
 
 Every script prints failures and ends with a pass count. Zero failures is the bar before a push.
@@ -113,8 +130,8 @@ Google font requests, so text-fit checks are only meaningful on the built page w
 
 ## Add a new tool
 
-Build its fragment, builders and tests the way the existing ones are done (Grime Time is the newest
-example, and the only game), then wire it in:
+Build its fragment, builders and tests the way the existing ones are done (QR Forever is the newest
+example, Grime Time is the only game), then wire it in:
 1. hub_icons.py: add its tile art. hub.src.html: add a row (keep the order you want).
 2. build_hub.py: update the expected row count. build_images_hub.py: add it to ROWS.
 3. 404.src.html: add a row with root-absolute links (build_404.py checks the row count too).
@@ -144,16 +161,17 @@ https://www.irs.gov/tax-professionals/standard-mileage-rates each January and ag
   itself. Its starting car numbers (gas price, mpg and so on) are illustrative defaults: look at the gas
   price once a year, and rerun build_images_drive.py after changing the example offer.
 - The UPDATED date in build_rate.py and build_drive.py moves with these changes.
-- Grime Time quotes no rates, prices or dates, so it has nothing to update each year. The UPDATED date
-  in build_grime.py is its privacy page date: move it when that policy text changes.
+- Grime Time and QR Forever quote no rates, prices or dates, so they have nothing to update each year. The
+  UPDATED date in build_grime.py and build_qr.py is each privacy page date: move it when that policy text changes.
 
 ## If ads are ever added
 
 Every tool says it has no ads, so adding ads means editing those claims in the same change:
-- each tool's privacy.html (rinse-quote, rinse-mix, rinse-rate, drive-rate, gpu-check, grime-time) says
-  "no ads" in The short version and "No analytics, tracking pixels or advertising" under what the page
-  does not do. They are written by build_site.py, build_mix.py, build_gpu.py, build_rate.py,
-  build_drive.py and build_grime.py.
+- each tool's privacy.html (rinse-quote, rinse-mix, rinse-rate, drive-rate, gpu-check, grime-time,
+  qr-forever) says "no ads" in The short version and "No analytics, tracking pixels or advertising" under
+  what the page does not do. They are written by build_site.py, build_mix.py, build_gpu.py, build_rate.py,
+  build_drive.py, build_grime.py and build_qr.py.
+- QR Forever's og and twitter description (OG_DESC in build_qr.py) says "no ads".
 - Grime Time's page footer and its og and twitter description (OG_DESC in build_grime.py) say "no ads".
 - The home page footer says it sets no cookies and runs no analytics, which an ad network would break.
 Find them all with: grep -rniE "no ads|advertising|no cookies|no analytics" . (from the repo root).
