@@ -68,8 +68,9 @@ with sync_playwright() as p:
         eq('%s status' % rel, r.status, 200)
         eq('%s is byte for byte what was tested' % rel, sha(r.body()), sha((REPO / rel).read_bytes()))
     # the policy the store listing points at is what it was before today
-    old = subprocess.check_output(['git', '-C', str(REPO), 'show', 'a720c88:privacy.html'])
-    eq('privacy.html unchanged since before the move', sha(pg.request.get(ROOT + 'privacy.html').body()), sha(old))
+    # pinned by hash, so the check also works in a shallow clone that does not have the old commit
+    TUNER_PRIVACY_SHA = '5439050e17920b53aa8061c5e742c53b239aa53cf7a49d066a8047d9be935e69'
+    eq('privacy.html unchanged since before the move', sha(pg.request.get(ROOT + 'privacy.html').body()), TUNER_PRIVACY_SHA)
     # the hidden notes are not served anywhere
     for u in ('.claude/CLAUDE.md', 'claude/CLAUDE.md', 'CLAUDE.md', '.claude/', '.claude'):
         eq('%s is not public' % u, pg.request.get(ROOT + u + '?x=1').status, 404)
@@ -214,6 +215,9 @@ with sync_playwright() as p:
     pg.fill('#f-url', 'sanjixysti-creator.github.io/qr-forever/')
     pg.wait_for_timeout(400)
     eq('qr is ready after typing', pg.inner_text('#status').strip(), 'Ready. Download it, print it or copy it.')
+    # on a phone the pinned bar covers the bottom of the screen, so bring the code to the middle before taking its picture
+    pg.evaluate("document.getElementById('cv').scrollIntoView({block: 'center'})")
+    pg.wait_for_timeout(200)
     shown = zxingcpp.read_barcodes(np.asarray(Image.open(io.BytesIO(pg.locator('#cv').screenshot())).convert('L')))
     eq('qr the code on the screen reads as the typed address', [s.text for s in shown], [ROOT + 'qr-forever/'])
     with pg.expect_download() as dl:
